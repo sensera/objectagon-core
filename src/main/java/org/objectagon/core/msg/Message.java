@@ -4,11 +4,12 @@ package org.objectagon.core.msg;
  * Created by christian on 2015-10-06.
  */
 public interface Message {
-    Name getName();
+    MessageName getName();
 
     Value getValue(Field field);
 
-    interface Name {}
+    interface MessageName extends Name {}
+    interface FieldName extends Name {}
 
     interface Value {
         Field getField();
@@ -18,7 +19,7 @@ public interface Message {
     }
 
     interface Field {
-        Name getName();
+        FieldName getName();
         FieldType getFieldType();
     }
 

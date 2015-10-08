@@ -1,18 +1,17 @@
 package org.objectagon.core.msg.message;
 
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.address.BasicAddress;
 
 import java.util.Objects;
 
 /**
  * Created by christian on 2015-10-08.
  */
-public class MessageName implements Message.Name {
+public class MessageNameImpl implements Message.MessageName {
     private String name;
     private String protocolName;
 
-    public MessageName(String name, String protocolName) {
+    public MessageNameImpl(String name, String protocolName) {
         this.name = name;
         this.protocolName = protocolName;
     }
@@ -21,7 +20,7 @@ public class MessageName implements Message.Name {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MessageName that = (MessageName) o;
+        MessageNameImpl that = (MessageNameImpl) o;
         return Objects.equals(name, that.name) &&
                 Objects.equals(protocolName, that.protocolName);
     }

@@ -14,13 +14,13 @@ public class StandardProtocolImpl implements StandardProtocol {
     private BasicReceiver basicReceiver;
     private Transporter transporter;
 
+    public ProtocolName getName() {
+        return STANDARD_PROTOCOL;
+    }
+
     public StandardProtocolImpl(BasicReceiver basicReceiver, Transporter transporter) {
         this.basicReceiver = basicReceiver;
         this.transporter = transporter;
-    }
-
-    public String getName() {
-        return "BASIC_PROTOCOL";
     }
 
     public StandardSession createSession(Address target) {
@@ -35,7 +35,7 @@ public class StandardProtocolImpl implements StandardProtocol {
         }
 
         public void sendErrorTo(final String description, final ErrorKind errorKind) {
-            transporter.transport(new StandardEnvelope(target, new ErrorMessage(description,errorKind.name())));
+            transporter.transport(new StandardEnvelope(target, new ErrorMessage(description, errorKind.name())));
         }
     }
 

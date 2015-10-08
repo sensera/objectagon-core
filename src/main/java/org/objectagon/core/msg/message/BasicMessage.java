@@ -7,11 +7,11 @@ import org.objectagon.core.msg.Message;
  */
 public abstract class BasicMessage implements Message {
 
-    private Name name;
+    private MessageName name;
 
-    public Name getName() {return name;}
+    public MessageName getName() {return name;}
 
-    public BasicMessage(Name name) {
+    public BasicMessage(MessageName name) {
         this.name = name;
     }
 }

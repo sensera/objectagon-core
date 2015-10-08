@@ -12,7 +12,7 @@ public class SimpleMessage extends BasicMessage implements Message {
 
     private Map<Field,Value> values = new HashMap<Field, Value>();
 
-    public SimpleMessage(Name name) {
+    public SimpleMessage(MessageName name) {
         super(name);
     }
 
