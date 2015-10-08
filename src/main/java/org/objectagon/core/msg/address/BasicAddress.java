@@ -7,10 +7,12 @@ import org.objectagon.core.msg.Address;
  */
 public class BasicAddress implements Address {
     private long serverId;
+    private long ctrlId;
     private long addressId;
 
-    public BasicAddress(long serverId, long addressId) {
+    public BasicAddress(long serverId, long ctrlId, long addressId) {
         this.serverId = serverId;
+        this.ctrlId = ctrlId;
         this.addressId = addressId;
     }
 }
