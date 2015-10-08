@@ -5,4 +5,8 @@ package org.objectagon.core.msg;
  */
 public interface Envelope {
 
+    interface Packager {
+        Envelope create(Address target, Message message);
+    }
+
 }

@@ -14,7 +14,7 @@ public interface Receiver<U extends Address> {
         Message getMessage();
     }
 
-    interface ReceiverCtrl<U> extends Protocol.Send {
+    interface ReceiverCtrl<U> extends Transporter {
         U createNewAddress(Receiver receiver);
     }
 }

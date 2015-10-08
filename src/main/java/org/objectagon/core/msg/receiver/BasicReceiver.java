@@ -1,11 +1,9 @@
 package org.objectagon.core.msg.receiver;
 
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.BasicAddress;
-import org.objectagon.core.msg.message.BasicMessage;
-import org.objectagon.core.msg.protocol.BasicProtocol;
-import org.objectagon.core.msg.protocol.BasicProtocolImpl;
+import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.msg.protocol.StandardProtocolImpl;
 
 /**
  * Created by christian on 2015-10-06.
@@ -27,18 +25,27 @@ public abstract class BasicReceiver implements Receiver<BasicAddress> {
     public void receive(MessageContext context) {
         MessageContextHandle messageContextHandle = new MessageContextHandle(context);
         handle(messageContextHandle);
+        if (!messageContextHandle.isHandled())
+            messageContextHandle.createStandardProtocolSession().sendErrorTo("", StandardProtocol.ErrorKind.UnknownMessage);
     }
 
     private class MessageContextHandle {
 
         MessageContext context;
+        boolean handled = false;
+
+        public boolean isHandled() {
+            return handled;
+        }
 
         public MessageContextHandle(MessageContext context) {
             this.context = context;
         }
 
-        BasicProtocol createBasicProtocol() {
-            return new BasicProtocolImpl(receiverCtrl, context.getSender());
+        StandardProtocol.StandardSession createStandardProtocolSession() {
+            return new StandardProtocolImpl(BasicReceiver.this, receiverCtrl).createSession(context.getSender());
         }
+
+
     }
 }

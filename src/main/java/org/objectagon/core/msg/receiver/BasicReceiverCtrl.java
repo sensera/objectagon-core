@@ -1,19 +1,20 @@
 package org.objectagon.core.msg.receiver;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.BasicAddress;
+import org.objectagon.core.msg.envelope.StandardEnvelope;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public class BasicReceiverCtrl implements Receiver.ReceiverCtrl<BasicAddress> {
 
-    long serverId;
-    long addressIdCounter = 0;
+    private long serverId;
+    private long addressIdCounter = 0;
+    private Transporter transporter;
 
-    public BasicReceiverCtrl(long serverId) {
+    public BasicReceiverCtrl(Transporter transporter, long serverId) {
+        this.transporter = transporter;
         this.serverId = serverId;
     }
 
@@ -21,7 +22,7 @@ public class BasicReceiverCtrl implements Receiver.ReceiverCtrl<BasicAddress> {
         return new BasicAddress(serverId, addressIdCounter++);
     }
 
-    public void send(Address target, Message message) {
-
+    public void transport(Envelope envelope) {
+        transporter.transport(envelope);
     }
 }

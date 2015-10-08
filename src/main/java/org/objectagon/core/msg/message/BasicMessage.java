@@ -5,15 +5,13 @@ import org.objectagon.core.msg.Message;
 /**
  * Created by christian on 2015-10-06.
  */
-public class BasicMessage implements Message {
+public abstract class BasicMessage implements Message {
 
-    private String name;
+    private Name name;
 
-    public String getName() {return name;}
+    public Name getName() {return name;}
 
-    public Payload getPayload() {return null;}
-
-    public BasicMessage(String name) {
+    public BasicMessage(Name name) {
         this.name = name;
     }
 }
