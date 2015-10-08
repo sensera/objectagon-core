@@ -1,7 +1,5 @@
 package org.objectagon.core.msg;
 
-import org.objectagon.core.msg.message.BasicMessage;
-
 /**
  * Created by christian on 2015-10-06.
  */
@@ -12,6 +10,7 @@ public interface Receiver<U extends Address> {
     interface MessageContext {
         Address getSender();
         Message getMessage();
+        boolean hasName(Message.MessageName messageName);
     }
 
     interface ReceiverCtrl<U> extends Transporter {

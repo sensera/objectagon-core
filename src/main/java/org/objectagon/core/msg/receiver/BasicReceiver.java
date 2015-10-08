@@ -1,22 +1,23 @@
 package org.objectagon.core.msg.receiver;
 
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.address.BasicAddress;
+import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocolImpl;
 
 /**
  * Created by christian on 2015-10-06.
  */
-public abstract class BasicReceiver implements Receiver<BasicAddress> {
+public abstract class BasicReceiver implements Receiver<StandardAddress> {
 
-    private ReceiverCtrl<BasicAddress> receiverCtrl;
-    private BasicAddress address;
+    private ReceiverCtrl<StandardAddress> receiverCtrl;
+    private StandardAddress address;
 
 
-    public BasicAddress getAddress() {return address;}
+    public StandardAddress getAddress() {return address;}
 
-    public BasicReceiver(ReceiverCtrl<BasicAddress> receiverCtrl) {
+    public BasicReceiver(ReceiverCtrl<StandardAddress> receiverCtrl) {
         this.address = receiverCtrl.createNewAddress(this);
     }
 
@@ -29,14 +30,13 @@ public abstract class BasicReceiver implements Receiver<BasicAddress> {
             messageContextHandle.createStandardProtocolSession().sendErrorTo("", StandardProtocol.ErrorKind.UnknownMessage);
     }
 
-    private class MessageContextHandle {
+    protected class MessageContextHandle {
 
         MessageContext context;
         boolean handled = false;
 
-        public boolean isHandled() {
-            return handled;
-        }
+        public boolean isHandled() {return handled;}
+        public void setHandled() {handled = true;}
 
         public MessageContextHandle(MessageContext context) {
             this.context = context;
@@ -44,6 +44,11 @@ public abstract class BasicReceiver implements Receiver<BasicAddress> {
 
         StandardProtocol.StandardSession createStandardProtocolSession() {
             return new StandardProtocolImpl(BasicReceiver.this, receiverCtrl).createSession(context.getSender());
+        }
+
+
+        public boolean messageHasName(Message.MessageName messageName) {
+            return context.hasName(messageName);
         }
 
 

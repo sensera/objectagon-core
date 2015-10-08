@@ -37,7 +37,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
         void sendErrorTo(String description, ErrorKind errorKind);
     }
 
-    class ErrorMessage extends BasicMessage {
+    class ErrorMessage extends AbstractMessage {
         private String description;
         private String kind;
 

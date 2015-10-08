@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by christian on 2015-10-06.
  */
-public class SimpleMessage extends BasicMessage implements Message {
+public class SimpleMessage extends AbstractMessage implements Message {
 
     private Map<Field,Value> values = new HashMap<Field, Value>();
 
