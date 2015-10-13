@@ -15,7 +15,9 @@ public interface Message {
         Field getField();
         String asText();
         Long asNumber();
-        Message getMessage();
+        Address asAddress();
+        Message asMessage();
+
         void writeTo(Writer writer);
     }
 
@@ -25,6 +27,7 @@ public interface Message {
     }
 
     enum FieldType {
+        Any,
         Text,
         Number,
         Float,
@@ -41,5 +44,6 @@ public interface Message {
         void write(String text);
         void write(Long number);
         void write(Message message);
+        void write(Address address);
     }
 }

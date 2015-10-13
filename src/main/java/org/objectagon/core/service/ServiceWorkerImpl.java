@@ -7,7 +7,7 @@ import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 /**
  * Created by christian on 2015-10-13.
  */
-class ServiceWorkerImpl extends BasicWorkerImpl implements Service.ServiceWorker {
+public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.ServiceWorker {
     final private ServiceProtocol serviceProtocol;
 
     public ServiceWorkerImpl(Receiver.WorkerContext workerContext) {

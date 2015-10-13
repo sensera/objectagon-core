@@ -6,28 +6,28 @@ import org.objectagon.core.msg.Message;
 /**
  * Created by christian on 2015-10-08.
  */
-public class VolatileStringValue implements Message.Value {
+public class VolatileAddressValue implements Message.Value {
 
     private Message.Field field;
-    private String value;
+    private Address value;
 
     public Message.Field getField() {return field;}
     public String asText() {
-        return value;
+        return "";
     }
     public Long asNumber() {
-        return Long.parseLong(value);
+        return 0l;
     }
-    public Address asAddress() {return null;}
+    public Address asAddress() {return value;}
     public Message asMessage() {return null;}
 
-    public VolatileStringValue(Message.Field field, String value) {
+    public VolatileAddressValue(Message.Field field, Address value) {
         this.field = field;
         this.value = value;
     }
-
     public void writeTo(Message.Writer writer) {
         writer.write(value);
     }
+
 
 }

@@ -13,13 +13,7 @@ public interface Service {
         Stopped, Starting, Started, Stopping;
     }
 
-    interface Commands {
-        void startService(final ServiceWorker serviceWorker);
-        void stopService(final ServiceWorker serviceWorker);
-    }
-
     interface ServiceWorker extends BasicWorker, Task.CompletedListener {
-
         void replyWithError(ServiceProtocol.ErrorKind errorKind);
     }
 

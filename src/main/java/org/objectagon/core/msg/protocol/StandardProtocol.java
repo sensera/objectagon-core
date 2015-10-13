@@ -20,7 +20,8 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
 
     enum FieldName implements Message.Field {
         ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
+        ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
+        PARAM("PARAM", Message.FieldType.Any);
 
         private Message.FieldName name;
         private Message.FieldType fieldType;
@@ -39,12 +40,27 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
         void replyWithError(String description, ErrorKind errorKind);
         void replyWithError(ErrorKind errorKind);
         void replyOk();
+        void replyWithParam(Message.Value param);
     }
 
     class OkMessage extends MinimalMessage {
         public OkMessage() {
             super(StandardProtocol.MessageName.OK_MESSAGE);
         }
+    }
+
+    class OkParam extends AbstractMessage{
+        Value param;
+        public OkParam(Value param) {
+            super(StandardProtocol.MessageName.OK_MESSAGE);
+            this.param = param;
+        }
+        public Value getValue(Field field) {
+            if (field.equals(StandardProtocol.FieldName.PARAM))
+                return param;
+            return new UnknownValue(field);
+        }
+
     }
 
     class ErrorMessage extends AbstractMessage {

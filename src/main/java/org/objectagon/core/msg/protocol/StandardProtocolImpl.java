@@ -7,18 +7,10 @@ import org.objectagon.core.msg.message.SimpleMessage;
 /**
  * Created by christian on 2015-10-06.
  */
-public class StandardProtocolImpl implements StandardProtocol {
-
-    private Composer composer;
-    private Transporter transporter;
-
-    public ProtocolName getName() {
-        return STANDARD_PROTOCOL;
-    }
+public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.StandardSession> implements StandardProtocol {
 
     public StandardProtocolImpl(Composer composer, Transporter transporter) {
-        this.composer = composer;
-        this.transporter = transporter;
+        super(STANDARD_PROTOCOL, composer, transporter);
     }
 
     public StandardSession createSession(Composer composer, Address target) {
@@ -48,6 +40,10 @@ public class StandardProtocolImpl implements StandardProtocol {
 
         public void replyOk() {
             transporter.transport(composer.create(new OkMessage()));
+        }
+
+        public void replyWithParam(Message.Value param) {
+            transporter.transport(composer.create(new OkParam(param)));
         }
 
         public void reply(Message.MessageName message) {

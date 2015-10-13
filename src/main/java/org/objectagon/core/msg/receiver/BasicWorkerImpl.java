@@ -32,7 +32,15 @@ public class BasicWorkerImpl implements BasicWorker {
         createStandardProtocolSession().replyWithError(errorKind);
     }
 
+    public void replyWithParam(Message.Value param) {
+        createStandardProtocolSession().replyWithParam(param);
+    }
+
     public boolean messageHasName(Message.MessageName messageName) {
         return workerContext.hasName(messageName);
+    }
+
+    public Message.Value getValue(Message.Field field) {
+        return workerContext.getValue(field);
     }
 }

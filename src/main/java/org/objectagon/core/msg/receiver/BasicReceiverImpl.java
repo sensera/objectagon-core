@@ -43,11 +43,15 @@ public abstract class BasicReceiverImpl<U extends StandardAddress, E extends Bas
                     public boolean hasName(Message.MessageName messageName) {
                         return message.getName().equals(messageName);
                     }
+
+                    public Message.Value getValue(Message.Field field) {
+                        return message.getValue(field);
+                    }
                 };
                 W worker = createWorker(workerContext);
                 handle(worker);
                 if (!worker.isHandled())
-                    worker.createStandardProtocolSession().replyWithError("", StandardProtocol.ErrorKind.UnknownMessage);
+                    worker.replyWithError(StandardProtocol.ErrorKind.UnknownMessage);
             }
         });
     }

@@ -4,29 +4,23 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Transporter;
+import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-10-13.
  */
-public class ServiceProtocolImpl implements ServiceProtocol {
-    private Composer composer;
-    private Transporter transporter;
-
-    public ProtocolName getName() {
-        return SERVICE_PROTOCOL;
-    }
+public class ServiceProtocolImpl extends AbstractProtocol<ServiceProtocol.Session> implements ServiceProtocol {
 
     public ServiceProtocolImpl(Composer composer, Transporter transporter) {
-        this.composer = composer;
-        this.transporter = transporter;
+        super(SERVICE_PROTOCOL, composer, transporter);
     }
 
-    public Session createSession(Address target) {
+    public ServiceProtocol.Session createSession(Address target) {
         return new ServiceProtocolSessionImpl(composer, target);
     }
 
-    public Session createSession(Composer composer, Address target) {
+    public ServiceProtocol.Session createSession(Composer composer, Address target) {
         return new ServiceProtocolSessionImpl(composer, target);
     }
 
@@ -34,35 +28,21 @@ public class ServiceProtocolImpl implements ServiceProtocol {
         return new ClientServiceProtocolSessionImpl(composer, target);
     }
 
-    protected class ServiceProtocolSessionImpl implements Session {
-        final Address target;
-        final Composer composer;
+    protected class ServiceProtocolSessionImpl extends AbstractProtocolSession implements ServiceProtocol.Session {
 
         public ServiceProtocolSessionImpl(Composer composer, Address target) {
-            this.composer = composer;
-            this.target = target;
+            super(composer, target);
         }
 
-        public void replyWithError(String description, StandardProtocol.ErrorKind errorKind) {
-
-        }
-
-        public void replyOk() {
-
-        }
-
-        public void failed(String description, ErrorKind errorKind) {
-
+        public void replyWithError(ErrorKind errorKind) {
+            transporter.transport(composer.create(new StandardProtocol.ErrorMessage("",errorKind.name())));
         }
     }
 
-    protected class ClientServiceProtocolSessionImpl implements ClientSession {
-        final Address target;
-        final Composer composer;
+    protected class ClientServiceProtocolSessionImpl extends AbstractProtocolSession implements ClientSession {
 
         public ClientServiceProtocolSessionImpl(Composer composer, Address target) {
-            this.composer = composer;
-            this.target = target;
+            super(composer, target);
         }
 
         public void startService() {
