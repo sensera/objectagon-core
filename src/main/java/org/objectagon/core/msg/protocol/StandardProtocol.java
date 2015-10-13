@@ -2,6 +2,7 @@ package org.objectagon.core.msg.protocol;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.*;
 
 /**
@@ -13,6 +14,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
 
     enum MessageName implements Message.MessageName {
         ERROR_MESSAGE,
+        OK_MESSAGE,
 
     }
 
@@ -34,7 +36,15 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
     }
 
     interface StandardSession extends Protocol.Session {
-        void sendErrorTo(String description, ErrorKind errorKind);
+        void replyWithError(String description, ErrorKind errorKind);
+        void replyWithError(ErrorKind errorKind);
+        void replyOk();
+    }
+
+    class OkMessage extends MinimalMessage {
+        public OkMessage() {
+            super(StandardProtocol.MessageName.OK_MESSAGE);
+        }
     }
 
     class ErrorMessage extends AbstractMessage {

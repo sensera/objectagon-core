@@ -1,9 +1,28 @@
 package org.objectagon.core.service;
 
+import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.receiver.BasicWorker;
+import org.objectagon.core.tasks.Task;
+
 /**
  * Created by christian on 2015-10-08.
  */
 public interface Service {
-    void start() throws FailedToStartServiceException;
-    void stop() throws FailedToStopServiceException;
+
+    enum Status {
+        Stopped, Starting, Started, Stopping;
+    }
+
+    interface Commands {
+        void startService(final ServiceWorker serviceWorker);
+        void stopService(final ServiceWorker serviceWorker);
+    }
+
+    interface ServiceWorker extends BasicWorker, Task.CompletedListener {
+
+        void replyWithError(ServiceProtocol.ErrorKind errorKind);
+    }
+
+    interface StartServiceTask extends Task {}
+    interface StopServiceTask extends Task {}
 }

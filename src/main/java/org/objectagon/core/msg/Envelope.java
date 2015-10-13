@@ -5,8 +5,9 @@ package org.objectagon.core.msg;
  */
 public interface Envelope {
 
-    interface Packager {
-        Envelope create(Address target, Message message);
-    }
+    void unwrap(Envelope.Unwrapper unwrapper);
 
+    interface Unwrapper {
+        void message(Address sender, Message message);
+    }
 }

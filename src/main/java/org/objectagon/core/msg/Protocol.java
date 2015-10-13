@@ -8,7 +8,10 @@ public interface Protocol<U extends Protocol.Session> {
 
     U createSession(Address target);
 
+    U createSession(Composer composer, Address target);
+
     interface ProtocolName extends Name {}
 
     interface Session {}
+
 }

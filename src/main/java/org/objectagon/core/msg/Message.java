@@ -15,6 +15,7 @@ public interface Message {
         Field getField();
         String asText();
         Long asNumber();
+        Message getMessage();
         void writeTo(Writer writer);
     }
 
@@ -29,6 +30,7 @@ public interface Message {
         Float,
         Address,
         Blob,
+        Message,
         ArrayOfTexts,
         ArrayOfNumbers,
         ArrayOfFloats,
@@ -38,5 +40,6 @@ public interface Message {
     interface Writer {
         void write(String text);
         void write(Long number);
+        void write(Message message);
     }
 }

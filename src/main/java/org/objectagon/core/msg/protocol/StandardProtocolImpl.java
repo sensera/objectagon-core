@@ -1,41 +1,57 @@
 package org.objectagon.core.msg.protocol;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Transporter;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.envelope.StandardEnvelope;
 import org.objectagon.core.msg.message.SimpleMessage;
-import org.objectagon.core.msg.receiver.BasicReceiver;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public class StandardProtocolImpl implements StandardProtocol {
 
-    private BasicReceiver basicReceiver;
+    private Composer composer;
     private Transporter transporter;
 
     public ProtocolName getName() {
         return STANDARD_PROTOCOL;
     }
 
-    public StandardProtocolImpl(BasicReceiver basicReceiver, Transporter transporter) {
-        this.basicReceiver = basicReceiver;
+    public StandardProtocolImpl(Composer composer, Transporter transporter) {
+        this.composer = composer;
         this.transporter = transporter;
     }
 
-    public StandardSession createSession(Address target) {
-        return new StandardSessionImpl(target);
+    public StandardSession createSession(Composer composer, Address target) {
+        return new StandardSessionImpl(composer, target);
     }
 
-    private class StandardSessionImpl implements StandardSession {
+    public StandardSession createSession(Address target) {
+        return new StandardSessionImpl(composer, target);
+    }
+
+    protected class StandardSessionImpl implements StandardSession {
+        private Composer composer;
         private Address target;
 
-        public StandardSessionImpl(Address target) {
+        public StandardSessionImpl(Composer composer, Address target) {
+            this.composer = composer;
             this.target = target;
         }
 
-        public void sendErrorTo(final String description, final ErrorKind errorKind) {
-            transporter.transport(new StandardEnvelope(target, new ErrorMessage(description, errorKind.name())));
+        public void replyWithError(final String description, final ErrorKind errorKind) {
+            transporter.transport(composer.create(new ErrorMessage(description, errorKind.name())));
+        }
+
+        public void replyWithError(ErrorKind errorKind) {
+            transporter.transport(composer.create(new ErrorMessage("", errorKind.name())));
+        }
+
+        public void replyOk() {
+            transporter.transport(composer.create(new OkMessage()));
+        }
+
+        public void reply(Message.MessageName message) {
+            transporter.transport(composer.create(message));
         }
     }
 

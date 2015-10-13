@@ -1,22 +1,26 @@
 package org.objectagon.core.service;
 
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.message.AbstractMessage;
+import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
-import org.objectagon.core.msg.message.UnknownValue;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-10-08.
  */
 public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
 
+    ClientSession createClientSession(Address address);
+
     ProtocolName SERVICE_PROTOCOL = new ProtocolNameImpl("SERVICE_PROTOCOL");
 
     enum MessageName implements Message.MessageName {
         START_SERVICE,
-        STOP_SERVICE
+        STOP_SERVICE,
+        FAILED,
     }
 
     enum FieldName implements Message.Field {
@@ -37,9 +41,16 @@ public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
     }
 
     interface Session extends Protocol.Session {
-        void start();
-        void stop();
+        void replyWithError(ErrorKind errorKind);
     }
 
+    interface ClientSession extends Protocol.Session {
+        void startService();
+        void stopService();
+    }
+
+    enum ErrorKind {
+        ServiceIsStoppning, ServiceIsStarting;
+    }
 
 }
