@@ -1,15 +1,10 @@
 package org.objectagon.core.service.name;
 
 import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.VolatileAddressValue;
-import org.objectagon.core.msg.message.VolatileStringValue;
 import org.objectagon.core.msg.receiver.BasicReceiverCtrl;
 import org.objectagon.core.service.AbstractService;
-import org.objectagon.core.service.Service;
-import org.objectagon.core.service.ServiceProtocol;
 import org.objectagon.core.service.ServiceWorkerImpl;
 
 import java.util.HashMap;

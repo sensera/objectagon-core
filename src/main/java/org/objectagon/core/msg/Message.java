@@ -17,6 +17,7 @@ public interface Message {
         Long asNumber();
         Address asAddress();
         Message asMessage();
+        Name asName();
 
         void writeTo(Writer writer);
     }
@@ -34,6 +35,7 @@ public interface Message {
         Address,
         Blob,
         Message,
+        Name,
         ArrayOfTexts,
         ArrayOfNumbers,
         ArrayOfFloats,
@@ -45,5 +47,6 @@ public interface Message {
         void write(Long number);
         void write(Message message);
         void write(Address address);
+        void write(Name name);
     }
 }

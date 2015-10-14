@@ -1,6 +1,8 @@
 package org.objectagon.core.msg.message;
 
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +22,24 @@ public class SimpleMessage extends AbstractMessage implements Message {
         return values.get(field);
     }
 
-    public void setValue(Field field, Value value) {
+    public SimpleMessage setValue(Field field, Value value) {
         values.put(field, value);
+        return this;
+    }
+
+    public SimpleMessage setValue(Field field, Address address) {
+        return setValue(field, new VolatileAddressValue(field, address));
+    }
+
+    public SimpleMessage setValue(Field field, Name name) {
+        return setValue(field, new VolatileNameValue(field, name));
+    }
+
+    public SimpleMessage setValue(Field field, String text) {
+        return setValue(field, new VolatileTextValue(field, text));
+    }
+
+    public SimpleMessage setValue(Field field, Message message) {
+        return setValue(field, new VolatileMessageValue(field, message));
     }
 }

@@ -2,7 +2,6 @@ package org.objectagon.core.msg.protocol;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.*;
 
 /**
@@ -75,9 +74,9 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
 
         public Value getValue(Field field) {
             if (field.equals(StandardProtocol.FieldName.ERROR_DESCRIPTION))
-                return new VolatileStringValue(field, description);
+                return new VolatileTextValue(field, description);
             else if (field.equals(StandardProtocol.FieldName.ERROR_KIND))
-                return new VolatileStringValue(field, kind);
+                return new VolatileTextValue(field, kind);
             return new UnknownValue(field);
         }
     }

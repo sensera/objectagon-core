@@ -7,29 +7,29 @@ import org.objectagon.core.msg.Name;
 /**
  * Created by christian on 2015-10-08.
  */
-public class VolatileAddressValue implements Message.Value {
+public class VolatileTextValue implements Message.Value {
 
     private Message.Field field;
-    private Address value;
+    private String value;
 
     public Message.Field getField() {return field;}
     public String asText() {
-        return "";
+        return value;
     }
     public Long asNumber() {
-        return 0l;
+        return Long.parseLong(value);
     }
-    public Address asAddress() {return value;}
+    public Address asAddress() {return null;}
     public Message asMessage() {return null;}
     public Name asName() {return null;}
 
-    public VolatileAddressValue(Message.Field field, Address value) {
+    public VolatileTextValue(Message.Field field, String value) {
         this.field = field;
         this.value = value;
     }
+
     public void writeTo(Message.Writer writer) {
         writer.write(value);
     }
-
 
 }

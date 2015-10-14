@@ -1,9 +1,6 @@
 package org.objectagon.core.service.name;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Transporter;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 
@@ -29,9 +26,10 @@ public class NameServiceProtocolImpl extends AbstractProtocol<NameServiceProtoco
         public void replyWithError(ErrorKind errorKind) {
             transporter.transport(composer.create(new StandardProtocol.ErrorMessage("",errorKind.name())));
         }
+
     }
 
-    protected class ClientNameServiceProtocolSessionImpl extends AbstractProtocolSession implements ClientSession {
+    protected class ClientNameServiceProtocolSessionImpl extends AbstractProtocolSession implements NameServiceProtocol.ClientSession {
 
         public ClientNameServiceProtocolSessionImpl(Composer composer, Address target) {
             super(composer, target);
