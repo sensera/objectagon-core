@@ -8,13 +8,13 @@ import java.util.List;
 /**
  * Created by christian on 2015-10-14.
  */
-public class AddressList implements Address {
-    private List<Address> addressList = new ArrayList<Address>();
+public class AddressList<A extends Address> implements Address {
+    private List<A> addressList = new ArrayList<A>();
 
-    public AddressList(Address address) {
-        add(address);
-    }
+    public AddressList() {}
 
-    public void add(Address address) { addressList.add(address); }
-    public void remove(Address address) { addressList.remove(address); }
+    public AddressList(A address) {add(address);}
+
+    public void add(A address) { addressList.add(address); }
+    public void remove(A address) { addressList.remove(address); }
 }

@@ -14,6 +14,7 @@ import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Session> {
 
     ProtocolName EVENT_SERVICE_PROTOCOL = new ProtocolNameImpl("EVENT_SERVICE_PROTOCOL");
+
     NamedAddress EVENT_SERVICE_ADDRESS = new NamedAddress(EVENT_SERVICE_PROTOCOL);
 
     ClientSession createClientSession(Address target);

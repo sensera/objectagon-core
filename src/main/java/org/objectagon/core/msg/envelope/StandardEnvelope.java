@@ -15,4 +15,8 @@ public class StandardEnvelope implements Envelope {
         this.target = target;
         this.message = message;
     }
+
+    public void unwrap(Unwrapper unwrapper) {
+        unwrapper.message(target, message);
+    }
 }

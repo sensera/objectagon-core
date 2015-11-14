@@ -1,4 +1,4 @@
-package org.objectagon.core.tasks;
+package org.objectagon.core.task;
 
 import org.objectagon.core.msg.Protocol;
 

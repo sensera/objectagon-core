@@ -6,7 +6,7 @@ import org.objectagon.core.msg.address.StandardAddress;
 /**
  * Created by christian on 2015-10-06.
  */
-public abstract class BasicReceiverCtrlImpl<U extends StandardAddress> implements BasicReceiverCtrl<U> {
+public abstract class BasicReceiverCtrlImpl<U extends Address> implements BasicReceiverCtrl<U> {
 
     private long serverId;
     private long ctrlId;

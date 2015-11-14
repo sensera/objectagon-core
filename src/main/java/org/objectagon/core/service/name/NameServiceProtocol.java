@@ -13,6 +13,7 @@ import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 public interface NameServiceProtocol extends Protocol<NameServiceProtocol.Session> {
 
     ProtocolName NAME_SERVICE_PROTOCOL = new ProtocolNameImpl("NAME_SERVICE_PROTOCOL");
+
     NamedAddress NAME_SERVICE_ADDRESS = new NamedAddress(NAME_SERVICE_PROTOCOL);
 
     ClientSession createClientSession(Address target);

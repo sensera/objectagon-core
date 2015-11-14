@@ -11,7 +11,7 @@ public interface Receiver<U extends Address> {
     U getAddress();
     void receive(Envelope envelope);
 
-    interface ReceiverCtrl<U> extends Transporter {
+    interface ReceiverCtrl<U extends Address> extends Transporter {
         U createNewAddress(Receiver receiver);
     }
 

@@ -9,7 +9,7 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
 /**
  * Created by christian on 2015-10-06.
  */
-public abstract class BasicReceiverImpl<U extends StandardAddress, E extends BasicReceiverCtrl<U>, W extends BasicWorker> implements BasicReceiver<U> {
+public abstract class BasicReceiverImpl<U extends Address, E extends BasicReceiverCtrl<U>, W extends BasicWorker> implements BasicReceiver<U> {
 
     private E receiverCtrl;
     private U address;
@@ -56,9 +56,7 @@ public abstract class BasicReceiverImpl<U extends StandardAddress, E extends Bas
         });
     }
 
-    protected W createWorker(WorkerContext workerContext) {
-        return (W) new BasicWorkerImpl(workerContext);
-    }
+    protected abstract W createWorker(WorkerContext workerContext);
 
     private static class BasicComposer implements Composer {
         private Address target;

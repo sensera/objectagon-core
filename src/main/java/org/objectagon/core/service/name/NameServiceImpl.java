@@ -4,6 +4,8 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.receiver.BasicReceiverCtrl;
+import org.objectagon.core.msg.receiver.Reactor;
+import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
 
@@ -17,8 +19,17 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
 
     private Map<String, Address> addressByName = new HashMap<String, Address>();
 
-    public NameServiceImpl(BasicReceiverCtrl receiverCtrl) {
+    public NameServiceImpl(StandardReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
+    }
+
+    @Override
+    protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
+        super.buildReactor(reactorBuilder);
+        reactorBuilder.add(
+            patternBuilder -> patternBuilder.setMessageNameTrigger(NameServiceProtocol.MessageName.REGISTER_NAME),
+            new RegisterNameAction()
+        );
     }
 
     protected void registerName(NameServiceWorkerImpl serviceWorker) {
@@ -90,6 +101,24 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
             createNameServiceProtocolSession().replyWithError(errorKind);
         }
 
+    }
+
+    private static class RegisterNameAction implements Reactor.Action<NameServiceWorkerImpl,NameServiceWorkerImpl> {
+        @Override
+        public void initialize(NameServiceWorkerImpl serviceWorker) {
+        }
+
+        @Override
+        public void run(NameServiceWorkerImpl serviceWorker) {
+            Address address = serviceWorker.getValue(NameServiceProtocol.FieldName.ADDRESS).asAddress();
+            String name = serviceWorker.getValue(NameServiceProtocol.FieldName.NAME).asText();
+            if (addressByName.containsKey(name)) {
+                serviceWorker.replyWithError(NameServiceProtocol.ErrorKind.NameAlreadyRegistered);
+                return;
+            }
+            addressByName.put(name, address);
+            serviceWorker.replyOk();
+        }
     }
 
 }
