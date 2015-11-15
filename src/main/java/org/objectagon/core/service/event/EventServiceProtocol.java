@@ -7,6 +7,7 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-10-13.
@@ -59,6 +60,6 @@ public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Sess
         void broadcast(Name name, Message message);
     }
 
-    enum ErrorKind {
+    enum ErrorKind implements StandardProtocol.ErrorKind {
     }
 }

@@ -4,6 +4,7 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.receiver.BasicReceiverCtrl;
@@ -21,7 +22,7 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-13.
  */
-public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl> implements Reactor.ActionInitializer {
+public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl>  {
 
     private Map<String, Address> addressByName = new HashMap<String, Address>();
 
@@ -35,6 +36,12 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(NameServiceProtocol.MessageName.REGISTER_NAME),
                 (initializer, context) -> new RegisterNameAction((NameServiceImpl) initializer, (NameServiceImpl.NameServiceWorkerImpl) context)
+        ).add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(NameServiceProtocol.MessageName.UNREGISTER_NAME),
+                (initializer, context) -> new UnregisterNameAction((NameServiceImpl) initializer, (NameServiceImpl.NameServiceWorkerImpl) context)
+        ).add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(NameServiceProtocol.MessageName.LOOKUP_ADDRESS_BY_NAME),
+                (initializer, context) -> new LookupAddressByName((NameServiceImpl) initializer, (NameServiceImpl.NameServiceWorkerImpl) context)
         );
     }
 
@@ -51,50 +58,9 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         addressByName.put(name, address);
     }
 
-    protected void registerName(NameServiceWorkerImpl serviceWorker) {
-        Address address = serviceWorker.getValue(NameServiceProtocol.FieldName.ADDRESS).asAddress();
-        String name = serviceWorker.getValue(NameServiceProtocol.FieldName.NAME).asText();
-        if (addressByName.containsKey(name)) {
-            serviceWorker.replyWithError(NameServiceProtocol.ErrorKind.NameAlreadyRegistered);
-            return;
-        }
-        addressByName.put(name, address);
-        serviceWorker.replyOk();
-    }
-
-    protected void unregisterName(NameServiceWorkerImpl serviceWorker) {
-        String name = serviceWorker.getValue(NameServiceProtocol.FieldName.NAME).asText();
-        if (!addressByName.containsKey(name)) {
-            serviceWorker.replyWithError(NameServiceProtocol.ErrorKind.NameNotFound);
-            return;
-        }
-        addressByName.remove(name);
-        serviceWorker.replyOk();
-    }
-
-    protected void lookupAddressByName(NameServiceWorkerImpl serviceWorker) {
-        String name = serviceWorker.getValue(NameServiceProtocol.FieldName.NAME).asText();
-        Address address = addressByName.get(name);
-        if (address==null) {
-            serviceWorker.replyWithError(NameServiceProtocol.ErrorKind.NameNotFound);
-            return;
-        }
-        serviceWorker.replyWithParam(new VolatileAddressValue(NameServiceProtocol.FieldName.ADDRESS, address));
-    }
-
-    @Override
-    protected void handle(NameServiceWorkerImpl serviceWorker) {
-        if (serviceWorker.messageHasName(NameServiceProtocol.MessageName.REGISTER_NAME)) {
-            registerName(serviceWorker);
-            serviceWorker.isHandled();
-        } else if (serviceWorker.messageHasName(NameServiceProtocol.MessageName.UNREGISTER_NAME)) {
-            unregisterName(serviceWorker);
-            serviceWorker.isHandled();
-        } else if (serviceWorker.messageHasName(NameServiceProtocol.MessageName.LOOKUP_ADDRESS_BY_NAME)) {
-            lookupAddressByName(serviceWorker);
-            serviceWorker.isHandled();
-        } else
-            super.handle(serviceWorker);
+    public void removeAddressName(String name) throws UserException {
+        if (addressByName.remove(name)==null)
+            throw new UserException(ErrorClass.NAME_SERVICE, ErrorKind.INCONSISTENCY);
     }
 
     @Override
@@ -138,22 +104,50 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         }
 
         @Override
-        public void run() {
+        public Optional<Message.Value> internalRun() throws UserException {
             initializer.setAddressName(address, name);
-
-            Optional<Address> addressByName = initializer.getAddressByName(name);
-            if (!addressByName.isPresent()) {
-                context.replyWithError(NameServiceProtocol.ErrorKind.NameAlreadyRegistered);
-                return;
-            }
-
-            if (initializer.addressByName.containsKey(name)) {
-                context.replyWithError(NameServiceProtocol.ErrorKind.NameAlreadyRegistered);
-                return;
-            }
-            initializer.addressByName.put(name, address);
-            context.replyOk();
+            return Optional.empty();
         }
     }
 
+    private static class UnregisterNameAction extends StandardAction<NameServiceImpl, NameServiceWorkerImpl> {
+
+        private String name;
+
+        public UnregisterNameAction(NameServiceImpl initializer, NameServiceWorkerImpl context) {
+            super(initializer, context);
+        }
+
+        public boolean initialize() {
+            name = context.getValue(NameServiceProtocol.FieldName.NAME).asText();
+            return true;
+        }
+
+        @Override
+        public Optional<Message.Value> internalRun() throws UserException {
+            initializer.removeAddressName(name);
+            return Optional.empty();
+        }
+    }
+
+    private static class LookupAddressByName extends StandardAction<NameServiceImpl, NameServiceWorkerImpl> {
+
+        private String name;
+
+        public LookupAddressByName(NameServiceImpl initializer, NameServiceWorkerImpl context) {
+            super(initializer, context);
+        }
+
+        public boolean initialize() {
+            name = context.getValue(NameServiceProtocol.FieldName.NAME).asText();
+            return true;
+        }
+
+        @Override
+        public Optional<Message.Value> internalRun() throws UserException {
+            Address address = initializer.getAddressByName(name)
+                    .orElseThrow(() -> new UserException(ErrorClass.NAME_SERVICE, ErrorKind.INCONSISTENCY));
+            return Optional.of(new VolatileAddressValue(NameServiceProtocol.FieldName.ADDRESS, address));
+        }
+    }
 }

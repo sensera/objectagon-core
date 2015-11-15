@@ -1,8 +1,7 @@
 package org.objectagon.core.msg.protocol;
 
+import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.envelope.StandardEnvelope;
-import org.objectagon.core.msg.message.SimpleMessage;
 
 /**
  * Created by christian on 2015-10-06.
@@ -30,12 +29,12 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
             this.target = target;
         }
 
-        public void replyWithError(final String description, final ErrorKind errorKind) {
-            transporter.transport(composer.create(new ErrorMessage(description, errorKind.name())));
+        public void replyWithError(final ErrorClass errorClass, final ErrorKind errorKind) {
+            transporter.transport(composer.create(new ErrorMessage(ErrorSeverity.User, errorClass, errorKind)));
         }
 
         public void replyWithError(ErrorKind errorKind) {
-            transporter.transport(composer.create(new ErrorMessage("", errorKind.name())));
+            transporter.transport(composer.create(new ErrorMessage(ErrorSeverity.Unknown, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind)));
         }
 
         public void replyOk() {

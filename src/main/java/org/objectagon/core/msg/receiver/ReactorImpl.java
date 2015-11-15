@@ -30,7 +30,7 @@ public class ReactorImpl<T extends Reactor.Trigger> implements Reactor<T>, React
     }
 
     @Override
-    public void add(Pattern pattern, ActionBuilder actionBuilder) {
+    public ReactorBuilder add(Pattern pattern, ActionBuilder actionBuilder) {
         pattern.install(new Reactor.PatternBuilder() {
             @Override
             public void setMessageNameTrigger(Message.MessageName messageName) {
@@ -42,7 +42,7 @@ public class ReactorImpl<T extends Reactor.Trigger> implements Reactor<T>, React
                 actionsByPatternComparator.add(new ActionPatternComparator(actionBuilder, patternComparator));
             }
         });
-
+        return this;
     }
 
     private class ActionPatternComparator {

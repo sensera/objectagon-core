@@ -1,5 +1,6 @@
 package org.objectagon.core.service.name;
 
+import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocol;
@@ -24,7 +25,7 @@ public class NameServiceProtocolImpl extends AbstractProtocol<NameServiceProtoco
         }
 
         public void replyWithError(ErrorKind errorKind) {
-            transporter.transport(composer.create(new StandardProtocol.ErrorMessage("",errorKind.name())));
+            transporter.transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.Unknown, ErrorClass.UNKNOWN, errorKind)));
         }
 
     }

@@ -18,7 +18,7 @@ public interface Reactor<T extends Reactor.Trigger> {
     }
 
     interface ReactorBuilder {
-        <I extends ActionInitializer, C extends ActionContext> void add(Pattern pattern, ActionBuilder<I,C> action);
+        <I extends ActionInitializer, C extends ActionContext> ReactorBuilder add(Pattern pattern, ActionBuilder<I,C> action);
     }
 
     interface Pattern {

@@ -1,7 +1,10 @@
 package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+
+import java.util.Optional;
 
 /**
  * Created by christian on 2015-11-09.
@@ -22,11 +25,15 @@ public abstract class StandardAction <I extends Reactor.ActionInitializer, C ext
     @Override
     public final void run() {
         try {
-            internalRun();
+            Optional<Message.Value> value = internalRun();
+            if (value.isPresent())
+                context.replyWithParam(value.get());
+            else
+                context.replyOk();
         } catch (UserException e) {
             context.replyWithError(e);
         }
     }
 
-    protected abstract void internalRun() throws UserException;
+    protected abstract Optional<Message.Value> internalRun() throws UserException;
 }

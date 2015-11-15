@@ -1,5 +1,6 @@
 package org.objectagon.core.service.event;
 
+import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
@@ -33,7 +34,7 @@ public class EventServiceProtocolImpl extends AbstractProtocol<EventServiceProto
         }
 
         public void replyWithError(ErrorKind errorKind) {
-            transporter.transport(composer.create(new StandardProtocol.ErrorMessage("",errorKind.name())));
+            transporter.transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.Unknown, ErrorClass.UNKNOWN, errorKind)));
         }
 
         public void broadcast(Message message) {

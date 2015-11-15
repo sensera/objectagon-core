@@ -40,7 +40,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
     }
 
     interface StandardSession extends Protocol.Session {
-        void replyWithError(String description, ErrorKind errorKind);
+        void replyWithError(ErrorClass errorClass, ErrorKind errorKind);
         void replyWithError(ErrorKind errorKind);
         void replyOk();
         void replyWithParam(Message.Value param);
@@ -102,7 +102,8 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
     enum ErrorSeverity {
         Critical,
         Severe,
-        User
+        User,
+        Unknown
     }
 
     interface ErrorClass {
