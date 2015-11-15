@@ -47,6 +47,11 @@ public abstract class BasicReceiverImpl<U extends Address, E extends BasicReceiv
                     public Message.Value getValue(Message.Field field) {
                         return message.getValue(field);
                     }
+
+                    @Override
+                    public Message.MessageName getMessageName() {
+                        return message.getName();
+                    }
                 };
                 W worker = createWorker(workerContext);
                 handle(worker);

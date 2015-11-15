@@ -23,7 +23,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Session> {
     }
 
     enum FieldName implements Message.Field {
-        ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
+        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
 
         FIELD("FIELD", Message.FieldType.Address),
@@ -61,7 +61,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Session> {
     }
 
     enum FieldName implements Message.Field {
-        ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
+        ERROR_SEVERITY("ERROR_SEVERITY", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
 
         private Message.FieldName name;

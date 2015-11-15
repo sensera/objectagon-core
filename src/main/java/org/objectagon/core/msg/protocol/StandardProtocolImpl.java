@@ -46,6 +46,11 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
             transporter.transport(composer.create(new OkParam(param)));
         }
 
+        @Override
+        public void replyWithError(ErrorMessageProfile errorMessageProfile) {
+            transporter.transport(composer.create(new ErrorMessage(errorMessageProfile)));
+        }
+
         public void reply(Message.MessageName message) {
             transporter.transport(composer.create(message));
         }

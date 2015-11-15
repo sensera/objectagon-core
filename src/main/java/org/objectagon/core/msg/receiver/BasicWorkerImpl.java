@@ -2,6 +2,7 @@ package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.VolatileMessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocolImpl;
 
@@ -32,8 +33,17 @@ public class BasicWorkerImpl implements BasicWorker {
         createStandardProtocolSession().replyWithError(errorKind);
     }
 
+    @Override
+    public void replyWithError(StandardProtocol.ErrorMessageProfile errorMessageProfile) {
+        createStandardProtocolSession().replyWithError(errorMessageProfile);
+    }
+
     public void replyWithParam(Message.Value param) {
         createStandardProtocolSession().replyWithParam(param);
+    }
+
+    public void replyWithParam(Message message) {
+        replyWithParam(new VolatileMessageValue(StandardProtocol.FieldName.PARAM,message));
     }
 
     public boolean messageHasName(Message.MessageName messageName) {

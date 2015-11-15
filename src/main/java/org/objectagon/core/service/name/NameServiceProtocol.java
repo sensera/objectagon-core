@@ -28,7 +28,7 @@ public interface NameServiceProtocol extends Protocol<NameServiceProtocol.Sessio
         ADDRESS("ADDRESS", Message.FieldType.Address),
         NAME("NAME", Message.FieldType.Text),
 
-        ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
+        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
 
         private Message.FieldName name;

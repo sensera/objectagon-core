@@ -28,6 +28,8 @@ public interface Receiver<U extends Address> {
 
         void replyWithParam(Message.Value param);
 
+        void replyWithParam(Message message);
+
         Message.Value getValue(Message.Field field);
     }
 
@@ -42,5 +44,7 @@ public interface Receiver<U extends Address> {
         boolean hasName(Message.MessageName messageName);
 
         Message.Value getValue(Message.Field field);
+
+        Message.MessageName getMessageName();
     }
 }

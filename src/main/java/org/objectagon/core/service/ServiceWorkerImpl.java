@@ -3,6 +3,7 @@ package org.objectagon.core.service;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.VolatileMessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.task.ChainedTask;
@@ -19,6 +20,16 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
     public ServiceWorkerImpl(Receiver.WorkerContext workerContext) {
         super(workerContext);
         serviceProtocol = new ServiceProtocolImpl(workerContext.createStandardComposer(), workerContext.getTransporter());
+    }
+
+    @Override
+    public void success(Message message) {
+        replyWithParam(new VolatileMessageValue(StandardProtocol.FieldName.PARAM,message));
+    }
+
+    @Override
+    public Message.MessageName getMessageName() {
+        return getWorkerContext().getMessageName();
     }
 
     public ServiceProtocol.Session createServiceProtocolSession() {

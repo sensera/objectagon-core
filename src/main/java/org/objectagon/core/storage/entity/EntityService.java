@@ -2,7 +2,9 @@ package org.objectagon.core.storage.entity;
 
 import org.objectagon.core.msg.Envelope;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.BasicReceiverCtrl;
+import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
@@ -10,9 +12,11 @@ import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.Identity;
+import org.objectagon.core.task.Task;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by christian on 2015-10-17.
@@ -21,7 +25,7 @@ public abstract class EntityService<I extends Identity, D extends Data, E extend
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
 
-    public EntityService(BasicReceiverCtrl receiverCtrl) {
+    public EntityService(StandardReceiverCtrl<StandardAddress> receiverCtrl) {
         super(receiverCtrl);
     }
 
@@ -45,13 +49,15 @@ public abstract class EntityService<I extends Identity, D extends Data, E extend
 
     }
 
+
+
     @Override
-    public StartServiceTask createStartServiceTask(E serviceWorker) {
+    public Optional<Task> createStartServiceTask(E serviceWorker) {
         return null;
     }
 
     @Override
-    public StopServiceTask createStopServiceTask(E serviceWorker) {
+    public Optional<Task> createStopServiceTask(E serviceWorker) {
         return null;
     }
 

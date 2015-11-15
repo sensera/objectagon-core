@@ -4,6 +4,8 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.*;
 
+import java.util.Optional;
+
 /**
  * Created by christian on 2015-10-06.
  */
@@ -18,9 +20,11 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
     }
 
     enum FieldName implements Message.Field {
-        ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
+        ERROR_SEVERITY("ERROR_SEVERITY", Message.FieldType.Text),
+        ERROR_CLASS("ERROR_CLASS", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
-        PARAM("PARAM", Message.FieldType.Any);
+        PARAM("PARAM", Message.FieldType.Any),
+        ;
 
         private Message.FieldName name;
         private Message.FieldType fieldType;
@@ -40,6 +44,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
         void replyWithError(ErrorKind errorKind);
         void replyOk();
         void replyWithParam(Message.Value param);
+        void replyWithError(ErrorMessageProfile errorMessageProfile);
     }
 
     class OkMessage extends MinimalMessage {
@@ -59,30 +64,58 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
                 return param;
             return new UnknownValue(field);
         }
-
     }
 
     class ErrorMessage extends AbstractMessage {
-        private String description;
-        private String kind;
+        String errorSeverity;
+        String errorClass;
+        String errorKind;
+        private final Value[] values;
 
-        public ErrorMessage(String description, String kind) {
+        public ErrorMessage(ErrorMessageProfile errorMessageProfile) {
+            this(errorMessageProfile.getErrorSeverity(), errorMessageProfile.getErrorClass(), errorMessageProfile.getErrorKind(), errorMessageProfile.getParams());
+        }
+
+        public ErrorMessage(ErrorSeverity errorSeverity, ErrorClass errorClass, ErrorKind errorKind, Value...values) {
+            this(errorSeverity.name(), errorClass.name(), errorKind.name(), values);
+        }
+
+        public ErrorMessage(String errorSeverity, String errorClass, String errorKind, Value...values) {
             super(StandardProtocol.MessageName.ERROR_MESSAGE);
-            this.description = description;
-            this.kind = kind;
+            this.errorSeverity = errorSeverity;
+            this.errorClass = errorClass;
+            this.errorKind = errorKind;
+            this.values = values;
         }
 
         public Value getValue(Field field) {
-            if (field.equals(StandardProtocol.FieldName.ERROR_DESCRIPTION))
-                return new VolatileTextValue(field, description);
+            if (field.equals(StandardProtocol.FieldName.ERROR_SEVERITY))
+                return new VolatileTextValue(field, errorSeverity);
+            if (field.equals(StandardProtocol.FieldName.ERROR_CLASS))
+                return new VolatileTextValue(field, errorClass);
             else if (field.equals(StandardProtocol.FieldName.ERROR_KIND))
-                return new VolatileTextValue(field, kind);
-            return new UnknownValue(field);
+                return new VolatileTextValue(field, errorKind);
+            return lookupValueInParamsByField(values, field).orElse(new UnknownValue(field));
         }
     }
 
-    enum ErrorKind {
-        UnknownMessage;
+    enum ErrorSeverity {
+        Critical,
+        Severe,
+        User
     }
 
+    interface ErrorClass {
+        String name();
+    }
+    interface ErrorKind {
+        String name();
+    }
+
+    interface ErrorMessageProfile {
+        ErrorSeverity getErrorSeverity();
+        ErrorClass getErrorClass();
+        ErrorKind getErrorKind();
+        Message.Value[] getParams();
+    }
 }

@@ -24,7 +24,7 @@ public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
     }
 
     enum FieldName implements Message.Field {
-        ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
+        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
 
         private Message.FieldName name;

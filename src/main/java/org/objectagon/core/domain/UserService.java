@@ -24,15 +24,8 @@ public class UserService extends EntityService<Identity, UserData, EntityService
 
     }
 
-    @Override
-    public StartServiceTask createStartServiceTask(EntityServiceWorker serviceWorker) {
-        return null;
-    }
 
-    @Override
-    public StopServiceTask createStopServiceTask(EntityServiceWorker serviceWorker) {
-        return null;
-    }
+
 
     @Override
     protected EntityService.EntityServiceWorker createWorker(WorkerContext workerContext) {

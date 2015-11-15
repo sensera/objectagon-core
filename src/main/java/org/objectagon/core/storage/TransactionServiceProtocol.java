@@ -32,7 +32,7 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
         NAME("NAME", Message.FieldType.Name),
         MESSAGE("MESSAGE", Message.FieldType.Message),
 
-        ERROR_DESCRIPTION("ERROR_DESCRIPTION", Message.FieldType.Text),
+        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
 
         private Message.FieldName name;

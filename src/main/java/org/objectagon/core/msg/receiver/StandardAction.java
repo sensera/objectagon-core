@@ -1,5 +1,8 @@
 package org.objectagon.core.msg.receiver;
 
+import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.protocol.StandardProtocol;
+
 /**
  * Created by christian on 2015-11-09.
  */
@@ -14,6 +17,16 @@ public abstract class StandardAction <I extends Reactor.ActionInitializer, C ext
     }
 
     @Override
-    public boolean initialize() {}
+    public boolean initialize() { return true; }
 
+    @Override
+    public final void run() {
+        try {
+            internalRun();
+        } catch (UserException e) {
+            context.replyWithError(e);
+        }
+    }
+
+    protected abstract void internalRun() throws UserException;
 }

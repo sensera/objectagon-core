@@ -1,6 +1,8 @@
 package org.objectagon.core.msg.receiver;
 
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-11-09.
@@ -34,7 +36,11 @@ public interface Reactor<T extends Reactor.Trigger> {
 
     interface ActionInitializer {}
 
-    interface ActionContext {}
+    interface ActionContext {
+        void replyOk();
+        void replyWithParam(Message.Value value);
+        void replyWithError(StandardProtocol.ErrorMessageProfile errorMessageProfile);
+    }
 
     interface PatternBuilder {
         void setMessageNameTrigger(Message.MessageName messageName);
