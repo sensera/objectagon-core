@@ -17,4 +17,8 @@ public class AddressList<A extends Address> implements Address {
 
     public void add(A address) { addressList.add(address); }
     public void remove(A address) { addressList.remove(address); }
+
+    public boolean isEmpty() {
+        return addressList.isEmpty();
+    }
 }

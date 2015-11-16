@@ -32,57 +32,36 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(EventServiceProtocol.MessageName.START_LISTEN_TO),
                 (initializer, context) -> new StartListenToAction((EventServiceImpl) initializer, (EventServiceImpl.EventServiceWorkerImpl) context)
+        ).add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(EventServiceProtocol.MessageName.STOP_LISTEN_TO),
+                (initializer, context) -> new StartListenToAction((EventServiceImpl) initializer, (EventServiceImpl.EventServiceWorkerImpl) context)
+        ).add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(EventServiceProtocol.MessageName.BROADCAST),
+                (initializer, context) -> new BroadcastAction((EventServiceImpl) initializer, (EventServiceImpl.EventServiceWorkerImpl) context)
         );
     }
 
-    protected void startListenTo(EventServiceWorkerImpl serviceWorker) {
-        Address address = serviceWorker.getValue(EventServiceProtocol.FieldName.ADDRESS).asAddress();
-        String name = serviceWorker.getValue(EventServiceProtocol.FieldName.NAME).asText();
-
+    void startListenTo(String name, Address address) {
         AddressList addressList = eventListeners.get(name);
-        if (addressList==null)
+        if (addressList==null) {
             addressList = new AddressList(address);
-        else
+            eventListeners.put(name, addressList);
+        } else
             addressList.add(address);
-
-        serviceWorker.replyOk();
     }
 
-    protected void stopListenTo(EventServiceWorkerImpl serviceWorker) {
-        Address address = serviceWorker.getValue(EventServiceProtocol.FieldName.ADDRESS).asAddress();
-        String name = serviceWorker.getValue(EventServiceProtocol.FieldName.NAME).asText();
-
+    void stopListenTo(String name, Address address) {
         AddressList addressList = eventListeners.get(name);
         if (addressList!=null)
             addressList.remove(address);
-
-        serviceWorker.replyOk();
+        if (addressList.isEmpty())
+            eventListeners.remove(name);
     }
 
-    protected void broadcast(EventServiceWorkerImpl serviceWorker) {
-        String name = serviceWorker.getValue(EventServiceProtocol.FieldName.NAME).asText();
-        Message message = serviceWorker.getValue(EventServiceProtocol.FieldName.MESSAGE).asMessage();
-
+    void broadcast(String name, Message message, EventServiceWorkerImpl serviceWorker) {
         AddressList addressList = eventListeners.get(name);
         if (addressList!=null)
             serviceWorker.broadcast(message, addressList);
-
-        serviceWorker.replyOk();
-    }
-
-    @Override
-    protected void handle(EventServiceWorkerImpl serviceWorker) {
-        if (serviceWorker.messageHasName(EventServiceProtocol.MessageName.START_LISTEN_TO)) {
-            startListenTo(serviceWorker);
-            serviceWorker.setHandled();
-        } else if (serviceWorker.messageHasName(EventServiceProtocol.MessageName.STOP_LISTEN_TO)) {
-            stopListenTo(serviceWorker);
-            serviceWorker.setHandled();
-        } else if (serviceWorker.messageHasName(EventServiceProtocol.MessageName.BROADCAST)) {
-            broadcast(serviceWorker);
-            serviceWorker.setHandled();
-        } else
-            super.handle(serviceWorker);
     }
 
     @Override
@@ -134,10 +113,52 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
 
         @Override
         public Optional<Message.Value> internalRun() throws UserException {
-            initializer.setAddressName(address, name);
+            initializer.startListenTo(name, address);
             return Optional.empty();
         }
     }
 
+    private static class StopListenToAction extends StandardAction<EventServiceImpl, EventServiceWorkerImpl> {
 
+        private Address address;
+        private String name;
+
+        public StopListenToAction(EventServiceImpl initializer, EventServiceWorkerImpl context) {
+            super(initializer, context);
+        }
+
+        public boolean initialize() {
+            address = context.getValue(EventServiceProtocol.FieldName.ADDRESS).asAddress();
+            name = context.getValue(EventServiceProtocol.FieldName.NAME).asText();
+            return true;
+        }
+
+        @Override
+        public Optional<Message.Value> internalRun() throws UserException {
+            initializer.stopListenTo(name, address);
+            return Optional.empty();
+        }
+    }
+
+    private static class BroadcastAction extends StandardAction<EventServiceImpl, EventServiceWorkerImpl> {
+
+        private Message message ;
+        private String name;
+
+        public BroadcastAction(EventServiceImpl initializer, EventServiceWorkerImpl context) {
+            super(initializer, context);
+        }
+
+        public boolean initialize() {
+            message = context.getValue(EventServiceProtocol.FieldName.MESSAGE).asMessage();
+            name = context.getValue(EventServiceProtocol.FieldName.NAME).asText();
+            return true;
+        }
+
+        @Override
+        public Optional<Message.Value> internalRun() throws UserException {
+            initializer.broadcast(name, message, context);
+            return Optional.empty();
+        }
+    }
 }
