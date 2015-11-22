@@ -1,13 +1,17 @@
 package org.objectagon.core.service.event;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.AddressList;
+import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.Reactor;
+import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 import org.objectagon.core.msg.receiver.StandardAction;
 import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
+import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
 
@@ -18,7 +22,17 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-13.
  */
-public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl> {
+public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl, StandardAddress, EventServiceImpl> {
+
+    public static void registerAtServer(Server server) {
+        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, EventServiceProtocol.EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
+        server.registerFactory(EventServiceProtocol.EVENT_SERVICE_CTRL_ID_NAME, eventServiceStandardAddressReceiverCtrlIdNameStandardFactory);
+    }
+
+    public static Server.Factory<EventServiceImpl> factory(Server server) {
+        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, EventServiceProtocol.EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
+        return eventServiceStandardAddressReceiverCtrlIdNameStandardFactory;
+    }
 
     private Map<String,AddressList> eventListeners = new HashMap<String, AddressList>();
 

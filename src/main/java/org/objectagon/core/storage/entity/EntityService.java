@@ -21,16 +21,16 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityService<I extends Identity, D extends Data, E extends EntityService.EntityServiceWorker> extends AbstractService<E> {
+public abstract class EntityService<I extends Identity, D extends Data, B extends Receiver<I>, E extends EntityService.EntityServiceWorker> extends AbstractService<E,I,B> {
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
 
-    public EntityService(StandardReceiverCtrl<StandardAddress> receiverCtrl) {
+    public EntityService(StandardReceiverCtrl<B,I> receiverCtrl) {
         super(receiverCtrl);
     }
 
     protected Entity<I,D> internalCreateEntity(EntityServiceWorker serviceWorker) {
-
+        return null;
     }
 
     protected void createEntity(EntityServiceWorker serviceWorker) {

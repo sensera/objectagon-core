@@ -1,5 +1,6 @@
 package org.objectagon.core.service;
 
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.*;
@@ -11,12 +12,12 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-08.
  */
-public abstract class AbstractService<W extends Service.ServiceWorker> extends StandardReceiverImpl<StandardAddress, StandardReceiverCtrl<StandardAddress>, W> implements Service, Service.ServiceActionCommands<W> {
+public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardReceiverImpl<A, B, StandardReceiverCtrl<B, A>, W> implements Service, Service.ServiceActionCommands<W,A, B> {
 
     private Status status = Status.Stopped;
     private Task currentTask;
 
-    public AbstractService(StandardReceiverCtrl<StandardAddress> receiverCtrl) {
+    public AbstractService(StandardReceiverCtrl<B,A> receiverCtrl) {
         super(receiverCtrl);
     }
 
@@ -24,11 +25,11 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(ServiceProtocol.MessageName.START_SERVICE),
-                (initializer, context) -> new StartServiceAction<W>( (Service.ServiceActionCommands) initializer, (W) context)
+                (initializer, context) -> new StartServiceAction<W,A,B>( (Service.ServiceActionCommands) initializer, (W) context)
         );
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(ServiceProtocol.MessageName.STOP_SERVICE),
-                (initializer, context) -> new StopServiceAction<W>( (Service.ServiceActionCommands) initializer, (W) context)
+                (initializer, context) -> new StopServiceAction<W,A, B>( (Service.ServiceActionCommands) initializer, (W) context)
         );
     }
 
@@ -94,7 +95,7 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
     }
 
     @Override
-    public StandardAddress createNewAddress(Receiver receiver) {
+    public A createNewAddress(B receiver) {
         return getReceiverCtrl().createNewAddress(receiver);
     }
 
@@ -107,17 +108,17 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
     /*                    Actions                                */
     /*************************************************************/
 
-    private static abstract class AbstractServiceAction<W extends Service.ServiceWorker> extends StandardAction<Service.ServiceActionCommands<W>, W> {
+    private static abstract class AbstractServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardAction<Service.ServiceActionCommands<W,A,B>, W> {
 
-        public AbstractServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
+        public AbstractServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
     }
 
-    private static class StartServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
+    private static class StartServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends AbstractServiceAction<W,A,B> {
 
-        public StartServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
+        public StartServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
@@ -141,13 +142,13 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
         }
 
         @Override
-        public void run() {
+        protected Optional<Message.Value> internalRun() throws UserException {
             Optional<Task> currentTaskOptional = initializer.createStartServiceTask(context);
 
             if (!currentTaskOptional.isPresent()) {
                 initializer.setStartedStatusAndClearCurrentTask();
                 context.replyOk();
-                return;
+                return Optional.empty();
             }
 
             Task currentTask = currentTaskOptional.get();
@@ -158,12 +159,13 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
                     fail -> initializer.setStoppedStatusAndClearCurrentTask()
             );
             currentTask.start();
+            return Optional.empty();
         }
     }
 
-    private static class StopServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
+    private static class StopServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends AbstractServiceAction<W,A,B> {
 
-        public StopServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
+        public StopServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
@@ -187,14 +189,14 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
         }
 
         @Override
-        public void run() {
+        protected Optional<Message.Value> internalRun() throws UserException {
 
             Optional<Task> currentTaskOptional = initializer.createStopServiceTask(context);
 
             if (!currentTaskOptional.isPresent()) {
                 initializer.setStoppedStatusAndClearCurrentTask();
                 context.replyOk();
-                return;
+                return Optional.empty();
             }
 
             Task currentTask = currentTaskOptional.get();
@@ -206,6 +208,7 @@ public abstract class AbstractService<W extends Service.ServiceWorker> extends S
             );
 
             currentTask.start();
+            return Optional.empty();
         }
     }
 }

@@ -8,6 +8,7 @@ import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 
 /**
  * Created by christian on 2015-10-13.
@@ -17,6 +18,8 @@ public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Sess
     ProtocolName EVENT_SERVICE_PROTOCOL = new ProtocolNameImpl("EVENT_SERVICE_PROTOCOL");
 
     NamedAddress EVENT_SERVICE_ADDRESS = new NamedAddress(EVENT_SERVICE_PROTOCOL);
+
+    ReceiverCtrlIdName EVENT_SERVICE_CTRL_ID_NAME = new ReceiverCtrlIdName("EventService");
 
     ClientSession createClientSession(Address target);
 

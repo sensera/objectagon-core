@@ -6,6 +6,7 @@ package org.objectagon.core.msg;
 public interface Composer {
     Envelope create(Message message);
     Envelope create(Message.MessageName messageName);
+    Envelope create(Message.MessageName messageName, Message.Value... values);
 
     Builder builder(Message message);
 

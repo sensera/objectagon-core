@@ -1,16 +1,16 @@
 package org.objectagon.core.service.name;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.VolatileAddressValue;
-import org.objectagon.core.msg.receiver.BasicReceiverCtrl;
-import org.objectagon.core.msg.receiver.Reactor;
-import org.objectagon.core.msg.receiver.StandardAction;
-import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
+import org.objectagon.core.msg.receiver.*;
+import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
@@ -22,7 +22,12 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-13.
  */
-public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl>  {
+public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, StandardAddress, NameServiceImpl>  {
+
+    public static void registerAtServer(Server server) {
+        StandardFactory<NameServiceImpl, StandardAddress, ReceiverCtrlIdName> nameServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, NameServiceProtocol.NAME_SERVICE_CTRL_NAME, StandardAddress::standard, NameServiceImpl::new);
+        server.registerFactory(NameServiceProtocol.NAME_SERVICE_CTRL_NAME, nameServiceStandardAddressReceiverCtrlIdNameStandardFactory);
+    }
 
     private Map<String, Address> addressByName = new HashMap<String, Address>();
 

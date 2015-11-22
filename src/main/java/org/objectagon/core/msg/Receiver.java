@@ -1,5 +1,6 @@
 package org.objectagon.core.msg;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.service.name.NameServiceProtocol;
@@ -11,8 +12,8 @@ public interface Receiver<U extends Address> {
     U getAddress();
     void receive(Envelope envelope);
 
-    interface ReceiverCtrl<U extends Address> extends Transporter {
-        U createNewAddress(Receiver receiver);
+    interface ReceiverCtrl<R extends Receiver<U>, U extends Address> extends Transporter {
+        U createNewAddress(R receiver);
     }
 
     interface Worker {
@@ -47,4 +48,12 @@ public interface Receiver<U extends Address> {
 
         Message.MessageName getMessageName();
     }
+
+    public interface CtrlId extends Name {}
+
+    @FunctionalInterface
+    interface CreateNewAddress<R extends Receiver<A>, A extends Address, C extends Receiver.CtrlId> {
+        A createNewAddress(Server.ServerId serverId, C ctrlId, long id);
+    }
+
 }

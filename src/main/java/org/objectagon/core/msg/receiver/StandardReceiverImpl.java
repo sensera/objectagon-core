@@ -1,11 +1,12 @@
 package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Receiver;
 
 /**
  * Created by christian on 2015-11-09.
  */
-public abstract class StandardReceiverImpl<A extends Address, C extends StandardReceiverCtrl<A>, W extends StandardWorker> extends BasicReceiverImpl<A,C,W> implements StandardReceiver<A> {
+public abstract class StandardReceiverImpl<A extends Address, B extends Receiver<A>, C extends StandardReceiverCtrl<B,A>, W extends StandardWorker> extends BasicReceiverImpl<A,B,C,W> implements StandardReceiver<A> {
 
     private Reactor reactor;
 

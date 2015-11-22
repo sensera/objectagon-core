@@ -1,7 +1,7 @@
 package org.objectagon.core.msg.receiver;
 
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.envelope.StandardEnvelope;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.StandardProtocol;
@@ -9,17 +9,17 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
 /**
  * Created by christian on 2015-10-06.
  */
-public abstract class BasicReceiverImpl<U extends Address, E extends BasicReceiverCtrl<U>, W extends BasicWorker> implements BasicReceiver<U> {
+public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>, C extends BasicReceiverCtrl<B, A>, W extends BasicWorker> implements BasicReceiver<A> {
 
-    private E receiverCtrl;
-    private U address;
+    private C receiverCtrl;
+    private A address;
 
-    public U getAddress() {return address;}
-    public E getReceiverCtrl() {return receiverCtrl;}
+    public A getAddress() {return address;}
+    public C getReceiverCtrl() {return receiverCtrl;}
 
-    public BasicReceiverImpl(E receiverCtrl) {
+    public BasicReceiverImpl(C receiverCtrl) {
         this.receiverCtrl = receiverCtrl;
-        this.address = receiverCtrl.createNewAddress(this);
+        this.address = receiverCtrl.createNewAddress((B) this);
     }
 
     abstract protected void handle(W worker);
@@ -56,7 +56,7 @@ public abstract class BasicReceiverImpl<U extends Address, E extends BasicReceiv
                 W worker = createWorker(workerContext);
                 handle(worker);
                 if (!worker.isHandled())
-                    worker.replyWithError(StandardProtocol.ErrorKind.UnknownMessage);
+                    worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
             }
         });
     }

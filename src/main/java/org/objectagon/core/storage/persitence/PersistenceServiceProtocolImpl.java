@@ -15,10 +15,6 @@ public class PersistenceServiceProtocolImpl extends AbstractProtocol<Persistence
         super(PERSISTENCE_SERVICE_PROTOCOL, composer, transporter);
     }
 
-    public ClientSession createClientSession(Address target) {
-        return null;
-    }
-
     public PersistenceServiceProtocol.Session createSession(Address target) {return null;}
 
     public PersistenceServiceProtocol.Session createSession(Composer composer, Address target) {

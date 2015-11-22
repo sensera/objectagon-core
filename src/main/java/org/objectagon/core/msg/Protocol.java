@@ -1,5 +1,7 @@
 package org.objectagon.core.msg;
 
+import org.objectagon.core.exception.ErrorKind;
+
 /**
  * Created by christian on 2015-10-06.
  */
@@ -12,6 +14,8 @@ public interface Protocol<U extends Protocol.Session> {
 
     interface ProtocolName extends Name {}
 
-    interface Session {}
+    interface Session {
+        void replyWithError(ErrorKind errorKind);
+    }
 
 }

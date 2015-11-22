@@ -12,10 +12,16 @@ import java.util.Map;
  */
 public class SimpleMessage extends AbstractMessage implements Message {
 
-    private Map<Field,Value> values = new HashMap<Field, Value>();
+    private Map<Field,Value> values = new HashMap<>();
 
     public SimpleMessage(MessageName name) {
         super(name);
+    }
+
+    public SimpleMessage(MessageName name, Value... values) {
+        super(name);
+        for (Value value : values)
+            this.values.put(value.getField(), value);
     }
 
     public Value getValue(Field field) {

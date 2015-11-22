@@ -1,5 +1,6 @@
 package org.objectagon.core.msg.protocol;
 
+import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Protocol;
@@ -32,5 +33,10 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
         }
 
     }
+
+    public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
+        transporter.transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.Unknown, ErrorClass.UNKNOWN, errorKind)));
+    }
+
 
 }

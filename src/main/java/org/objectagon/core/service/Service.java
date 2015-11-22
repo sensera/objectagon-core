@@ -1,5 +1,6 @@
 package org.objectagon.core.service;
 
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Envelope;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
@@ -20,7 +21,7 @@ public interface Service {
         Stopped, Starting, Started, Stopping;
     }
 
-    interface ServiceActionCommands<W extends ServiceWorker> extends Reactor.ActionInitializer {
+    interface ServiceActionCommands<W extends ServiceWorker, A extends Address, B extends Receiver<A>> extends Reactor.ActionInitializer {
         boolean isStarting();
         boolean isStopping();
         boolean isStarted();
@@ -32,7 +33,7 @@ public interface Service {
 
         void setStoppedStatusAndClearCurrentTask();
 
-        StandardAddress createNewAddress(Receiver receiver);
+        A createNewAddress(B receiver);
 
         void transport(Envelope envelope);
 
