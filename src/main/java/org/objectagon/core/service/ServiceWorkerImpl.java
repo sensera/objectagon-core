@@ -6,7 +6,6 @@ import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.VolatileMessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
-import org.objectagon.core.task.ChainedTask;
 import org.objectagon.core.task.StandardTask;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
@@ -40,8 +39,8 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
         createStandardProtocolSession().replyOk();
     }
 
-    public void failed(StandardProtocol.ErrorKind errorKind, String description) {
-        createStandardProtocolSession().replyWithError(description, errorKind);
+    public void failed(StandardProtocol.ErrorKind errorKind) {
+        createStandardProtocolSession().replyWithError(errorKind);
     }
 
     public void replyWithError(ServiceProtocol.ErrorKind errorKind) {

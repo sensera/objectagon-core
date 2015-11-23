@@ -1,6 +1,7 @@
 package org.objectagon.core.msg.protocol;
 
 import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Protocol;
@@ -24,19 +25,17 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
     }
 
     protected abstract class AbstractProtocolSession implements Protocol.Session {
-        final protected Address target;
         final protected Composer composer;
 
-        public AbstractProtocolSession(Composer composer, Address target) {
+        public AbstractProtocolSession(Composer composer) {
             this.composer = composer;
-            this.target = target;
         }
 
+        public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
+            transporter.transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.Unknown, ErrorClass.UNKNOWN, errorKind)));
+        }
     }
 
-    public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
-        transporter.transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.Unknown, ErrorClass.UNKNOWN, errorKind)));
-    }
 
 
 }

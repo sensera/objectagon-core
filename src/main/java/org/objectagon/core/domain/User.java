@@ -30,6 +30,11 @@ public class User extends EntityImpl<Identity, UserData, Version, EntityWorker> 
     }
 
     @Override
+    protected void handle(BasicWorker worker) {
+
+    }
+
+    @Override
     protected EntityWorker createWorker(WorkerContext workerContext) {
         return null;
     }

@@ -1,6 +1,8 @@
 package org.objectagon.core.object.instance;
 
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.object.FieldAddress;
 import org.objectagon.core.object.InstanceProtocol;
@@ -15,29 +17,22 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Sess
     }
 
     public InstanceProtocolSession createSession(Address target) {
-        return new InstanceProtocolSession(new Composer() {
-            public Envelope create(Message message) {
-                return null;
-            }
-
-            public Envelope create(Message.MessageName messageName) {
-                return null;
-            }
-
-            public Builder builder(Message message) {
-                return null;
-            }
-        }, target);
+        return new InstanceProtocolSession(StandardComposer.create(target));
     }
 
-    public InstanceProtocolSession createSession(Composer composer, Address target) {
-        return new InstanceProtocolSession(composer, target);
+    @Override
+    public InstanceProtocol.Session createSession(Composer composer, Address target) {
+        return new InstanceProtocolSession(composer);
+    }
+
+    public InstanceProtocolSession createSession(Composer composer) {
+        return new InstanceProtocolSession(composer);
     }
 
     class InstanceProtocolSession extends AbstractProtocolSession implements InstanceProtocol.Session {
 
-        public InstanceProtocolSession(Composer composer, Address target) {
-            super(composer, target);
+        public InstanceProtocolSession(Composer composer) {
+            super(composer);
         }
 
         public void getValue(FieldAddress fieldAddress) {
@@ -45,6 +40,11 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Sess
         }
 
         public void setValue(FieldAddress fieldAddress, String value) {
+
+        }
+
+        @Override
+        public void replyWithError(ErrorKind errorKind) {
 
         }
     }

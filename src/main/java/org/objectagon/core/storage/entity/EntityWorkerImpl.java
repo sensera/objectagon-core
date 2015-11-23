@@ -8,7 +8,6 @@ import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.storage.PersistenceServiceProtocol;
 import org.objectagon.core.storage.persitence.PersistenceServiceProtocolImpl;
-import org.objectagon.core.task.ChainedTask;
 import org.objectagon.core.task.StandardTask;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
@@ -26,6 +25,12 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
     public PersistenceServiceProtocol createPersistenceServiceProtocol(Address target) {
         return new PersistenceServiceProtocolImpl(new StandardComposer(target), getWorkerContext().getTransporter());
     }
+
+    @Override
+    public PersistenceServiceProtocol createPersistenceServiceProtocol() {
+        return null;
+    }
+
 
     @Override
     public TaskBuilder getTaskBuilder() {

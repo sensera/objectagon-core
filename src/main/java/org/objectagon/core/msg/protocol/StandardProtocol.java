@@ -1,5 +1,7 @@
 package org.objectagon.core.msg.protocol;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.*;
@@ -96,6 +98,10 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
             else if (field.equals(StandardProtocol.FieldName.ERROR_KIND))
                 return new VolatileTextValue(field, errorKind);
             return lookupValueInParamsByField(values, field).orElse(new UnknownValue(field));
+        }
+
+        public static Message error(org.objectagon.core.exception.ErrorKind errorKind) {
+            return new ErrorMessage(ErrorSeverity.Unknown, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind);
         }
     }
 

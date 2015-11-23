@@ -7,13 +7,7 @@ import org.objectagon.core.msg.*;
  */
 public interface Server extends Transporter {
 
-    ServerId getServerId();
-
     void registerFactory(Name name, Factory factory);
-
-    <R extends Receiver> R createReceiver(Name name);
-
-    void registerReceiver(Address address, Receiver receiver);
 
     interface Factory<R extends Receiver> {
         R create();
@@ -23,6 +17,15 @@ public interface Server extends Transporter {
 
     interface EnvelopeProcessor extends Transporter {
 
+    }
+
+    interface RegisterReceiver {
+        void registerReceiver(Address address, Receiver receiver);
+    }
+
+    interface Ctrl extends RegisterReceiver {
+        ServerId getServerId();
+        void transport(Envelope envelope);
     }
 
 }

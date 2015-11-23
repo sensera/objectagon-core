@@ -7,19 +7,16 @@ import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.persitence.PersistenceServiceProtocolImpl;
-import org.objectagon.core.task.StandardTaskBuilder;
-import org.objectagon.core.task.Task;
-import org.objectagon.core.task.AbstractTaskBuilder;
-import org.objectagon.core.task.TaskBuilder;
+import org.objectagon.core.task.*;
 
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker>  extends BasicReceiverImpl<I, Entity.EntityCtrl<I>, W> implements Entity<I, D> {
+public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker, B extends Receiver<I>>  extends BasicReceiverImpl<I, B, Entity.EntityCtrl<I,B>, W> implements Entity<I, D> {
 
     private DataVersions<D,V> data;
 
-    public EntityImpl(EntityCtrl<I> entityCtrl, D data) {
+    public EntityImpl(EntityCtrl<I,B> entityCtrl, D data) {
         super(entityCtrl);
         this.data = new DataVersions<D,V>(data);
     }
@@ -27,27 +24,11 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
     abstract protected V createVersionFromValue(Message.Value value);
 
     private Task.TaskCtrl createTaskCtrl() {
-        return new Task.TaskCtrl() {
-            @Override
-            public void success(Message message) {
-
-            }
-
-            @Override
-            public void failed(Message message) {
-
-            }
-
-            @Override
-            public Address createNewAddress(Receiver receiver) {
-                return getReceiverCtrl().createNewAddress(receiver);
-            }
-
-            @Override
-            public void transport(Envelope envelope) {
-
-            }
-        };
+        return new TaskCtrlImpl(
+                envelope -> getReceiverCtrl().transport(envelope),
+                (address, receiver) -> getReceiverCtrl().registerReceiver(address, receiver),
+                getReceiverCtrl().getServerId(),
+                getAddress());  //TODO improve getAddress() with id counter
     }
 
     private void commit(EntityWorker entityWorker) {

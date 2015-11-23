@@ -9,7 +9,7 @@ public class NamedField implements Message.Field {
     private FieldNameImpl name;
     private Message.FieldType fieldType;
 
-    public Message.MessageName getName() {return name;}
+    public Message.FieldName getName() {return name;}
     public Message.FieldType getFieldType() {return fieldType;}
 
     public NamedField(String name, Message.FieldType fieldType) {

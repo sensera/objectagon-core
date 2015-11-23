@@ -33,7 +33,6 @@ public class BasicWorkerImpl implements BasicWorker {
         createStandardProtocolSession().replyWithError(errorKind);
     }
 
-    @Override
     public void replyWithError(StandardProtocol.ErrorMessageProfile errorMessageProfile) {
         createStandardProtocolSession().replyWithError(errorMessageProfile);
     }

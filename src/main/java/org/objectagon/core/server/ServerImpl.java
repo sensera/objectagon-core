@@ -46,6 +46,11 @@ public class ServerImpl implements Server {
         return factory.create();
     }
 
+    @Override
+    public void registerReceiver(Address address, Receiver receiver) {
+        receivers.put(address, receiver);
+    }
+
     private Optional<Transporter> processEnvelopeTarget(Address target) {
         Receiver receiver = receivers.get(target);
         if (receiver==null)

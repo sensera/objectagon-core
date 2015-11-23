@@ -11,13 +11,13 @@ import org.objectagon.core.msg.address.StandardAddress;
  */
 public abstract class StandardReceiverCtrlImpl<R extends Receiver<A>, A extends Address> implements StandardReceiverCtrl<R, A> {
 
-    private final Server server;
+    private final Server.Ctrl server;
 
-    public StandardReceiverCtrlImpl(Server server) {
+    public StandardReceiverCtrlImpl(Server.Ctrl server) {
         this.server = server;
     }
 
-    protected Server.ServerId getServerId() { return server.getServerId(); }
+    public Server.ServerId getServerId() { return server.getServerId(); }
 
     protected void registerReceiver(A address, R receiver) {
         server.registerReceiver(address, receiver);

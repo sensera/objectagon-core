@@ -10,12 +10,10 @@ public interface Protocol<U extends Protocol.Session> {
 
     U createSession(Address target);
 
-    U createSession(Composer composer, Address target);
-
     interface ProtocolName extends Name {}
 
     interface Session {
-        void replyWithError(ErrorKind errorKind);
+        void replyWithError(org.objectagon.core.exception.ErrorKind errorKind);
     }
 
 }

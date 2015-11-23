@@ -6,6 +6,8 @@ import org.objectagon.core.msg.envelope.StandardEnvelope;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 
+import static org.objectagon.core.msg.message.SimpleMessage.simple;
+
 /**
  * Created by christian on 2015-10-06.
  */
@@ -75,7 +77,12 @@ public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>
         }
 
         public Envelope create(Message.MessageName messageName) {
-            return new StandardEnvelope(target, new SimpleMessage(messageName));
+            return new StandardEnvelope(target, simple(messageName));
+        }
+
+        @Override
+        public Envelope create(Message.MessageName messageName, Message.Value... values) {
+            return new StandardEnvelope(target, simple(messageName, values));
         }
 
         public Builder builder(Message message) {

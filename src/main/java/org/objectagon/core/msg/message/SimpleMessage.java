@@ -14,11 +14,15 @@ public class SimpleMessage extends AbstractMessage implements Message {
 
     private Map<Field,Value> values = new HashMap<>();
 
-    public SimpleMessage(MessageName name) {
+    public static SimpleMessage simple(MessageName name, Value... values) {
+        return values.length == 0 ? new SimpleMessage(name) : new SimpleMessage(name, values);
+    }
+
+    private SimpleMessage(MessageName name) {
         super(name);
     }
 
-    public SimpleMessage(MessageName name, Value... values) {
+    private SimpleMessage(MessageName name, Value... values) {
         super(name);
         for (Value value : values)
             this.values.put(value.getField(), value);

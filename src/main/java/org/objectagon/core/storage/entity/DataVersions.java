@@ -47,6 +47,11 @@ public class DataVersions<D extends Data, V extends Version>  {
         return target.get().data;
     }
 
+    public void rollback(V version) {
+
+
+    }
+
     private class DataChain {
         DataChain prev;
         DataChain next;

@@ -13,7 +13,7 @@ import org.objectagon.core.storage.entity.EntityService;
 /**
  * Created by christian on 2015-11-01.
  */
-public class UserService extends EntityService<Identity, UserData, EntityService.EntityServiceWorker> {
+public class UserService extends EntityService<Identity, UserData, UserService, EntityService.EntityServiceWorker> {
 
     public UserService(StandardReceiverCtrl receiverCtrl) {
         super(receiverCtrl);

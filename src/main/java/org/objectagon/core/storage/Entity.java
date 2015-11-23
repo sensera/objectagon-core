@@ -11,12 +11,14 @@ import org.objectagon.core.task.Task;
  */
 public interface Entity<I extends Identity, D extends Data> extends Receiver<I> {
 
-    interface EntityCtrl<I extends Identity> extends BasicReceiverCtrl<I> {
+    interface EntityCtrl<I extends Identity, B extends Receiver<I>> extends BasicReceiverCtrl<B, I> {
         Address getPersistenceAddress();
+
+        void registerReceiver(Address address, Receiver receiver);
     }
 
     enum TaskName implements Task.TaskName {
-        COMMIT_DATA_VERSION, DELETE_DATA_VERSION_FROM_PERSISTANCE
+        COMMIT_DATA_VERSION, ROLLBACK_DATA_VERSION, DELETE_DATA_VERSION_FROM_PERSISTANCE
 
     }
 

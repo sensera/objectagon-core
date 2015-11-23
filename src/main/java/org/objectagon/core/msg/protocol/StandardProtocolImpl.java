@@ -1,6 +1,7 @@
 package org.objectagon.core.msg.protocol;
 
 import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.*;
 
 /**
@@ -52,6 +53,11 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
 
         public void reply(Message.MessageName message) {
             transporter.transport(composer.create(message));
+        }
+
+        @Override
+        public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
+            transporter.transport(composer.create(ErrorMessage.error(errorKind)));
         }
     }
 
