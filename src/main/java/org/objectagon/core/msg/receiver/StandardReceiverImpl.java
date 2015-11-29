@@ -22,7 +22,7 @@ public abstract class StandardReceiverImpl<A extends Address, B extends Receiver
         return worker;
     }
 
-    protected void handle(W worker) {
+    protected final void handle(W worker) {
         reactor.react(worker, actionBuilder -> {
             Reactor.Action action = actionBuilder.create(getActionInitializer(worker), worker);
             if (action.initialize())

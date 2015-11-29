@@ -20,16 +20,4 @@ public class UserService extends EntityService<Identity, StandardData, UserServi
         super(receiverCtrl);
     }
 
-    @Override
-    public void addCompletedListener(EntityServiceWorker serviceWorker) {
-
-    }
-
-
-
-
-    @Override
-    protected EntityService.EntityServiceWorker createWorker(WorkerContext workerContext) {
-        return new EntityServiceWorker(workerContext);
-    }
 }

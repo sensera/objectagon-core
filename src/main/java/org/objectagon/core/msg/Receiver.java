@@ -4,6 +4,7 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.service.name.NameServiceProtocol;
+import org.objectagon.core.storage.PersistenceServiceProtocol;
 
 /**
  * Created by christian on 2015-10-06.

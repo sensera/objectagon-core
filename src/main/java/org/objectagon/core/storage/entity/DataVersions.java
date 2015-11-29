@@ -27,7 +27,7 @@ public class DataVersions<D extends Data, V extends Version>  {
             return;
         }
         if (chain==null)
-            throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS, version);
+            throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS);
         if (chain.equalsVersion(version)) {
             data = chain.data;
             chain.remove();
@@ -35,7 +35,7 @@ public class DataVersions<D extends Data, V extends Version>  {
 
         Optional<DataChain> target = chain.findVersion(version);
         if (!target.isPresent())
-            throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS, version);
+            throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS);
 
         target.get().commit();
     }
@@ -43,7 +43,7 @@ public class DataVersions<D extends Data, V extends Version>  {
     public D getDataByVersion(V version) {
         Optional<DataChain> target = chain.findVersion(version);
         if (!target.isPresent())
-            throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS, version);
+            throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS);
         return target.get().data;
     }
 
@@ -86,7 +86,7 @@ public class DataVersions<D extends Data, V extends Version>  {
 
         public void commit() {
             if (prev==null)
-                throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS, data.getVersion());
+                throw new SevereError(ErrorClass.STORAGE, ErrorKind.MISSING_VERSION_IN_DATA_VERSIONS);
             prev.data = data;
             remove();
         }

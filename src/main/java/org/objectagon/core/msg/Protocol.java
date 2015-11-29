@@ -23,8 +23,8 @@ public interface Protocol<U extends Protocol.Session> {
         Message.Value toValue();
     }
 
-    interface Factory {
-        <U extends Protocol.Session> Protocol<U> create();
+    interface Factory<U extends Protocol.Session> {
+        Protocol<U> create();
     }
 
     interface SessionFactory {

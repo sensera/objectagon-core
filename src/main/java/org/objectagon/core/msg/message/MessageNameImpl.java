@@ -26,11 +26,6 @@ public class MessageNameImpl implements Message.MessageName {
     }
 
     @Override
-    public boolean same(Message.MessageName messageName) {
-        return equals(messageName);
-    }
-
-    @Override
     public int hashCode() {
         return Objects.hash(name, protocolName);
     }

@@ -40,14 +40,20 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Task, Task
         } catch (SevereError e) {
             failed(e.getErrorClass(), e.getErrorKind(), e.getParams());
         } catch (UserException e) {
-            failed(e.getErrorClass(),e.getErrorKind(), Arrays.asList(e.getParams()));
+            failed(e.getErrorClass(),e.getErrorKind());
         }
     }
 
     protected void success(Message.MessageName messageName, Iterable<Message.Value> values) {
         status = Status.Completed;
         intSuccess(messageName, values);
-        successActions.stream().forEach(successAction -> successAction.success(messageName, values));
+        successActions.stream().forEach(successAction -> {
+            try {
+                successAction.success(messageName, values);
+            } catch (UserException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     protected void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values) {

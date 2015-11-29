@@ -5,6 +5,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-10-18.
@@ -35,6 +36,11 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
         public Message.FieldName getName() {return name;}
         public Message.FieldType getFieldType() {return fieldType;}
 
+        @Override
+        public boolean sameField(Message.Value value) {
+            return equals(value.getField());
+        }
+
         FieldName(String name, Message.FieldType fieldType) {
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;
@@ -42,7 +48,6 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
     }
 
     interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
         void create(Data data);
         void update(Data data);
         void remove(Identity identity, Version version);
@@ -50,6 +55,6 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
         void all(Identity identity);
     }
 
-    enum ErrorKind {
+    enum ErrorKind implements StandardProtocol.ErrorKind {
     }
 }

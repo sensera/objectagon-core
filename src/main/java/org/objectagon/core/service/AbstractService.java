@@ -110,7 +110,7 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     /*                    Actions                                */
     /*************************************************************/
 
-    private static abstract class AbstractServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardAction<Service.ServiceActionCommands<W,A,B>, W> {
+    static protected abstract class AbstractServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardAction<Service.ServiceActionCommands<W,A,B>, W> {
 
         public AbstractServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);

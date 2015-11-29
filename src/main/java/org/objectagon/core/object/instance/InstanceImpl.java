@@ -32,7 +32,7 @@ public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,Objec
     }
 
     protected void requestValue(InstanceWorker worker, Task.TaskName taskName, StandardTask.SendMessageAction<FieldValueProtocol.Session> action, Task.SuccessAction successAction) {
-        FieldAddress fieldAddress = worker.getValue(InstanceProtocol.FieldName.FIELD).asAddress();
+        FieldAddress fieldAddress = (FieldAddress) worker.getValue(InstanceProtocol.FieldName.FIELD).asAddress(); //TODO improve this
 
         try {
             InstanceData instanceData = getDataByVersion(worker.getVersion());

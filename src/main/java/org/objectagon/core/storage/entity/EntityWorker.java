@@ -17,7 +17,6 @@ import org.objectagon.core.task.TaskBuilder;
  * Created by christian on 2015-11-01.
  */
 public interface EntityWorker extends BasicWorker {
-    PersistenceServiceProtocol createPersistenceServiceProtocol();
 
     ObjectVersion getVersion();
 

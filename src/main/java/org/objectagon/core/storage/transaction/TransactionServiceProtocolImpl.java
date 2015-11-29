@@ -2,6 +2,7 @@ package org.objectagon.core.storage.transaction;
 
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Transporter;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.storage.TransactionServiceProtocol;
@@ -11,19 +12,49 @@ import org.objectagon.core.storage.TransactionServiceProtocol;
  */
 public class TransactionServiceProtocolImpl extends AbstractProtocol<TransactionServiceProtocol.Session> implements TransactionServiceProtocol {
 
-    public TransactionServiceProtocolImpl(ProtocolName name, Composer composer, Transporter transporter) {
-        super(name, composer, transporter);
+    public TransactionServiceProtocolImpl(ProtocolName name) {
+        super(name);
     }
 
-    public ClientSession createClientSession(Address target) {
+    @Override
+    public TransactionServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
         return null;
     }
 
-    public TransactionServiceProtocol.Session createSession(Address target) {
-        return null;
+    private class TransactionServiceProtocolSession extends AbstractProtocolSession implements TransactionServiceProtocol.Session {
+        public TransactionServiceProtocolSession(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
+            super(sessionId, composer, transporter, sessionOwner);
+        }
+
+        @Override
+        public void start() {
+
+        }
+
+        @Override
+        public void stop() {
+
+        }
+
+        @Override
+        public void add() {
+
+        }
+
+        @Override
+        public void remove() {
+
+        }
+
+        @Override
+        public void commit() {
+
+        }
+
+        @Override
+        public void rollback() {
+
+        }
     }
 
-    public TransactionServiceProtocol.Session createSession(Composer composer, Address target) {
-        return null;
-    }
 }

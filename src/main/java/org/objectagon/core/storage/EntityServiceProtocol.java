@@ -35,6 +35,11 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
         public Message.FieldName getName() {return name;}
         public Message.FieldType getFieldType() {return fieldType;}
 
+        @Override
+        public boolean sameField(Message.Value value) {
+            return equals(value.getField());
+        }
+
         FieldName(String name, Message.FieldType fieldType) {
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;
@@ -42,7 +47,6 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
     }
 
     interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
     }
 
     interface ClientSession extends Protocol.Session {

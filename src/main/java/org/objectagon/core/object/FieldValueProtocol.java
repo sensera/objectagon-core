@@ -39,6 +39,11 @@ public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Session>
         public Message.FieldName getName() {return name;}
         public Message.FieldType getFieldType() {return fieldType;}
 
+        @Override
+        public boolean sameField(Message.Value value) {
+            return equals(value.getField());
+        }
+
         FieldName(String name, Message.FieldType fieldType) {
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;

@@ -43,7 +43,7 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
     }
 
     @Override
-    public void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory factory) {
+    public <U extends Protocol.Session> void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory<U> factory) {
         protocols.put(protocolName, new ProtocolReference(protocolName, factory));
     }
 

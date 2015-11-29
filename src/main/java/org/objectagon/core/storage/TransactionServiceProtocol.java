@@ -6,6 +6,7 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-10-13.
@@ -15,8 +16,6 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
     ProtocolName TRANSACTION_SERVICE_PROTOCOL = new ProtocolNameImpl("TRANSACTION_SERVICE_PROTOCOL");
 
     NamedAddress TRANSACTION_SERVICE_ADDRESS = new NamedAddress(TRANSACTION_SERVICE_PROTOCOL);
-
-    ClientSession createClientSession(Address target);
 
     enum MessageName implements Message.MessageName {
         START,
@@ -41,6 +40,11 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
         public Message.FieldName getName() {return name;}
         public Message.FieldType getFieldType() {return fieldType;}
 
+        @Override
+        public boolean sameField(Message.Value value) {
+            return equals(value.getField());
+        }
+
         FieldName(String name, Message.FieldType fieldType) {
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;
@@ -48,10 +52,6 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
     }
 
     interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
-    }
-
-    interface ClientSession extends Protocol.Session {
         void start();
         void stop();
         void add();
@@ -60,6 +60,6 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
         void rollback();
     }
 
-    enum ErrorKind {
+    enum ErrorKind implements StandardProtocol.ErrorKind {
     }
 }

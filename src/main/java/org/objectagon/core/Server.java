@@ -7,7 +7,7 @@ import org.objectagon.core.msg.*;
  */
 public interface Server extends Transporter {
 
-    void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory factory);
+    <U extends Protocol.Session> void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory<U> factory);
 
     <R extends Receiver> R createReceiver(Name name);
 

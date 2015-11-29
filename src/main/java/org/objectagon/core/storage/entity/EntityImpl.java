@@ -28,6 +28,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
     private Task.TaskCtrl createTaskCtrl() {
         return new TaskCtrlImpl(
                 envelope -> getReceiverCtrl().transport(envelope),
+                getReceiverCtrl(),
                 (address, receiver) -> getReceiverCtrl().registerReceiver(address, receiver),
                 getReceiverCtrl().getServerId(),
                 getAddress());  //TODO improve getAddress() with id counter
@@ -35,16 +36,15 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
 
     private void commit(EntityWorker entityWorker) {
         V version = createVersionFromValue(entityWorker.getValue(EntityProtocol.FieldName.VERSION));
-        PersistenceServiceProtocol persistenceServiceProtocol = entityWorker.createPersistenceServiceProtocol();
-        persistenceServiceProtocol.createSession(getReceiverCtrl().getPersistenceAddress());
 
         Data dataVersion = data.getDataByVersion(version);
 
+        StandardTask.SendMessageAction<PersistenceServiceProtocol.Session> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(
                 TaskName.DELETE_DATA_VERSION_FROM_PERSISTANCE,
-                persistenceServiceProtocol,
+                PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL,
                 getReceiverCtrl().getPersistenceAddress(),
-                session -> session.remove(dataVersion.getIdentity(), version)
+                removeDataFromPersistence
         );
         chain.next().action(
                 TaskName.COMMIT_DATA_VERSION,
@@ -55,16 +55,15 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
 
     private void rollback(EntityWorker entityWorker) {
         V version = createVersionFromValue(entityWorker.getValue(EntityProtocol.FieldName.VERSION));
-        PersistenceServiceProtocol persistenceServiceProtocol = entityWorker.createPersistenceServiceProtocol();
-        persistenceServiceProtocol.createSession(getReceiverCtrl().getPersistenceAddress());
 
         Data dataVersion = data.getDataByVersion(version);
 
+        StandardTask.SendMessageAction<PersistenceServiceProtocol.Session> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(
                 TaskName.DELETE_DATA_VERSION_FROM_PERSISTANCE,
-                persistenceServiceProtocol,
+                PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL,
                 getReceiverCtrl().getPersistenceAddress(),
-                session -> session.remove(dataVersion.getIdentity(), version)
+                removeDataFromPersistence
         );
         chain.next().action(
                 TaskName.ROLLBACK_DATA_VERSION,
@@ -90,10 +89,6 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
             super(workerContext);
         }
 
-        @Override
-        public PersistenceServiceProtocol createPersistenceServiceProtocol() {
-            return new PersistenceServiceProtocolImpl(getWorkerContext().createReplyToSenderComposer(), getWorkerContext().getTransporter());
-        }
     }
 
 

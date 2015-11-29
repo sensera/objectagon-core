@@ -1,5 +1,6 @@
 package org.objectagon.core.service.event;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
@@ -11,8 +12,12 @@ import static org.objectagon.core.msg.message.SimpleMessage.simple;
  */
 public class BroadcastEventServiceProtocolImpl extends AbstractProtocol<BroadcastEventServiceProtocol.Session> implements BroadcastEventServiceProtocol {
 
-    public BroadcastEventServiceProtocolImpl(ProtocolName name) {
-        super(name);
+    public static void registerAtServer(Server server) {
+        server.registerProtocol(BROADCAST_EVENT_SERVICE_PROTOCOL, BroadcastEventServiceProtocolImpl::new);
+    }
+
+    public BroadcastEventServiceProtocolImpl() {
+        super(BROADCAST_EVENT_SERVICE_PROTOCOL);
     }
 
     @Override
