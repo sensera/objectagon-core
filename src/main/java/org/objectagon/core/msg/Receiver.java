@@ -12,7 +12,7 @@ public interface Receiver<U extends Address> {
     U getAddress();
     void receive(Envelope envelope);
 
-    interface ReceiverCtrl<R extends Receiver<U>, U extends Address> extends Transporter {
+    interface ReceiverCtrl<R extends Receiver<U>, U extends Address> extends Transporter, Protocol.SessionFactory {
         U createNewAddress(R receiver);
     }
 
@@ -20,6 +20,8 @@ public interface Receiver<U extends Address> {
         boolean isHandled();
 
         boolean messageHasName(Message.MessageName messageName);
+
+        Message.MessageName getMessageName();
 
         void setHandled();
 
@@ -29,14 +31,34 @@ public interface Receiver<U extends Address> {
 
         void replyWithParam(Message.Value param);
 
-        void replyWithParam(Message message);
+        void replyWithParam(Message.MessageName message);
+
+        void replyWithParam(Message.MessageName message, Iterable<Message.Value> values);
+
+        void replyWithParam(Iterable<Message.Value> values);
 
         Message.Value getValue(Message.Field field);
+
+        Iterable<Message.Value> getValues();
+        default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {
+            return createErrorMessageProfile(StandardProtocol.ErrorSeverity.Unknown, errorClass, errorKind, values);
+        }
+
+        default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorSeverity errorSeverity, final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {
+            return new StandardProtocol.ErrorMessageProfile() {
+                @Override public StandardProtocol.ErrorSeverity getErrorSeverity() {return errorSeverity;}
+                @Override public StandardProtocol.ErrorClass getErrorClass() {return errorClass;}
+                @Override public StandardProtocol.ErrorKind getErrorKind() {return errorKind;}
+                @Override public Iterable<Message.Value> getParams() {return values;}
+            };
+        }
     }
 
-    interface WorkerContext {
+    interface WorkerContext extends Protocol.SessionFactory {
 
-        Composer createStandardComposer();
+        Composer createReplyToSenderComposer();
+
+        Composer createTargetComposer(Address target);
 
         Transporter getTransporter();
 
@@ -47,6 +69,9 @@ public interface Receiver<U extends Address> {
         Message.Value getValue(Message.Field field);
 
         Message.MessageName getMessageName();
+
+        Iterable<Message.Value> getValues();
+
     }
 
     public interface CtrlId extends Name {}

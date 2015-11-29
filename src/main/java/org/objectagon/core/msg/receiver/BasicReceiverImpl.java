@@ -24,43 +24,25 @@ public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>
         this.address = receiverCtrl.createNewAddress((B) this);
     }
 
+    protected TriggerBuilder<W> triggerBuilder(W worker) {
+        return new TriggerBuilder<>(worker);
+    }
+
     abstract protected void handle(W worker);
 
     public void receive(Envelope envelope) {
         envelope.unwrap(new Envelope.Unwrapper() {
             public void message(final Address sender, final Message message) {
-                WorkerContext workerContext = new WorkerContext() {
-                    public Composer createStandardComposer() {
-                        return new BasicComposer(sender);
-                    }
-
-                    public Transporter getTransporter() {
-                        return receiverCtrl;
-                    }
-
-                    public Address getSender() {
-                        return sender;
-                    }
-
-                    public boolean hasName(Message.MessageName messageName) {
-                        return message.getName().equals(messageName);
-                    }
-
-                    public Message.Value getValue(Message.Field field) {
-                        return message.getValue(field);
-                    }
-
-                    @Override
-                    public Message.MessageName getMessageName() {
-                        return message.getName();
-                    }
-                };
-                W worker = createWorker(workerContext);
+                W worker = createWorker(getBasicWorkerContext(sender, message));
                 handle(worker);
                 if (!worker.isHandled())
                     worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
             }
         });
+    }
+
+    protected BasicWorkerContext getBasicWorkerContext(Address sender, Message message) {
+        return new BasicWorkerContext(sender, message);
     }
 
     protected abstract W createWorker(WorkerContext workerContext);
@@ -85,8 +67,87 @@ public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>
             return new StandardEnvelope(target, simple(messageName, values));
         }
 
-        public Builder builder(Message message) {
+        public Builder builder(Message.MessageName messageName) {
             return null;   //TODO Implement this
         }
     }
+
+    private class BasicWorkerContext implements WorkerContext {
+        private final Address sender;
+        private final Message message;
+
+        public BasicWorkerContext(Address sender, Message message) {
+            this.sender = sender;
+            this.message = message;
+        }
+
+        public Composer createReplyToSenderComposer() {
+            return new BasicComposer(sender);
+        }
+
+        @Override
+        public Composer createTargetComposer(Address target) {
+            return new BasicComposer(target);
+        }
+
+        public Transporter getTransporter() {
+            return receiverCtrl;
+        }
+
+        public Address getSender() {
+            return sender;
+        }
+
+        public boolean hasName(Message.MessageName messageName) {
+            return message.getName().equals(messageName);
+        }
+
+        public Message.Value getValue(Message.Field field) {
+            return message.getValue(field);
+        }
+
+        @Override
+        public Message.MessageName getMessageName() {
+            return message.getName();
+        }
+
+        @Override
+        public Iterable<Message.Value> getValues() {
+            return message.getValues();
+        }
+
+        @Override
+        public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
+            return getReceiverCtrl().createSession(protocolName, composer);
+        }
+    }
+
+    protected class TriggerBuilder<W extends BasicWorker> {
+        W worker;
+        boolean success = false;
+
+        public TriggerBuilder(W worker) {
+            this.worker = worker;
+        }
+
+        public TriggerBuilder<W> trigger(Message.MessageName messageName, RunWorker<W> runnable) {
+            if (!success && messageName.equals(worker.getMessageName())) {
+                success = true;
+                runnable.run(worker);
+            }
+            return this;
+        }
+
+        public void orElse(RunWorker<W> runnable) {
+            if (!success)
+                runnable.run(worker);
+        }
+    }
+
+    @FunctionalInterface
+    public interface RunWorker<W extends BasicWorker> {
+        void run(W worker);
+    }
+
+
 }

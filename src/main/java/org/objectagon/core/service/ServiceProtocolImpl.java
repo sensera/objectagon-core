@@ -1,9 +1,6 @@
 package org.objectagon.core.service;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Transporter;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 
@@ -12,46 +9,34 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
  */
 public class ServiceProtocolImpl extends AbstractProtocol<ServiceProtocol.Session> implements ServiceProtocol {
 
-    public ServiceProtocolImpl(Composer composer, Transporter transporter) {
-        super(SERVICE_PROTOCOL, composer, transporter);
+    public ServiceProtocolImpl() {
+        super(SERVICE_PROTOCOL);
     }
 
-    public ServiceProtocol.Session createSession(Address target) {
-        return new ServiceProtocolSessionImpl(composer, target);
-    }
 
-    public ServiceProtocol.Session createSession(Composer composer, Address target) {
-        return new ServiceProtocolSessionImpl(composer, target);
-    }
-
-    public ClientSession createClientSession(Address target) {
-        return new ClientServiceProtocolSessionImpl(composer, target);
+    @Override
+    public ServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
+        return new ServiceProtocolSessionImpl(nextSessionId(), composer, transporter, sessionOwner);
     }
 
     protected class ServiceProtocolSessionImpl extends AbstractProtocolSession implements ServiceProtocol.Session {
 
-        public ServiceProtocolSessionImpl(Composer composer, Address target) {
-            super(composer, target);
+        public ServiceProtocolSessionImpl(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
+            super(sessionId, composer, transporter, sessionOwner);
         }
 
         public void replyWithError(ErrorKind errorKind) {
-            transporter.transport(composer.create(new StandardProtocol.ErrorMessage("",errorKind.name())));
-        }
-    }
-
-    protected class ClientServiceProtocolSessionImpl extends AbstractProtocolSession implements ClientSession {
-
-        public ClientServiceProtocolSessionImpl(Composer composer, Address target) {
-            super(composer, target);
+            transport(composer.create(new StandardProtocol.ErrorMessage("","",errorKind.name())));
         }
 
         public void startService() {
-            transporter.transport(composer.create(MessageName.START_SERVICE));
+            send(MessageName.START_SERVICE);
         }
 
         public void stopService() {
-            transporter.transport(composer.create(MessageName.START_SERVICE));
+            send(MessageName.START_SERVICE);
         }
 
     }
+
 }

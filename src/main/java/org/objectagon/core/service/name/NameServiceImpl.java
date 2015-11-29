@@ -7,26 +7,33 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.address.StandardAddress;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.receiver.*;
 import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
-import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.objectagon.core.msg.message.VolatileAddressValue.address;
+
 /**
  * Created by christian on 2015-10-13.
  */
 public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, StandardAddress, NameServiceImpl>  {
 
-    public static void registerAtServer(Server server) {
-        StandardFactory<NameServiceImpl, StandardAddress, ReceiverCtrlIdName> nameServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, NameServiceProtocol.NAME_SERVICE_CTRL_NAME, StandardAddress::standard, NameServiceImpl::new);
-        server.registerFactory(NameServiceProtocol.NAME_SERVICE_CTRL_NAME, nameServiceStandardAddressReceiverCtrlIdNameStandardFactory);
+    public static NamedAddress NAME_SERVICE_ADDRESS = new NamedAddress(NameServiceProtocol.NAME_SERVICE_PROTOCOL);
+
+    public static ReceiverCtrlIdName NAME_SERVICE_CTRL_NAME = new ReceiverCtrlIdName("NameService");
+
+    public static void registerAtServer(Server.Ctrl server) {
+        StandardFactory<NameServiceImpl, StandardAddress, ReceiverCtrlIdName> nameServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, NAME_SERVICE_CTRL_NAME, StandardAddress::standard, NameServiceImpl::new);
+        server.registerFactory(NAME_SERVICE_CTRL_NAME, nameServiceStandardAddressReceiverCtrlIdNameStandardFactory);
     }
 
     private Map<String, Address> addressByName = new HashMap<String, Address>();
@@ -75,22 +82,9 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
 
     public class NameServiceWorkerImpl extends ServiceWorkerImpl {
 
-        NameServiceProtocol nameServiceProtocol;
-
         public NameServiceWorkerImpl(Receiver.WorkerContext workerContext) {
             super(workerContext);
-            nameServiceProtocol = new NameServiceProtocolImpl(workerContext.createStandardComposer(), workerContext.getTransporter());
         }
-
-
-        public NameServiceProtocol.Session createNameServiceProtocolSession() {
-            return nameServiceProtocol.createSession(getWorkerContext().getSender());
-        }
-
-        public void replyWithError(NameServiceProtocol.ErrorKind errorKind) {
-            createNameServiceProtocolSession().replyWithError(errorKind);
-        }
-
     }
 
     private static class RegisterNameAction extends StandardAction<NameServiceImpl, NameServiceWorkerImpl> {
@@ -103,8 +97,8 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         }
 
         public boolean initialize() {
-            address = context.getValue(NameServiceProtocol.FieldName.ADDRESS).asAddress();
-            name = context.getValue(NameServiceProtocol.FieldName.NAME).asText();
+            address = context.getValue(StandardField.ADDRESS).asAddress();
+            name = context.getValue(StandardField.NAME).asText();
             return true;
         }
 
@@ -124,7 +118,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         }
 
         public boolean initialize() {
-            name = context.getValue(NameServiceProtocol.FieldName.NAME).asText();
+            name = context.getValue(StandardField.NAME).asText();
             return true;
         }
 
@@ -144,7 +138,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         }
 
         public boolean initialize() {
-            name = context.getValue(NameServiceProtocol.FieldName.NAME).asText();
+            name = context.getValue(StandardField.NAME).asText();
             return true;
         }
 
@@ -152,7 +146,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         public Optional<Message.Value> internalRun() throws UserException {
             Address address = initializer.getAddressByName(name)
                     .orElseThrow(() -> new UserException(ErrorClass.NAME_SERVICE, ErrorKind.INCONSISTENCY));
-            return Optional.of(new VolatileAddressValue(NameServiceProtocol.FieldName.ADDRESS, address));
+            return Optional.of(address(address));
         }
     }
 }

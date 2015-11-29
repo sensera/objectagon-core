@@ -1,9 +1,7 @@
 package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.Server;
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Envelope;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.StandardAddress;
 
 /**
@@ -33,4 +31,9 @@ public abstract class StandardReceiverCtrlImpl<R extends Receiver<A>, A extends 
         server.transport(envelope);
     }
 
+
+    @Override
+    public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
+        return server.createSession(protocolName, composer);
+    }
 }

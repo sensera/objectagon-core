@@ -31,7 +31,7 @@ public class UnknownValue implements Message.Value {
     public Address asAddress() {return null;}
 
     @Override
-    public Message asMessage() {return null;}
+    public Message.MessageName asMessage() {return null;}
 
     @Override
     public Name asName() {return null;}

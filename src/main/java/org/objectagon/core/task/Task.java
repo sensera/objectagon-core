@@ -1,5 +1,8 @@
 package org.objectagon.core.task;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -24,9 +27,14 @@ public interface Task extends BasicReceiver<Address> {
 
     void start();
     void addCompletedListener(CompletedListener completedListener);
-    void addCompletedListener(Action successAction, Action failedAction);
-    void addSuccessAction(Action successAction);
-    void addFailedAction(Action failedAction);
+    void addCompletedActionListener(SuccessAction successAction, FailedAction failedAction);
+    void addSuccessAction(SuccessAction successAction);
+    void addFailedAction(FailedAction failedAction);
+
+    enum MessageName implements Message.MessageName {
+        COMPLETED
+
+    }
 
     interface TaskCtrl extends BasicReceiverCtrl<Task,Address> {
     }
@@ -35,17 +43,17 @@ public interface Task extends BasicReceiver<Address> {
 
     }
 
-    interface CompletedListener {
-        void success(Message message);
-        void failed(StandardProtocol.ErrorKind errorKind);
-    }
+    interface CompletedListener extends SuccessAction, FailedAction {}
 
     interface TaskWorker extends BasicWorker {
 
     }
 
-    interface Action {
-        void action(TaskWorker taskWorker);
+    interface SuccessAction {
+        void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException;
     }
 
+    interface FailedAction {
+        void failed(ErrorClass errorClass, ErrorKind errorKind, Iterable<Message.Value> values);
+    }
 }

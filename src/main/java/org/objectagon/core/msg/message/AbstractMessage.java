@@ -13,11 +13,12 @@ public abstract class AbstractMessage implements Message {
 
     public MessageName getName() {return name;}
 
+
     public AbstractMessage(MessageName name) {
         this.name = name;
     }
 
-    protected static Optional<Value> lookupValueInParamsByField(Value[] values, Field field) {
+    protected static Optional<Value> lookupValueInParamsByField(Iterable<Value> values, Field field) {
         if (values==null)
             return Optional.empty();
         for (Value value : values)

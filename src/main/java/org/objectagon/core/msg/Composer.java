@@ -8,7 +8,7 @@ public interface Composer {
     Envelope create(Message.MessageName messageName);
     Envelope create(Message.MessageName messageName, Message.Value... values);
 
-    Builder builder(Message message);
+    Builder builder(Message.MessageName messageName);
 
     interface Builder {
         Builder set(Message.Field field, Message.Value value);

@@ -9,6 +9,7 @@ import org.objectagon.core.msg.*;
 public abstract class BasicReceiverCtrlImpl<R extends Receiver<A>, A extends Address> implements BasicReceiverCtrl<R, A> {
 
     private Transporter transporter;
+    private final Protocol.SessionFactory sessionFactory;
     private Server.RegisterReceiver registerReceiver;
     private Server.ServerId serverId;
     private Receiver.CtrlId ctrlId;
@@ -18,8 +19,9 @@ public abstract class BasicReceiverCtrlImpl<R extends Receiver<A>, A extends Add
     public Server.ServerId getServerId() {return serverId;}
     public Receiver.CtrlId getCtrlId() {return ctrlId;}
 
-    public BasicReceiverCtrlImpl(Transporter transporter, Server.RegisterReceiver registerReceiver, Server.ServerId serverId, Receiver.CtrlId ctrlId) {
+    public BasicReceiverCtrlImpl(Transporter transporter, Protocol.SessionFactory sessionFactory, Server.RegisterReceiver registerReceiver, Server.ServerId serverId, Receiver.CtrlId ctrlId) {
         this.transporter = transporter;
+        this.sessionFactory = sessionFactory;
         this.registerReceiver = registerReceiver;
         this.serverId = serverId;
         this.ctrlId = ctrlId;
@@ -36,6 +38,11 @@ public abstract class BasicReceiverCtrlImpl<R extends Receiver<A>, A extends Add
     }
 
     abstract protected A internalCreateNewAddress(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId);
+
+    @Override
+    public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
+        return sessionFactory.createSession(protocolName, composer);
+    }
 
     public void transport(Envelope envelope) {
         transporter.transport(envelope);

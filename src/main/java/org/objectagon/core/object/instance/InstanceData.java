@@ -1,31 +1,41 @@
 package org.objectagon.core.object.instance;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.address.AddressList;
-import org.objectagon.core.object.InstanceClassAddress;
-import org.objectagon.core.object.ValueAddress;
-import org.objectagon.core.object.ObjectVersion;
-import org.objectagon.core.object.RelationAddress;
-import org.objectagon.core.storage.Data;
+import org.objectagon.core.object.*;
+import org.objectagon.core.storage.data.AbstractData;
+
+import static org.objectagon.core.msg.message.VolatileAddressValue.address;
+import static org.objectagon.core.utils.Util.concat;
 
 /**
  * Created by christian on 2015-10-20.
  */
-public class InstanceData implements Data<InstanceIdentity, ObjectVersion> {
-
-    private InstanceIdentity identity;
-    private ObjectVersion version;
+public class InstanceData extends AbstractData<InstanceIdentity, ObjectVersion> {
 
     private InstanceClassAddress instanceClassAddress;
-    private AddressList<ValueAddress> values = new AddressList<ValueAddress>();
-    private AddressList<RelationAddress> relations = new AddressList<RelationAddress>();
-
-    public InstanceIdentity getIdentity() {return identity;}
-    public ObjectVersion getVersion() {return version;}
+    private AddressList<FieldValueAddress> values = new AddressList<>();
+    private AddressList<RelationAddress> relations = new AddressList<>();
 
     public InstanceData(InstanceIdentity identity, ObjectVersion version, InstanceClassAddress instanceClassAddress) {
-        this.identity = identity;
-        this.version = version;
+        super(identity, version);
         this.instanceClassAddress = instanceClassAddress;
     }
 
+    @Override
+    public Iterable<Message.Value> values() {
+        return concat(
+                address(InstanceProtocol.FieldName.INSTANCE_CLASS, instanceClassAddress),
+                address(InstanceProtocol.FieldName.VALUES, values),
+                address(InstanceProtocol.FieldName.RELATIONS, relations)
+        );
+    }
+
+    public FieldValueAddress getValueByField(FieldAddress fieldAddress) throws UserException {
+        return values.select(fieldAddress::sameField)
+                .orElseThrow(() -> new UserException(ErrorClass.INSTANCE, ErrorKind.FIELD_NOT_FOUND, address(fieldAddress)));
+    }
 }

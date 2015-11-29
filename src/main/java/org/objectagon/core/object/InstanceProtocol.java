@@ -28,7 +28,10 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Session> {
 
         FIELD("FIELD", Message.FieldType.Address),
         VALUE("VALUE", Message.FieldType.Any),
-        RELATION_CLASS("RELATION_CLASS", Message.FieldType.Address);
+        INSTANCE_CLASS("INSTANVE_CLASS", Message.FieldType.Address),
+        RELATION_CLASS("RELATION_CLASS", Message.FieldType.Address),
+        VALUES("VALUES", Message.FieldType.ListOfAddresses),
+        RELATIONS("RELATIONS", Message.FieldType.ListOfAddresses);
 
         private Message.FieldName name;
         private Message.FieldType fieldType;

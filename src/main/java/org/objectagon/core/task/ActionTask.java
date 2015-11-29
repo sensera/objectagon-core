@@ -14,9 +14,9 @@ public class ActionTask extends AbstractTask {
         this.action = action;
     }
 
-
     @Override
     protected void internalStart() {
         action.run();
     }
+
 }

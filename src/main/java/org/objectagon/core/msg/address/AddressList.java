@@ -4,6 +4,7 @@ import org.objectagon.core.msg.Address;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by christian on 2015-10-14.
@@ -20,5 +21,17 @@ public class AddressList<A extends Address> implements Address {
 
     public boolean isEmpty() {
         return addressList.isEmpty();
+    }
+
+    public Optional<A> select(SelectAddress<A> selectAddress) {
+        for (A address : addressList)
+            if (selectAddress.equals(address))
+                return Optional.of(address);
+        return Optional.empty();
+    }
+
+    @FunctionalInterface
+    public interface SelectAddress<A extends Address> {
+        boolean equals(A address);
     }
 }

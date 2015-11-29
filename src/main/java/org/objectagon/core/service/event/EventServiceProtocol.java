@@ -17,52 +17,16 @@ public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Sess
 
     ProtocolName EVENT_SERVICE_PROTOCOL = new ProtocolNameImpl("EVENT_SERVICE_PROTOCOL");
 
-    NamedAddress EVENT_SERVICE_ADDRESS = new NamedAddress(EVENT_SERVICE_PROTOCOL);
-
-    ReceiverCtrlIdName EVENT_SERVICE_CTRL_ID_NAME = new ReceiverCtrlIdName("EventService");
-
-    ClientSession createClientSession(Address target);
-
     enum MessageName implements Message.MessageName {
         START_LISTEN_TO,
         STOP_LISTEN_TO,
         BROADCAST,
     }
 
-    enum FieldName implements Message.Field {
-        ADDRESS("ADDRESS", Message.FieldType.Address),
-        NAME("NAME", Message.FieldType.Name),
-        MESSAGE("MESSAGE", Message.FieldType.Message),
-
-        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
-
-        private Message.FieldName name;
-        private Message.FieldType fieldType;
-
-        public Message.FieldName getName() {return name;}
-        public Message.FieldType getFieldType() {return fieldType;}
-
-        FieldName(String name, Message.FieldType fieldType) {
-            this.name = new FieldNameImpl(name);
-            this.fieldType = fieldType;
-        }
-
-    }
-
     interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
-
-        void broadcast(Message message);
-
-    }
-
-    interface ClientSession extends Protocol.Session {
         void startListenTo(Address address, Name name);
         void stopListenTo(Address address, Name name);
-        void broadcast(Name name, Message message);
+        void broadcast(Name name, Message.MessageName message, Message.Value... values);
     }
 
-    enum ErrorKind implements StandardProtocol.ErrorKind {
-    }
 }

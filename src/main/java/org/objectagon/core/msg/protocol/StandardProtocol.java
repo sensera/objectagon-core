@@ -6,7 +6,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.*;
 
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by christian on 2015-10-06.
@@ -46,36 +46,22 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
         void replyWithError(ErrorKind errorKind);
         void replyOk();
         void replyWithParam(Message.Value param);
+        void replyWithParam(Iterable<Message.Value> param);
         void replyWithError(ErrorMessageProfile errorMessageProfile);
     }
 
-    class OkMessage extends MinimalMessage {
-        public OkMessage() {
-            super(StandardProtocol.MessageName.OK_MESSAGE);
-        }
-    }
-
-    class OkParam extends AbstractMessage{
-        Value param;
-        public OkParam(Value param) {
-            super(StandardProtocol.MessageName.OK_MESSAGE);
-            this.param = param;
-        }
-        public Value getValue(Field field) {
-            if (field.equals(StandardProtocol.FieldName.PARAM))
-                return param;
-            return new UnknownValue(field);
-        }
-    }
-
     class ErrorMessage extends AbstractMessage {
-        String errorSeverity;
-        String errorClass;
-        String errorKind;
-        private final Value[] values;
+        private String errorSeverity;
+        private String errorClass;
+        private String errorKind;
+        private final List<Value> values;
 
         public ErrorMessage(ErrorMessageProfile errorMessageProfile) {
             this(errorMessageProfile.getErrorSeverity(), errorMessageProfile.getErrorClass(), errorMessageProfile.getErrorKind(), errorMessageProfile.getParams());
+        }
+
+        public ErrorMessage(ErrorSeverity errorSeverity, ErrorClass errorClass, ErrorKind errorKind, Iterable<Message.Value> values) {
+            this(errorSeverity.name(), errorClass.name(), errorKind.name(), values);
         }
 
         public ErrorMessage(ErrorSeverity errorSeverity, ErrorClass errorClass, ErrorKind errorKind, Value...values) {
@@ -87,22 +73,37 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
             this.errorSeverity = errorSeverity;
             this.errorClass = errorClass;
             this.errorKind = errorKind;
-            this.values = values;
+            this.values = Arrays.asList(values);
+        }
+
+        public ErrorMessage(String errorSeverity, String errorClass, String errorKind, Iterable<Message.Value> values) {
+            super(StandardProtocol.MessageName.ERROR_MESSAGE);
+            this.errorSeverity = errorSeverity;
+            this.errorClass = errorClass;
+            this.errorKind = errorKind;
+            this.values = new LinkedList<>();
+            values.forEach(this.values::add);
+        }
+
+        @Override
+        public Iterable<Value> getValues() {
+            return values;
         }
 
         public Value getValue(Field field) {
             if (field.equals(StandardProtocol.FieldName.ERROR_SEVERITY))
-                return new VolatileTextValue(field, errorSeverity);
+                return VolatileTextValue.text(field, errorSeverity);
             if (field.equals(StandardProtocol.FieldName.ERROR_CLASS))
-                return new VolatileTextValue(field, errorClass);
+                return VolatileTextValue.text(field, errorClass);
             else if (field.equals(StandardProtocol.FieldName.ERROR_KIND))
-                return new VolatileTextValue(field, errorKind);
+                return VolatileTextValue.text(field, errorKind);
             return lookupValueInParamsByField(values, field).orElse(new UnknownValue(field));
         }
 
         public static Message error(org.objectagon.core.exception.ErrorKind errorKind) {
             return new ErrorMessage(ErrorSeverity.Unknown, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind);
         }
+
     }
 
     enum ErrorSeverity {
@@ -123,6 +124,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
         ErrorSeverity getErrorSeverity();
         ErrorClass getErrorClass();
         ErrorKind getErrorKind();
-        Message.Value[] getParams();
+        Iterable<Message.Value> getParams();
     }
+
 }

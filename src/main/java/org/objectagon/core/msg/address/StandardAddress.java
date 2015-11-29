@@ -16,7 +16,7 @@ public class StandardAddress implements Address {
 
     public static StandardAddress standard(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId) { return new StandardAddress(serverId, ctrlId, addressId);}
 
-    private StandardAddress(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId) {
+    protected StandardAddress(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId) {
         this.serverId = serverId;
         this.ctrlId = ctrlId;
         this.addressId = addressId;

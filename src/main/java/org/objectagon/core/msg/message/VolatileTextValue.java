@@ -9,6 +9,8 @@ import org.objectagon.core.msg.Name;
  */
 public class VolatileTextValue implements Message.Value {
 
+    public static VolatileTextValue text(Message.Field field, String value) { return new VolatileTextValue(field, value);}
+
     private Message.Field field;
     private String value;
 
@@ -20,10 +22,10 @@ public class VolatileTextValue implements Message.Value {
         return Long.parseLong(value);
     }
     public Address asAddress() {return null;}
-    public Message asMessage() {return null;}
+    public Message.MessageName asMessage() {return null;}
     public Name asName() {return null;}
 
-    public VolatileTextValue(Message.Field field, String value) {
+    protected VolatileTextValue(Message.Field field, String value) {
         this.field = field;
         this.value = value;
     }

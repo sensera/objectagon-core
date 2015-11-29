@@ -2,6 +2,8 @@ package org.objectagon.core.server;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Composer;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
@@ -14,17 +16,17 @@ public class StandardFactory<R extends Receiver<A>, A extends Address, C extends
 
     public static
     <R extends Receiver<A>, A extends Address, C extends Receiver.CtrlId> StandardFactory<R,A,C>
-            create(Server server,
+            create(Server.Ctrl serverCtrl,
                    C ctrlId,
                    Receiver.CreateNewAddress<R, A, C> createNewAddress,
                    CreateReceiver<StandardFactory<R,A,C>, R, A> factory) {
-        return new StandardFactory<>(server, ctrlId, createNewAddress, factory);
+        return new StandardFactory<>(serverCtrl, ctrlId, createNewAddress, factory);
     }
 
     private CreateReceiver<StandardFactory<R,A,C>, R, A> factory;
 
-    public StandardFactory(Server server, C ctrlId, Receiver.CreateNewAddress<R, A, C> createNewAddress, CreateReceiver<StandardFactory<R,A,C>, R, A> factory) {
-        super(server, ctrlId, createNewAddress);
+    public StandardFactory(Server.Ctrl serverCtrl, C ctrlId, Receiver.CreateNewAddress<R, A, C> createNewAddress, CreateReceiver<StandardFactory<R,A,C>, R, A> factory) {
+        super(serverCtrl, ctrlId, createNewAddress);
         this.factory = factory;
     }
 

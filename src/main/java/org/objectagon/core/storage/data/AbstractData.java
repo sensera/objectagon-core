@@ -15,7 +15,6 @@ public abstract class AbstractData<I extends Identity, V extends Version> implem
     public I getIdentity() {
         return identity;
     }
-
     public V getVersion() {
         return version;
     }

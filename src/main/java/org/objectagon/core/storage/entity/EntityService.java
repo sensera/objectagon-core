@@ -1,12 +1,8 @@
 package org.objectagon.core.storage.entity;
 
-import org.objectagon.core.msg.Envelope;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.address.StandardAddress;
-import org.objectagon.core.msg.receiver.BasicReceiverCtrl;
 import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
 import org.objectagon.core.service.AbstractService;
-import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Entity;

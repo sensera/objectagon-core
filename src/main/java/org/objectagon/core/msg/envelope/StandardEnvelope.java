@@ -9,6 +9,8 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 
+import static org.objectagon.core.msg.message.VolatileAddressValue.address;
+
 /**
  * Created by christian on 2015-10-07.
  */
@@ -27,6 +29,6 @@ public class StandardEnvelope implements Envelope {
 
     @Override
     public void Targets(Targets targets) {
-        targets.target(target).orElseThrow(()-> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, new VolatileAddressValue(StandardField.ADDRESS,target)));
+        targets.target(target).orElseThrow(()-> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, address(target)));
     }
 }

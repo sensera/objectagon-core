@@ -3,31 +3,37 @@ package org.objectagon.core.msg.protocol;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.message.MinimalMessage;
+import org.objectagon.core.msg.message.OneValueMessage;
+import org.objectagon.core.msg.message.SimpleMessage;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.StandardSession> implements StandardProtocol {
 
-    public StandardProtocolImpl(Composer composer, Transporter transporter) {
-        super(STANDARD_PROTOCOL, composer, transporter);
+    public StandardProtocolImpl() {
+        super(STANDARD_PROTOCOL);
     }
 
-    public StandardSession createSession(Composer composer, Address target) {
-        return new StandardSessionImpl(composer, target);
-    }
-
-    public StandardSession createSession(Address target) {
-        return new StandardSessionImpl(composer, target);
+    @Override
+    public StandardSession createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
+        return new StandardSessionImpl(nextSessionId(), transporter, composer, sessionOwner);
     }
 
     protected class StandardSessionImpl implements StandardSession {
-        private Composer composer;
-        private Address target;
+        private final Protocol.SessionId sessionId;
+        private final Transporter transporter;
+        private final Composer composer;
+        private final SessionOwner sessionOwner;
 
-        public StandardSessionImpl(Composer composer, Address target) {
+        @Override public SessionId getSessionId() {return sessionId;}
+
+        public StandardSessionImpl(Protocol.SessionId sessionId, Transporter transporter, Composer composer, SessionOwner sessionOwner) {
+            this.sessionId = sessionId;
+            this.transporter = transporter;
             this.composer = composer;
-            this.target = target;
+            this.sessionOwner = sessionOwner;
         }
 
         public void replyWithError(final ErrorClass errorClass, final ErrorKind errorKind) {
@@ -39,11 +45,16 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
         }
 
         public void replyOk() {
-            transporter.transport(composer.create(new OkMessage()));
+            transporter.transport(composer.create(MinimalMessage.minimal(MessageName.OK_MESSAGE)));
         }
 
         public void replyWithParam(Message.Value param) {
-            transporter.transport(composer.create(new OkParam(param)));
+            transporter.transport(composer.create(OneValueMessage.oneValue(MessageName.OK_MESSAGE, param)));
+        }
+
+        @Override
+        public void replyWithParam(Iterable<Message.Value> params) {
+            transporter.transport(composer.create(SimpleMessage.simple(MessageName.OK_MESSAGE, params)));
         }
 
         @Override
@@ -59,6 +70,7 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
         public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
             transporter.transport(composer.create(ErrorMessage.error(errorKind)));
         }
+
     }
 
 }

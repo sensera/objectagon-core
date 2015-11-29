@@ -4,9 +4,11 @@ import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.address.AddressList;
+import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.address.StandardAddress;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 import org.objectagon.core.msg.receiver.StandardAction;
@@ -19,18 +21,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.objectagon.core.utils.Util.concat;
+
 /**
  * Created by christian on 2015-10-13.
  */
 public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl, StandardAddress, EventServiceImpl> {
 
-    public static void registerAtServer(Server server) {
-        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, EventServiceProtocol.EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
-        server.registerFactory(EventServiceProtocol.EVENT_SERVICE_CTRL_ID_NAME, eventServiceStandardAddressReceiverCtrlIdNameStandardFactory);
+    public static NamedAddress EVENT_SERVICE_ADDRESS = new NamedAddress(EventServiceProtocol.EVENT_SERVICE_PROTOCOL);
+
+    public static ReceiverCtrlIdName EVENT_SERVICE_CTRL_ID_NAME = new ReceiverCtrlIdName("EventService");
+
+    public static void registerAtServer(Server.Ctrl server) {
+        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
+                StandardFactory.create(server, EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
+        server.registerFactory(EVENT_SERVICE_CTRL_ID_NAME, eventServiceStandardAddressReceiverCtrlIdNameStandardFactory);
     }
 
-    public static Server.Factory<EventServiceImpl> factory(Server server) {
-        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, EventServiceProtocol.EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
+    public static Server.Factory<EventServiceImpl> factory(Server.Ctrl server) {
+        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
+                StandardFactory.create(server, EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
         return eventServiceStandardAddressReceiverCtrlIdNameStandardFactory;
     }
 
@@ -50,7 +60,7 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
                 patternBuilder -> patternBuilder.setMessageNameTrigger(EventServiceProtocol.MessageName.STOP_LISTEN_TO),
                 (initializer, context) -> new StartListenToAction((EventServiceImpl) initializer, (EventServiceImpl.EventServiceWorkerImpl) context)
         ).add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(EventServiceProtocol.MessageName.BROADCAST),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(BroadcastEventServiceProtocol.MessageName.BROADCAST),
                 (initializer, context) -> new BroadcastAction((EventServiceImpl) initializer, (EventServiceImpl.EventServiceWorkerImpl) context)
         );
     }
@@ -72,10 +82,10 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
             eventListeners.remove(name);
     }
 
-    void broadcast(String name, Message message, EventServiceWorkerImpl serviceWorker) {
+    void broadcast(String name, Message.MessageName message, EventServiceWorkerImpl serviceWorker) {
         AddressList addressList = eventListeners.get(name);
         if (addressList!=null)
-            serviceWorker.broadcast(message, addressList);
+            serviceWorker.broadcast(addressList, message);
     }
 
     @Override
@@ -85,28 +95,12 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
 
     public class EventServiceWorkerImpl extends ServiceWorkerImpl {
 
-        EventServiceProtocol eventServiceProtocol;
-
-        public EventServiceWorkerImpl(Receiver.WorkerContext workerContext) {
+        public EventServiceWorkerImpl(WorkerContext workerContext) {
             super(workerContext);
-            eventServiceProtocol = new EventServiceProtocolImpl(workerContext.createStandardComposer(), workerContext.getTransporter());
         }
 
-
-        public EventServiceProtocol.Session createEventServiceProtocolSession() {
-            return eventServiceProtocol.createSession(getWorkerContext().getSender());
-        }
-
-        public EventServiceProtocol.Session createEventServiceProtocolSession(Address address) {
-            return eventServiceProtocol.createSession(address);
-        }
-
-        public void replyWithError(EventServiceProtocol.ErrorKind errorKind) {
-            createEventServiceProtocolSession().replyWithError(errorKind);
-        }
-
-        public void broadcast(Message message, Address target) {
-            createEventServiceProtocolSession(target).broadcast(message);
+        public void broadcast(Address target, Message.MessageName message, Message.Value... values) {
+            this.<BroadcastEventServiceProtocol.Session>createTargetSession(BroadcastEventServiceProtocol.BROADCAST_EVENT_SERVICE_PROTOCOL, target).broadcast(message, concat(values));
         }
     }
 
@@ -120,8 +114,8 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         }
 
         public boolean initialize() {
-            address = context.getValue(EventServiceProtocol.FieldName.ADDRESS).asAddress();
-            name = context.getValue(EventServiceProtocol.FieldName.NAME).asText();
+            address = context.getValue(StandardField.ADDRESS).asAddress();
+            name = context.getValue(StandardField.NAME).asText();
             return true;
         }
 
@@ -142,8 +136,8 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         }
 
         public boolean initialize() {
-            address = context.getValue(EventServiceProtocol.FieldName.ADDRESS).asAddress();
-            name = context.getValue(EventServiceProtocol.FieldName.NAME).asText();
+            address = context.getValue(StandardField.ADDRESS).asAddress();
+            name = context.getValue(StandardField.NAME).asText();
             return true;
         }
 
@@ -156,7 +150,7 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
 
     private static class BroadcastAction extends StandardAction<EventServiceImpl, EventServiceWorkerImpl> {
 
-        private Message message ;
+        private Message.MessageName message ;
         private String name;
 
         public BroadcastAction(EventServiceImpl initializer, EventServiceWorkerImpl context) {
@@ -164,8 +158,8 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         }
 
         public boolean initialize() {
-            message = context.getValue(EventServiceProtocol.FieldName.MESSAGE).asMessage();
-            name = context.getValue(EventServiceProtocol.FieldName.NAME).asText();
+            message = context.getValue(StandardField.MESSAGE).asMessage();
+            name = context.getValue(StandardField.NAME).asText();
             return true;
         }
 

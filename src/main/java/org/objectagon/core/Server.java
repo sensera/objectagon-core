@@ -7,7 +7,9 @@ import org.objectagon.core.msg.*;
  */
 public interface Server extends Transporter {
 
-    void registerFactory(Name name, Factory factory);
+    void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory factory);
+
+    <R extends Receiver> R createReceiver(Name name);
 
     interface Factory<R extends Receiver> {
         R create();
@@ -23,9 +25,10 @@ public interface Server extends Transporter {
         void registerReceiver(Address address, Receiver receiver);
     }
 
-    interface Ctrl extends RegisterReceiver {
+    interface Ctrl extends RegisterReceiver, Protocol.SessionFactory {
         ServerId getServerId();
         void transport(Envelope envelope);
+        void registerFactory(Name name, Factory factory);
     }
 
 }

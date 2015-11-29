@@ -2,6 +2,7 @@ package org.objectagon.core.task;
 
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.msg.Message;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +21,7 @@ public class SequenceTask extends AbstractTask {
 
     @Override
     protected void internalStart() {
-        activeTask().start();
+        startNextTask(Task.MessageName.COMPLETED, Message.NO_VALUES);
     }
 
     private Task activeTask() {
@@ -29,11 +30,14 @@ public class SequenceTask extends AbstractTask {
 
     public void add(Task task) {
         sequence.add(task);
-        task.addSuccessAction(taskWorker -> startNextTask());
-        task.addFailedAction(taskWorker -> failed(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED));
+        task.addSuccessAction(this::startNextTask);
+        task.addFailedAction(this::failed);
     }
 
-    private void startNextTask() {
+    private void startNextTask(Message.MessageName messageName, Iterable<Message.Value> values) {
+        if (sequence.size()==atSequence) {
+            success(Task.MessageName.COMPLETED, Message.NO_VALUES);
+        }
         atSequence++;
         activeTask().start();
     }

@@ -2,7 +2,6 @@ package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-11-09.

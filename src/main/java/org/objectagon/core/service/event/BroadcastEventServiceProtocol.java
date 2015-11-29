@@ -1,4 +1,4 @@
-package org.objectagon.core.service.name;
+package org.objectagon.core.service.event;
 
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
@@ -13,25 +13,16 @@ import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 /**
  * Created by christian on 2015-10-13.
  */
-public interface NameServiceProtocol extends Protocol<NameServiceProtocol.Session> {
+public interface BroadcastEventServiceProtocol extends Protocol<BroadcastEventServiceProtocol.Session> {
 
-    ProtocolName NAME_SERVICE_PROTOCOL = new ProtocolNameImpl("NAME_SERVICE_PROTOCOL");
+    ProtocolName BROADCAST_EVENT_SERVICE_PROTOCOL = new ProtocolNameImpl("BROADCAST_EVENT_SERVICE_PROTOCOL");
 
     enum MessageName implements Message.MessageName {
-        REGISTER_NAME,
-        UNREGISTER_NAME,
-        LOOKUP_ADDRESS_BY_NAME,
+        BROADCAST,
     }
 
     interface Session extends Protocol.Session {
-        void registerName(Address address, Name name);
-        void unregisterName(Name name);
-        void lookupAddressByName(Name name);
-    }
-
-    enum NameServiceErrorKind implements StandardProtocol.ErrorKind {
-        NameAlreadyRegistered,
-        NameNotFound;
+        void broadcast(Message.MessageName message, Iterable<Message.Value> values);
     }
 
 }

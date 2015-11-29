@@ -1,8 +1,6 @@
 package org.objectagon.core.storage.entity;
 
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.composer.StandardComposer;
-import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.storage.*;
@@ -19,6 +17,10 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
     public EntityImpl(EntityCtrl<I,B> entityCtrl, D data) {
         super(entityCtrl);
         this.data = new DataVersions<D,V>(data);
+    }
+
+    protected D getDataByVersion(V version) {
+        return data.getDataByVersion(version);
     }
 
     abstract protected V createVersionFromValue(Message.Value value);
@@ -90,7 +92,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
 
         @Override
         public PersistenceServiceProtocol createPersistenceServiceProtocol() {
-            return new PersistenceServiceProtocolImpl(getWorkerContext().createStandardComposer(), getWorkerContext().getTransporter());
+            return new PersistenceServiceProtocolImpl(getWorkerContext().createReplyToSenderComposer(), getWorkerContext().getTransporter());
         }
     }
 

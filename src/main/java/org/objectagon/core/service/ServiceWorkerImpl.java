@@ -1,29 +1,29 @@
 package org.objectagon.core.service;
 
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.message.VolatileMessageValue;
-import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
-import org.objectagon.core.task.StandardTask;
-import org.objectagon.core.task.Task;
-import org.objectagon.core.task.TaskBuilder;
+import org.objectagon.core.task.*;
 
 /**
  * Created by christian on 2015-10-13.
  */
 public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.ServiceWorker {
-    final private ServiceProtocol serviceProtocol;
 
     public ServiceWorkerImpl(Receiver.WorkerContext workerContext) {
         super(workerContext);
-        serviceProtocol = new ServiceProtocolImpl(workerContext.createStandardComposer(), workerContext.getTransporter());
     }
 
     @Override
-    public void success(Message message) {
-        replyWithParam(new VolatileMessageValue(StandardProtocol.FieldName.PARAM,message));
+    public void failed(final ErrorClass errorClass, final ErrorKind errorKind, final Iterable<Message.Value> values) {
+        replyWithError(createErrorMessageProfile(errorClass, errorKind, values));
+    }
+
+    @Override
+    public void success(Message.MessageName messageName, Iterable<Message.Value> values) {
+        replyWithParam(messageName, values);
     }
 
     @Override
@@ -32,15 +32,7 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
     }
 
     public ServiceProtocol.Session createServiceProtocolSession() {
-        return serviceProtocol.createSession(getWorkerContext().getSender());
-    }
-
-    public void success() {
-        createStandardProtocolSession().replyOk();
-    }
-
-    public void failed(StandardProtocol.ErrorKind errorKind) {
-        createStandardProtocolSession().replyWithError(errorKind);
+        return createReplySession(ServiceProtocol.SERVICE_PROTOCOL);
     }
 
     public void replyWithError(ServiceProtocol.ErrorKind errorKind) {
@@ -49,17 +41,14 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
 
     @Override
     public TaskBuilder getTaskBuilder() {
-        return new TaskBuilder() {
-            @Override
-            public <U extends Protocol.Session> Builder<StandardTask> standard(Task.TaskName taskName, Protocol<U> protocol, Message.MessageName messageName) {
-                return ;
-            }
-
-            @Override
-            public <U extends Protocol.Session> Builder<ChainedTask> chain(Task.TaskName taskName, Protocol<U> protocol, Message.MessageName messageName) {
-                return null;
-            }
-        };
+        throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
     }
 
+    protected  <U extends Protocol.Session> U createReplySession(Protocol.ProtocolName protocolName) {
+        return getWorkerContext().createSession(protocolName, getWorkerContext().createReplyToSenderComposer());
+    }
+
+    protected  <U extends Protocol.Session> U createTargetSession(Protocol.ProtocolName protocolName, Address target) {
+        return getWorkerContext().createSession(protocolName, getWorkerContext().createTargetComposer(target));
+    }
 }

@@ -10,16 +10,18 @@ import java.util.Optional;
  */
 public interface TaskBuilder {
 
-    <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol<U> protocol, Address target, SendMessageAction<U> sendMessageAction);
+    <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
     <U extends Protocol.Session> Builder<ActionTask> action(Task.TaskName taskName, Action action);
-    <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Protocol<U> protocol, Address target, SendMessageAction<U> sendMessageAction);
+    <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
     <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Action action);
     <U extends Protocol.Session> SequenceBuilder sequence(Task.TaskName taskName);
 
+    Optional<Task> current();
+
     interface Builder<T extends Task> {
         Task start();
-        Builder<T> addSuccess(Task.Action succesAction);
-        Builder<T> addFail(Task.Action failAction);
+        Builder<T> success(Task.SuccessAction successAction);
+        Builder<T> failed(Task.FailedAction failAction);
     }
 
     interface ChainedBuilder<T extends Task> extends Builder<T> {
@@ -27,7 +29,7 @@ public interface TaskBuilder {
     }
 
     interface SequenceBuilder extends Builder<SequenceTask> {
-        <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol<U> protocol, Address target, SendMessageAction<U> sendMessageAction);
+        <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
         <U extends Protocol.Session> Builder<ActionTask> action(Task.TaskName taskName, Action action);
     }
 
@@ -35,8 +37,5 @@ public interface TaskBuilder {
         void run();
     }
 
-    interface SendMessageAction<U extends Protocol.Session> {
-        void run(U session);
-    }
 
 }

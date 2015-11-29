@@ -1,5 +1,7 @@
 package org.objectagon.core.service;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.StandardAddress;
@@ -154,9 +156,9 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
             Task currentTask = currentTaskOptional.get();
 
             currentTask.addCompletedListener(context);
-            currentTask.addCompletedListener(
-                    success -> initializer.setStartedStatusAndClearCurrentTask(),
-                    fail -> initializer.setStoppedStatusAndClearCurrentTask()
+            currentTask.addCompletedActionListener(
+                    (messageName, values) -> initializer.setStartedStatusAndClearCurrentTask(),
+                    (errorClass, errorKind, values) -> initializer.setStoppedStatusAndClearCurrentTask()
             );
             currentTask.start();
             return Optional.empty();
@@ -202,9 +204,9 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
             Task currentTask = currentTaskOptional.get();
 
             currentTask.addCompletedListener(context);
-            currentTask.addCompletedListener(
-                    success -> initializer.setStoppedStatusAndClearCurrentTask(),
-                    fail -> initializer.setStartedStatusAndClearCurrentTask()
+            currentTask.addCompletedActionListener(
+                    (messageName, values) -> initializer.setStoppedStatusAndClearCurrentTask(),
+                    (errorClass, errorKind, values) -> initializer.setStartedStatusAndClearCurrentTask()
             );
 
             currentTask.start();

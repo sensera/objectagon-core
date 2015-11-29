@@ -1,6 +1,5 @@
 package org.objectagon.core.domain;
 
-import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
 import org.objectagon.core.service.AbstractService;

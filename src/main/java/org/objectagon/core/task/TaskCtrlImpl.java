@@ -2,6 +2,7 @@ package org.objectagon.core.task;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.Transporter;
 import org.objectagon.core.msg.address.StandardAddress;
@@ -12,8 +13,8 @@ import org.objectagon.core.msg.receiver.BasicReceiverCtrlImpl;
  */
 public class TaskCtrlImpl extends BasicReceiverCtrlImpl<Task, Address>  implements Task.TaskCtrl {
 
-    public TaskCtrlImpl(Transporter transporter, Server.RegisterReceiver registerReceiver, Server.ServerId serverId, Receiver.CtrlId ctrlId) {
-        super(transporter, registerReceiver, serverId, ctrlId);
+    public TaskCtrlImpl(Transporter transporter, Protocol.SessionFactory sessionFactory, Server.RegisterReceiver registerReceiver, Server.ServerId serverId, Receiver.CtrlId ctrlId) {
+        super(transporter, sessionFactory, registerReceiver, serverId, ctrlId);
     }
 
     @Override

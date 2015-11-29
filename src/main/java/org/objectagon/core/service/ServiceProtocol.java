@@ -13,8 +13,6 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
  */
 public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
 
-    ClientSession createClientSession(Address address);
-
     ProtocolName SERVICE_PROTOCOL = new ProtocolNameImpl("SERVICE_PROTOCOL");
 
     enum MessageName implements Message.MessageName {
@@ -41,12 +39,9 @@ public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
     }
 
     interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
-    }
-
-    interface ClientSession extends Protocol.Session {
         void startService();
         void stopService();
+        void replyWithError(ErrorKind errorKind);
     }
 
     enum ErrorKind {
