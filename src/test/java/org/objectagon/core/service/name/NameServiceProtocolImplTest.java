@@ -11,6 +11,7 @@ import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
 import org.objectagon.core.msg.receiver.StandardReceiverCtrlImpl;
 import org.objectagon.core.server.LocalServerId;
 import org.objectagon.core.server.ServerImpl;
+import sun.net.spi.nameservice.NameService;
 
 import static org.mockito.Mockito.*;
 import static org.objectagon.core.server.LocalServerId.local;
@@ -23,29 +24,31 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
 
     Server.ServerId serverId;
     Server server;
+    Server.Ctrl serverCtrl;
     StandardReceiverCtrl<NameServiceImpl,StandardAddress> ctrl;
     NameServiceImpl nameService;
-    private StandardAddress nameServiceAddress;
+    StandardAddress nameServiceAddress;
+    Composer composer;
+    Protocol.SessionOwner sessionOwner;
+    Transporter transportToService = envelope -> nameService.receive(envelope);
 
     @Before
     public void setup() {
         serverId = LocalServerId.local("TestServer");
-        nameServiceAddress = StandardAddress.standard(serverId, NameServiceProtocol.NAME_SERVICE_CTRL_NAME, 1);
+        nameServiceAddress = StandardAddress.standard(serverId, NameServiceImpl.NAME_SERVICE_CTRL_NAME, 1);
         server = mock(Server.class);
-        ctrl = new StandardReceiverCtrlImpl<NameServiceImpl, StandardAddress>(server){
-            @Override
-            public StandardAddress createNewAddress(NameServiceImpl receiver) {
-                return nameServiceAddress;
-            }
-        };
+        serverCtrl = mock(Server.Ctrl.class);
+        ctrl = mock(StandardReceiverCtrl.class);
+        composer = mock(Composer.class);
+        sessionOwner = mock(Protocol.SessionOwner.class);
 
         nameService = new NameServiceImpl(ctrl);
     }
 
     @Test
     public void registerName() {
-        NameServiceProtocolImpl protocol = new NameServiceProtocolImpl(new StandardComposer(nameServiceAddress), envelope -> nameService.receive(envelope));
-        NameServiceProtocol.Session session = protocol.createSession(nameServiceAddress);
+        NameServiceProtocolImpl protocol = new NameServiceProtocolImpl();
+        NameServiceProtocol.Session session = protocol.createSession(transportToService, composer, sessionOwner);
 
         Address address = mock(Address.class);
         Name name = mock(Name.class);

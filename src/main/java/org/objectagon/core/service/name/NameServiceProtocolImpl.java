@@ -36,24 +36,21 @@ public class NameServiceProtocolImpl extends AbstractProtocol<NameServiceProtoco
 
         @Override
         public void registerName(Address address, Name name) {
-            transport(composer.create(
-                    MessageName.REGISTER_NAME,
+            send(MessageName.REGISTER_NAME,
                     address(StandardField.ADDRESS, address),
-                    name(StandardField.NAME, name)));
+                    name(StandardField.NAME, name));
         }
 
         @Override
         public void unregisterName(Name name) {
-            transport(composer.create(
-                    MessageName.UNREGISTER_NAME,
-                    name(StandardField.NAME, name)));
+            send(MessageName.UNREGISTER_NAME,
+                    name(StandardField.NAME, name));
         }
 
         @Override
         public void lookupAddressByName(Name name) {
-            transport(composer.create(
-                    MessageName.LOOKUP_ADDRESS_BY_NAME,
-                    name(StandardField.NAME, name)));
+            send(MessageName.LOOKUP_ADDRESS_BY_NAME,
+                    name(StandardField.NAME, name));
         }
     }
 }

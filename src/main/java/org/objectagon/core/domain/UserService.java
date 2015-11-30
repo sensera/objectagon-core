@@ -20,4 +20,8 @@ public class UserService extends EntityService<Identity, StandardData, UserServi
         super(receiverCtrl);
     }
 
+    @Override
+    protected EntityServiceWorker createWorker(WorkerContext workerContext) {
+        return null;
+    }
 }

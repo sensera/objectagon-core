@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-08.
  */
-public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardReceiverImpl<A, B, StandardReceiverCtrl<B, A>, W> implements Service, Service.ServiceActionCommands<W,A, B> {
+public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardReceiverImpl<A, B, StandardReceiverCtrl<B, A>, W> implements Service, Service.ServiceActionCommands<W,A,B> {
 
     private Status status = Status.Stopped;
     private Task currentTask;
@@ -40,16 +40,16 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
         return this;
     }
 
-    protected Optional<TaskBuilder> internalCreateStartServiceTask(ServiceWorker serviceWorker) { return Optional.empty(); }
-    protected Optional<TaskBuilder> internalCreateStopServiceTask(ServiceWorker serviceWorker) { return Optional.empty(); }
+    protected Optional<TaskBuilder> internalCreateStartServiceTask(W serviceWorker) { return Optional.empty(); }
+    protected Optional<TaskBuilder> internalCreateStopServiceTask(W serviceWorker) { return Optional.empty(); }
 
-    public final Optional<Task> createStartServiceTask(ServiceWorker serviceWorker) {
+    public final Optional<Task> createStartServiceTask(W serviceWorker) {
         return internalCreateStartServiceTask(serviceWorker)
                 .orElse(serviceWorker.getTaskBuilder())
                 .current();
     }
 
-    public final Optional<Task> createStopServiceTask(ServiceWorker serviceWorker) {
+    public final Optional<Task> createStopServiceTask(W serviceWorker) {
         return internalCreateStopServiceTask(serviceWorker)
                 .orElse(serviceWorker.getTaskBuilder())
                 .current();
@@ -80,7 +80,7 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     }
 
     @Override
-    public void addCompletedListener(ServiceWorker serviceWorker) {
+    public void addCompletedListener(W serviceWorker) {
         currentTask.addCompletedListener(serviceWorker);
     }
 

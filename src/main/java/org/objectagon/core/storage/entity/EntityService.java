@@ -1,15 +1,11 @@
 package org.objectagon.core.storage.entity;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.Reactor;
-import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
-import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceProtocol;
@@ -27,7 +23,7 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityService<I extends Identity, D extends Data, B extends Receiver<I>, E extends EntityService.EntityServiceWorker> extends AbstractService<E,I,B> {
+public abstract class EntityService<I extends Identity, D extends Data, B extends Receiver<I>, W extends EntityService.EntityServiceWorker> extends AbstractService<W,I,B> {
 
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
@@ -41,7 +37,7 @@ public abstract class EntityService<I extends Identity, D extends Data, B extend
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.CREATE),
-                (initializer, context) -> new StartServiceAction<>(initializer,context));
+                (initializer, context) -> new StartServiceAction<W,I,B>((Service.ServiceActionCommands<W,I,B>)initializer, (W) context));
     }
 
     protected Entity<I,D> internalCreateEntity(EntityServiceWorker serviceWorker) {
@@ -55,25 +51,8 @@ public abstract class EntityService<I extends Identity, D extends Data, B extend
     }
 
     @Override
-    protected E createWorker(WorkerContext workerContext) {
-        return (E) new EntityServiceWorker(workerContext);
-    }
+    public void addCompletedListener(W serviceWorker) {
 
-    @Override
-    public void addCompletedListener(E serviceWorker) {
-
-    }
-
-
-
-    @Override
-    public Optional<Task> createStartServiceTask(E serviceWorker) {
-        return null;
-    }
-
-    @Override
-    public Optional<Task> createStopServiceTask(E serviceWorker) {
-        return null;
     }
 
     public class EntityServiceWorker extends ServiceWorkerImpl {
