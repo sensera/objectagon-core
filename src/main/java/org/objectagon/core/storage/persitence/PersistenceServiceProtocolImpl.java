@@ -1,10 +1,6 @@
 package org.objectagon.core.storage.persitence;
 
 import org.objectagon.core.Server;
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Transporter;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Identity;
@@ -20,18 +16,18 @@ public class PersistenceServiceProtocolImpl extends AbstractProtocol<Persistence
         server.registerProtocol(PERSISTENCE_SERVICE_PROTOCOL, PersistenceServiceProtocolImpl::new);
     }
 
-    public PersistenceServiceProtocolImpl() {
-        super(PERSISTENCE_SERVICE_PROTOCOL);
+    public PersistenceServiceProtocolImpl(Server.ServerId serverId) {
+        super(PERSISTENCE_SERVICE_PROTOCOL, serverId);
     }
 
     @Override
-    public PersistenceServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return new PersistenceServiceProtocolSession(nextSessionId(), composer, transporter, sessionOwner);
+    public PersistenceServiceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new PersistenceServiceProtocolSession(nextSessionId(), sessionOwner);
     }
 
     private class PersistenceServiceProtocolSession extends AbstractProtocolSession implements PersistenceServiceProtocol.Session {
-        public PersistenceServiceProtocolSession(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public PersistenceServiceProtocolSession(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
 
         @Override

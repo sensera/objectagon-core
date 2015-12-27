@@ -11,8 +11,8 @@ public interface Server extends Transporter {
 
     <R extends Receiver> R createReceiver(Name name);
 
-    interface Factory<R extends Receiver> {
-        R create();
+    interface Factory {
+        <R extends Receiver> R create();
     }
 
     interface ServerId {}

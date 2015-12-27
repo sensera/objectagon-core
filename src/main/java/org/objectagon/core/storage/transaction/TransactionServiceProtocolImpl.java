@@ -1,9 +1,6 @@
 package org.objectagon.core.storage.transaction;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Transporter;
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.storage.TransactionServiceProtocol;
 
@@ -12,18 +9,18 @@ import org.objectagon.core.storage.TransactionServiceProtocol;
  */
 public class TransactionServiceProtocolImpl extends AbstractProtocol<TransactionServiceProtocol.Session> implements TransactionServiceProtocol {
 
-    public TransactionServiceProtocolImpl(ProtocolName name) {
-        super(name);
+    public TransactionServiceProtocolImpl(ProtocolName name, Server.ServerId serverId) {
+        super(name, serverId);
     }
 
     @Override
-    public TransactionServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return null;
+    public TransactionServiceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new TransactionServiceProtocolSession(nextSessionId(), sessionOwner);
     }
 
     private class TransactionServiceProtocolSession extends AbstractProtocolSession implements TransactionServiceProtocol.Session {
-        public TransactionServiceProtocolSession(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public TransactionServiceProtocolSession(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
 
         @Override
@@ -55,6 +52,7 @@ public class TransactionServiceProtocolImpl extends AbstractProtocol<Transaction
         public void rollback() {
 
         }
+
     }
 
 }

@@ -10,11 +10,11 @@ import org.objectagon.core.task.*;
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker, B extends Receiver<I>>  extends BasicReceiverImpl<I, B, Entity.EntityCtrl<I,B>, W> implements Entity<I, D> {
+public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker, P extends Receiver.CreateNewAddressParams>  extends BasicReceiverImpl<I, P, Entity.EntityCtrl<P>, W> implements Entity<I, D> {
 
     private DataVersions<D,V> data;
 
-    public EntityImpl(EntityCtrl<I,B> entityCtrl, D data) {
+    public EntityImpl(EntityCtrl<P> entityCtrl, D data) {
         super(entityCtrl);
         this.data = new DataVersions<D,V>(data);
     }

@@ -14,12 +14,12 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-08.
  */
-public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardReceiverImpl<A, B, StandardReceiverCtrl<B, A>, W> implements Service, Service.ServiceActionCommands<W,A,B> {
+public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address, P extends Receiver.CreateNewAddressParams> extends StandardReceiverImpl<A, P, StandardReceiverCtrl<P>, W> implements Service, Service.ServiceActionCommands<W> {
 
     private Status status = Status.Stopped;
     private Task currentTask;
 
-    public AbstractService(StandardReceiverCtrl<B,A> receiverCtrl) {
+    public AbstractService(StandardReceiverCtrl<P> receiverCtrl) {
         super(receiverCtrl);
     }
 
@@ -27,11 +27,11 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(ServiceProtocol.MessageName.START_SERVICE),
-                (initializer, context) -> new StartServiceAction<W,A,B>( (Service.ServiceActionCommands) initializer, (W) context)
+                (initializer, context) -> new StartServiceAction<W>( (Service.ServiceActionCommands) initializer, (W) context)
         );
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(ServiceProtocol.MessageName.STOP_SERVICE),
-                (initializer, context) -> new StopServiceAction<W,A, B>( (Service.ServiceActionCommands) initializer, (W) context)
+                (initializer, context) -> new StopServiceAction<W>( (Service.ServiceActionCommands) initializer, (W) context)
         );
     }
 
@@ -81,7 +81,8 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
 
     @Override
     public void addCompletedListener(W serviceWorker) {
-        currentTask.addCompletedListener(serviceWorker);
+        currentTask.addSuccessAction(serviceWorker);
+        currentTask.addFailedAction(serviceWorker);
     }
 
     @Override
@@ -97,11 +98,6 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     }
 
     @Override
-    public A createNewAddress(B receiver) {
-        return getReceiverCtrl().createNewAddress(receiver);
-    }
-
-    @Override
     public void transport(Envelope envelope) {
         getReceiverCtrl().transport(envelope);
     }
@@ -110,17 +106,17 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     /*                    Actions                                */
     /*************************************************************/
 
-    static protected abstract class AbstractServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends StandardAction<Service.ServiceActionCommands<W,A,B>, W> {
+    static protected abstract class AbstractServiceAction<W extends Service.ServiceWorker> extends StandardAction<Service.ServiceActionCommands<W>, W> {
 
-        public AbstractServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
+        public AbstractServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
     }
 
-    private static class StartServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends AbstractServiceAction<W,A,B> {
+    private static class StartServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
 
-        public StartServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
+        public StartServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
@@ -155,19 +151,18 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
 
             Task currentTask = currentTaskOptional.get();
 
-            currentTask.addCompletedListener(context);
-            currentTask.addCompletedActionListener(
-                    (messageName, values) -> initializer.setStartedStatusAndClearCurrentTask(),
-                    (errorClass, errorKind, values) -> initializer.setStoppedStatusAndClearCurrentTask()
-            );
+            currentTask.addSuccessAction(context);
+            currentTask.addFailedAction(context);
+            currentTask.addSuccessAction( (messageName, values) -> initializer.setStartedStatusAndClearCurrentTask() );
+            currentTask.addFailedAction((errorClass, errorKind, values) -> initializer.setStoppedStatusAndClearCurrentTask());
             currentTask.start();
             return Optional.empty();
         }
     }
 
-    private static class StopServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends AbstractServiceAction<W,A,B> {
+    private static class StopServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
 
-        public StopServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
+        public StopServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
@@ -203,11 +198,10 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
 
             Task currentTask = currentTaskOptional.get();
 
-            currentTask.addCompletedListener(context);
-            currentTask.addCompletedActionListener(
-                    (messageName, values) -> initializer.setStoppedStatusAndClearCurrentTask(),
-                    (errorClass, errorKind, values) -> initializer.setStartedStatusAndClearCurrentTask()
-            );
+            currentTask.addSuccessAction(context);
+            currentTask.addFailedAction(context);
+            currentTask.addSuccessAction( (messageName, values) -> initializer.setStoppedStatusAndClearCurrentTask() );
+            currentTask.addFailedAction( (errorClass, errorKind, values) -> initializer.setStartedStatusAndClearCurrentTask() );
 
             currentTask.start();
             return Optional.empty();

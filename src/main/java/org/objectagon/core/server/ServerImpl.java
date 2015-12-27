@@ -5,8 +5,6 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.msg.message.VolatileNameValue;
 
 import java.util.*;
 
@@ -44,7 +42,7 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
 
     @Override
     public <U extends Protocol.Session> void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory<U> factory) {
-        protocols.put(protocolName, new ProtocolReference(protocolName, factory));
+        protocols.put(protocolName, new ProtocolReference(serverId, protocolName, factory));
     }
 
     @Override
@@ -55,7 +53,7 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
 
     @Override
     public <R extends Receiver> R createReceiver(Name name) {
-        Factory<R> factory = getFactoryByName(name).orElseThrow(() -> new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_NOT_FOUND, name(name)));
+        Factory factory = getFactoryByName(name).orElseThrow(() -> new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_NOT_FOUND, name(name)));
         return factory.create();
     }
 
@@ -98,7 +96,7 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
                 while (true) {
                     while (!queue.isEmpty()) {
                         Envelope envelope = queue.poll();
-                        envelope.Targets(targets);
+                        envelope.targets(targets);
                     }
                     try {
                         wait(1000);
@@ -110,25 +108,31 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
         }
     }
 
-    private static class ProtocolReference<U extends Protocol.Session> {
+    private static class ProtocolReference<U extends Protocol.Session>  {
+        private final ServerId serverId;
         private Protocol.ProtocolName protocolName;
         private Protocol.Factory protocolFactory;
         private Protocol<U> protocol;
         private Map<Protocol.SessionId, U> sessions = new HashMap<>();
 
-        public ProtocolReference(Protocol.ProtocolName protocolName, Protocol.Factory protocolFactory) {
+        public ProtocolReference(ServerId serverId, Protocol.ProtocolName protocolName, Protocol.Factory protocolFactory) {
+            this.serverId = serverId;
             this.protocolName = protocolName;
             this.protocolFactory = protocolFactory;
         }
 
         public Protocol<U> getProtocol() {
             if (protocol==null)
-                protocol = protocolFactory.create();
+                protocol = protocolFactory.create(serverId);
             return protocol;
         }
 
         public U create(Transporter transporter, Composer composer) {
-            U session = protocol.createSession(transporter, composer, this::invalidateSession);
+            U session = protocol.createSession(new Protocol.SessionOwner() {
+                @Override public Transporter getTransporter() {return transporter;}
+                @Override public Composer getComposer() {return composer;}
+                @Override public void invalidate(Protocol.SessionId session) {invalidateSession(session);}
+            });
             sessions.put(session.getSessionId(), session);
             return session;
         }

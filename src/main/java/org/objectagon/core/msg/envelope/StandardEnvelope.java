@@ -15,20 +15,22 @@ import static org.objectagon.core.msg.message.VolatileAddressValue.address;
  * Created by christian on 2015-10-07.
  */
 public class StandardEnvelope implements Envelope {
+    private final Address sender;
     private final Address target;
     private final Message message;
 
-    public StandardEnvelope(Address target, Message message) {
+    public StandardEnvelope(Address sender, Address target, Message message) {
+        this.sender = sender;
         this.target = target;
         this.message = message;
     }
 
     public void unwrap(Unwrapper unwrapper) {
-        unwrapper.message(target, message);
+        unwrapper.message(sender, message);
     }
 
     @Override
-    public void Targets(Targets targets) {
+    public void targets(Targets targets) {
         targets.target(target).orElseThrow(()-> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, address(target)));
     }
 }

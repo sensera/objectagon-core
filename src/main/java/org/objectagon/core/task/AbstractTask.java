@@ -7,6 +7,7 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
@@ -19,7 +20,7 @@ import java.util.List;
 /**
  * Created by christian on 2015-10-11.
  */
-public abstract class AbstractTask extends BasicReceiverImpl<Address, Task, Task.TaskCtrl, Task.TaskWorker> implements Task {
+public abstract class AbstractTask extends BasicReceiverImpl<Address, Receiver.CreateNewAddressParams, Task.TaskCtrl, Task.TaskWorker> implements Task {
 
     private Status status = Status.Unstarted;
     private TaskName name;
@@ -32,6 +33,8 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Task, Task
         super(taskCtrl);
         this.name = name;
     }
+
+    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
 
     public final void start() {
         status = Status.Started;
@@ -57,7 +60,7 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Task, Task
     }
 
     protected void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values) {
-        failed(errorClass, errorKind, values!=null ? Arrays.asList(values) : Collections.EMPTY_LIST);
+        failed(errorClass, errorKind, values != null ? Arrays.asList(values) : Collections.EMPTY_LIST);
     }
 
     protected void failed(ErrorClass errorClass, ErrorKind errorKind, Iterable<Message.Value> values) {
@@ -77,19 +80,15 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Task, Task
     }
 
     @Override
-    public void addSuccessAction(SuccessAction successAction) {
+    public Task addSuccessAction(SuccessAction successAction) {
         successActions.add(successAction);
+        return this;
     }
 
     @Override
-    public void addFailedAction(FailedAction failedAction) {
+    public Task addFailedAction(FailedAction failedAction) {
         failedActions.add(failedAction);
-    }
-
-    @Override
-    public void addCompletedActionListener(SuccessAction successAction, FailedAction failedAction) {
-        addSuccessAction(successAction);
-        addFailedAction(failedAction);
+        return this;
     }
 
     @Override

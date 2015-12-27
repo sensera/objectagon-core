@@ -7,6 +7,7 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.receiver.BasicWorker;
 import org.objectagon.core.object.*;
 import org.objectagon.core.storage.EntityProtocol;
@@ -24,12 +25,13 @@ import java.util.function.Predicate;
 /**
  * Created by christian on 2015-10-20.
  */
-public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,ObjectVersion,InstanceImpl.InstanceWorker, InstanceImpl> {
+public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,ObjectVersion,InstanceImpl.InstanceWorker, Receiver.CreateNewAddressParams> {
 
-    public InstanceImpl(EntityCtrl<InstanceIdentity, InstanceImpl> entityCtrl, InstanceData data) {
+    public InstanceImpl(EntityCtrl<Receiver.CreateNewAddressParams> entityCtrl, InstanceData data) {
         super(entityCtrl, data);
-
     }
+
+    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
 
     protected void requestValue(InstanceWorker worker, Task.TaskName taskName, StandardTask.SendMessageAction<FieldValueProtocol.Session> action, Task.SuccessAction successAction) {
         FieldAddress fieldAddress = (FieldAddress) worker.getValue(InstanceProtocol.FieldName.FIELD).asAddress(); //TODO improve this

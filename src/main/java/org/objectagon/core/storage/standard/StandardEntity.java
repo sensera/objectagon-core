@@ -10,9 +10,9 @@ import org.objectagon.core.storage.entity.EntityWorkerImpl;
 /**
  * Created by christian on 2015-11-01.
  */
-public class StandardEntity<D extends Data<StandardIdentity,StandardVersion>, R extends Receiver<StandardIdentity>> extends EntityImpl<StandardIdentity, D, StandardVersion, EntityWorker, R> {
+public class StandardEntity<D extends Data<StandardIdentity,StandardVersion>> extends EntityImpl<StandardIdentity, D, StandardVersion, EntityWorker, Receiver.CreateNewAddressParams> {
 
-    public StandardEntity(EntityCtrl<StandardIdentity, R> entityCtrl, D data) {
+    public StandardEntity(EntityCtrl<Receiver.CreateNewAddressParams> entityCtrl, D data) {
         super(entityCtrl, data);
     }
 
@@ -28,4 +28,6 @@ public class StandardEntity<D extends Data<StandardIdentity,StandardVersion>, R 
 
     @Override
     protected EntityWorker createWorker(WorkerContext workerContext) {return new EntityWorkerImpl(workerContext);}
+
+    @Override protected Receiver.CreateNewAddressParams createNewAddressParams() {return null;}
 }

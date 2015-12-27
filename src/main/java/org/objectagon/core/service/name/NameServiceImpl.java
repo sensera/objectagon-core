@@ -25,14 +25,14 @@ import static org.objectagon.core.msg.message.VolatileAddressValue.address;
 /**
  * Created by christian on 2015-10-13.
  */
-public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, StandardAddress, NameServiceImpl>  {
+public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, StandardAddress, Receiver.CreateNewAddressParams>  {
 
     public static NamedAddress NAME_SERVICE_ADDRESS = new NamedAddress(NameServiceProtocol.NAME_SERVICE_PROTOCOL);
 
     public static ReceiverCtrlIdName NAME_SERVICE_CTRL_NAME = new ReceiverCtrlIdName("NameService");
 
     public static void registerAtServer(Server.Ctrl server) {
-        StandardFactory<NameServiceImpl, StandardAddress, ReceiverCtrlIdName> nameServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, NAME_SERVICE_CTRL_NAME, StandardAddress::standard, NameServiceImpl::new);
+        StandardFactory<NameServiceImpl, StandardAddress, ReceiverCtrlIdName,Receiver.CreateNewAddressParams> nameServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, NAME_SERVICE_CTRL_NAME, StandardAddress::standard, NameServiceImpl::new);
         server.registerFactory(NAME_SERVICE_CTRL_NAME, nameServiceStandardAddressReceiverCtrlIdNameStandardFactory);
     }
 
@@ -41,6 +41,8 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     public NameServiceImpl(StandardReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
+
+    @Override protected Receiver.CreateNewAddressParams createNewAddressParams() {return null;}
 
     @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {

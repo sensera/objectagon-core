@@ -11,12 +11,14 @@ import org.objectagon.core.service.ServiceWorkerImpl;
 /**
  * Created by christian on 2015-10-18.
  */
-public class PersistenceService extends AbstractService<PersistenceService.PersistenceServiceWorkerImpl, StandardAddress, PersistenceService> {
+public class PersistenceService extends AbstractService<PersistenceService.PersistenceServiceWorkerImpl, StandardAddress, Receiver.CreateNewAddressParams> {
 
 
-    public PersistenceService(StandardReceiverCtrl<PersistenceService, StandardAddress> receiverCtrl) {
+    public PersistenceService(StandardReceiverCtrl<Receiver.CreateNewAddressParams> receiverCtrl) {
         super(receiverCtrl);
     }
+
+    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
 
     @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {

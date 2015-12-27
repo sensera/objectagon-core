@@ -6,7 +6,7 @@ import org.objectagon.core.msg.Receiver;
 /**
  * Created by christian on 2015-11-09.
  */
-public abstract class StandardReceiverImpl<A extends Address, B extends Receiver<A>, C extends StandardReceiverCtrl<B,A>, W extends StandardWorker> extends BasicReceiverImpl<A,B,C,W> implements StandardReceiver<A> {
+public abstract class StandardReceiverImpl<A extends Address, P extends Receiver.CreateNewAddressParams, C extends StandardReceiverCtrl<P>, W extends StandardWorker> extends BasicReceiverImpl<A,P,C,W> implements StandardReceiver<A> {
 
     private Reactor reactor;
 

@@ -1,6 +1,7 @@
 package org.objectagon.core.task;
 
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Protocol;
 
 import java.util.Optional;
@@ -11,6 +12,7 @@ import java.util.Optional;
 public interface TaskBuilder {
 
     <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
+    <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<U> sendMessageAction);
     <U extends Protocol.Session> Builder<ActionTask> action(Task.TaskName taskName, Action action);
     <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
     <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Action action);

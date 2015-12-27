@@ -2,7 +2,6 @@ package org.objectagon.core.service.event;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 
 import static org.objectagon.core.msg.message.SimpleMessage.simple;
@@ -16,19 +15,19 @@ public class BroadcastEventServiceProtocolImpl extends AbstractProtocol<Broadcas
         server.registerProtocol(BROADCAST_EVENT_SERVICE_PROTOCOL, BroadcastEventServiceProtocolImpl::new);
     }
 
-    public BroadcastEventServiceProtocolImpl() {
-        super(BROADCAST_EVENT_SERVICE_PROTOCOL);
+    public BroadcastEventServiceProtocolImpl(Server.ServerId serverId) {
+        super(BROADCAST_EVENT_SERVICE_PROTOCOL, serverId);
     }
 
     @Override
-    public BroadcastEventServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return new BroadcastEventServiceProtocolSession(nextSessionId(), composer, transporter, sessionOwner);
+    public BroadcastEventServiceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new BroadcastEventServiceProtocolSession(nextSessionId(), sessionOwner);
     }
 
     private class BroadcastEventServiceProtocolSession extends AbstractProtocolSession implements BroadcastEventServiceProtocol.Session {
 
-        public BroadcastEventServiceProtocolSession(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public BroadcastEventServiceProtocolSession(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
 
         @Override

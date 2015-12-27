@@ -11,7 +11,7 @@ import org.objectagon.core.task.Task;
  */
 public interface Entity<I extends Identity, D extends Data> extends Receiver<I> {
 
-    interface EntityCtrl<I extends Identity, B extends Receiver<I>> extends BasicReceiverCtrl<B, I> {
+    interface EntityCtrl<P extends CreateNewAddressParams> extends BasicReceiverCtrl<P> {
         Address getPersistenceAddress();
 
         void registerReceiver(Address address, Receiver receiver);

@@ -14,23 +14,26 @@ import org.objectagon.core.msg.receiver.BasicWorker;
  */
 public class StandardTask<S extends Protocol.Session> extends AbstractTask {
     private final Protocol.ProtocolName protocolName;
-    private final Address target;
+    private final Composer composer;
     private final SendMessageAction<S> sendMessageAction;
 
     public StandardTask(TaskCtrl taskCtrl, TaskName taskName, Protocol.ProtocolName protocolName, Address target, SendMessageAction<S> sendMessageAction) {
         super(taskCtrl, taskName);
         this.protocolName = protocolName;
-        this.target = target;
+        this.composer = new StandardComposer(this, target);
         this.sendMessageAction = sendMessageAction;
     }
 
-    private Composer createComposer() {
-        return new StandardComposer(target);
+    public StandardTask(TaskCtrl taskCtrl, TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, SendMessageAction<S> sendMessageAction) {
+        super(taskCtrl, taskName);
+        this.protocolName = protocolName;
+        this.composer = composer.alternateReceiver(this);
+        this.sendMessageAction = sendMessageAction;
     }
 
     @Override
     protected void internalStart() {
-        sendMessageAction.run(getReceiverCtrl().createSession(protocolName, createComposer()));
+        sendMessageAction.run(getReceiverCtrl().createSession(protocolName, composer));
     }
 
     public interface SendMessageAction<U extends Protocol.Session> {

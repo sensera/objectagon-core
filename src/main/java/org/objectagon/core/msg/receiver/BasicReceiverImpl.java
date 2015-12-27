@@ -1,7 +1,10 @@
 package org.objectagon.core.msg.receiver;
 
+import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.envelope.StandardEnvelope;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.StandardProtocol;
@@ -11,7 +14,7 @@ import static org.objectagon.core.msg.message.SimpleMessage.simple;
 /**
  * Created by christian on 2015-10-06.
  */
-public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>, C extends BasicReceiverCtrl<B, A>, W extends BasicWorker> implements BasicReceiver<A> {
+public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.CreateNewAddressParams, C extends BasicReceiverCtrl<P>, W extends BasicWorker> implements BasicReceiver<A> {
 
     private C receiverCtrl;
     private A address;
@@ -21,8 +24,13 @@ public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>
 
     public BasicReceiverImpl(C receiverCtrl) {
         this.receiverCtrl = receiverCtrl;
-        this.address = receiverCtrl.createNewAddress((B) this);
     }
+
+    public void initialize() {
+        this.address = this.receiverCtrl.createNewAddress(this, createNewAddressParams());
+    }
+
+    abstract protected P createNewAddressParams();
 
     protected TriggerBuilder<W> triggerBuilder(W worker) {
         return new TriggerBuilder<>(worker);
@@ -31,63 +39,71 @@ public abstract class BasicReceiverImpl<A extends Address, B extends Receiver<A>
     abstract protected void handle(W worker);
 
     public void receive(Envelope envelope) {
-        envelope.unwrap(new Envelope.Unwrapper() {
-            public void message(final Address sender, final Message message) {
-                W worker = createWorker(getBasicWorkerContext(sender, message));
-                handle(worker);
-                if (!worker.isHandled())
-                    worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
-            }
+        System.out.println("BasicReceiverImpl.receive");
+        envelope.unwrap((sender, message) -> {
+            W worker = createWorker(getBasicWorkerContext(sender, message));
+            handle(worker);
+            if (!worker.isHandled())
+                worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
         });
     }
 
     protected BasicWorkerContext getBasicWorkerContext(Address sender, Message message) {
-        return new BasicWorkerContext(sender, message);
+        return new BasicWorkerContext(this, sender, message);
     }
 
     protected abstract W createWorker(WorkerContext workerContext);
 
     private static class BasicComposer implements Composer {
+        private Receiver receiver;
         private Address target;
 
-        public BasicComposer(Address target) {
+        public BasicComposer(Receiver receiver, Address target) {
+            this.receiver = receiver;
             this.target = target;
         }
 
         public Envelope create(Message message) {
-            return new StandardEnvelope(target, message);
+            return new StandardEnvelope(receiver.getAddress(), target, message);
         }
 
         public Envelope create(Message.MessageName messageName) {
-            return new StandardEnvelope(target, simple(messageName));
+            return new StandardEnvelope(receiver.getAddress(), target, simple(messageName));
         }
 
         @Override
         public Envelope create(Message.MessageName messageName, Message.Value... values) {
-            return new StandardEnvelope(target, simple(messageName, values));
+            return new StandardEnvelope(receiver.getAddress(), target, simple(messageName, values));
         }
 
         public Builder builder(Message.MessageName messageName) {
-            return null;   //TODO Implement this
+            throw new SevereError(ErrorClass.MSG, ErrorKind.NOT_IMPLEMENTED);
+        }
+
+        @Override
+        public Composer alternateReceiver(Receiver receiver) {
+            return new BasicComposer(receiver, target);
         }
     }
 
     private class BasicWorkerContext implements WorkerContext {
+        private final Receiver receiver;
         private final Address sender;
         private final Message message;
 
-        public BasicWorkerContext(Address sender, Message message) {
+        public BasicWorkerContext(Receiver receiver, Address sender, Message message) {
+            this.receiver = receiver;
             this.sender = sender;
             this.message = message;
         }
 
         public Composer createReplyToSenderComposer() {
-            return new BasicComposer(sender);
+            return new BasicComposer(receiver, sender);
         }
 
         @Override
         public Composer createTargetComposer(Address target) {
-            return new BasicComposer(target);
+            return new BasicComposer(receiver, target);
         }
 
         public Transporter getTransporter() {

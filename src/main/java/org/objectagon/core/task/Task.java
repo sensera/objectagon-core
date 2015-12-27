@@ -23,31 +23,25 @@ public interface Task extends BasicReceiver<Address> {
         Unstarted, Initializing, Started, Verifying, Completed;
     }
 
+    enum MessageName implements Message.MessageName {
+        COMPLETED
+    }
+
     TaskName getName();
 
     void start();
-    void addCompletedListener(CompletedListener completedListener);
-    void addCompletedActionListener(SuccessAction successAction, FailedAction failedAction);
-    void addSuccessAction(SuccessAction successAction);
-    void addFailedAction(FailedAction failedAction);
 
-    enum MessageName implements Message.MessageName {
-        COMPLETED
+    Task addSuccessAction(SuccessAction successAction);
 
-    }
+    Task addFailedAction(FailedAction failedAction);
 
-    interface TaskCtrl extends BasicReceiverCtrl<Task,Address> {
-    }
+    interface TaskCtrl extends BasicReceiverCtrl<Receiver.CreateNewAddressParams> { }
 
-    interface TaskName extends Name {
+    interface TaskName extends Name { }
 
-    }
+    interface CompletedListener extends SuccessAction, FailedAction { }
 
-    interface CompletedListener extends SuccessAction, FailedAction {}
-
-    interface TaskWorker extends BasicWorker {
-
-    }
+    interface TaskWorker extends BasicWorker { }
 
     interface SuccessAction {
         void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException;

@@ -23,12 +23,11 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityService<I extends Identity, D extends Data, B extends Receiver<I>, W extends EntityService.EntityServiceWorker> extends AbstractService<W,I,B> {
-
+public abstract class EntityService<I extends Identity, D extends Data, P extends Receiver.CreateNewAddressParams, W extends EntityService.EntityServiceWorker> extends AbstractService<W,I,P> {
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
 
-    public EntityService(StandardReceiverCtrl<B,I> receiverCtrl) {
+    public EntityService(StandardReceiverCtrl<P> receiverCtrl) {
         super(receiverCtrl);
     }
 
@@ -37,7 +36,7 @@ public abstract class EntityService<I extends Identity, D extends Data, B extend
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.CREATE),
-                (initializer, context) -> new StartServiceAction<W,I,B>((Service.ServiceActionCommands<W,I,B>)initializer, (W) context));
+                (initializer, context) -> new StartServiceAction<W>((Service.ServiceActionCommands<W>)initializer, (W) context));
     }
 
     protected Entity<I,D> internalCreateEntity(EntityServiceWorker serviceWorker) {
@@ -61,9 +60,9 @@ public abstract class EntityService<I extends Identity, D extends Data, B extend
         }
     }
 
-    private static class StartServiceAction<W extends Service.ServiceWorker, A extends Address, B extends Receiver<A>> extends AbstractServiceAction<W,A,B> {
+    private static class StartServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
 
-        public StartServiceAction(Service.ServiceActionCommands<W,A,B> serviceActionCommands, W serviceWorker) {
+        public StartServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
@@ -98,11 +97,10 @@ public abstract class EntityService<I extends Identity, D extends Data, B extend
 
             Task currentTask = currentTaskOptional.get();
 
-            currentTask.addCompletedListener(context);
-            currentTask.addCompletedActionListener(
-                    (messageName, values) -> initializer.setStartedStatusAndClearCurrentTask(),
-                    (errorClass, errorKind, values) -> initializer.setStoppedStatusAndClearCurrentTask()
-            );
+            currentTask.addSuccessAction(context);
+            currentTask.addFailedAction(context);
+            currentTask.addSuccessAction( (messageName, values) -> initializer.setStartedStatusAndClearCurrentTask() );
+            currentTask.addFailedAction( (errorClass, errorKind, values) -> initializer.setStoppedStatusAndClearCurrentTask() );
             currentTask.start();
             return Optional.empty();
         }

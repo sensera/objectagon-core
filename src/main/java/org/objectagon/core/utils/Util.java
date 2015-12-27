@@ -21,6 +21,10 @@ public class Util {
         return Optional.empty();
     }
 
+    public static void notImplemented()  {
+        throw new RuntimeException("Not implemented!");
+    }
+
     @FunctionalInterface
     public interface Select<E> {
         boolean select(E value);

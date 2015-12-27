@@ -1,23 +1,37 @@
 package org.objectagon.core.msg;
 
 import org.objectagon.core.Server;
-import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.protocol.StandardProtocol;
-import org.objectagon.core.service.name.NameServiceProtocol;
-import org.objectagon.core.storage.PersistenceServiceProtocol;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public interface Receiver<U extends Address> {
+
     U getAddress();
+
     void receive(Envelope envelope);
 
-    interface ReceiverCtrl<R extends Receiver<U>, U extends Address> extends Transporter, Protocol.SessionFactory {
-        U createNewAddress(R receiver);
+    interface ReceiverCtrl<P extends CreateNewAddressParams> extends Transporter, Protocol.SessionFactory {
+        <U extends Address> U createNewAddress(Receiver<U> receiver, P params);
+    }
+
+    interface CreateNewAddressParams {}
+
+    public interface CtrlId extends Name { }
+
+    @FunctionalInterface
+    interface CreateNewAddress<C extends Receiver.CtrlId, A extends Address> {
+        A createNewAddress(Server.ServerId serverId, C ctrlId, long id);
+    }
+
+    @FunctionalInterface
+    interface CreateNewAddressWithParams<C extends Receiver.CtrlId, A extends Address, P extends CreateNewAddressParams> {
+        A createNewAddress(Server.ServerId serverId, C ctrlId, long id, P params);
     }
 
     interface Worker {
+
         boolean isHandled();
 
         boolean messageHasName(Message.MessageName messageName);
@@ -41,6 +55,7 @@ public interface Receiver<U extends Address> {
         Message.Value getValue(Message.Field field);
 
         Iterable<Message.Value> getValues();
+
         default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {
             return createErrorMessageProfile(StandardProtocol.ErrorSeverity.Unknown, errorClass, errorKind, values);
         }
@@ -73,13 +88,6 @@ public interface Receiver<U extends Address> {
 
         Iterable<Message.Value> getValues();
 
-    }
-
-    public interface CtrlId extends Name {}
-
-    @FunctionalInterface
-    interface CreateNewAddress<R extends Receiver<A>, A extends Address, C extends Receiver.CtrlId> {
-        A createNewAddress(Server.ServerId serverId, C ctrlId, long id);
     }
 
 }

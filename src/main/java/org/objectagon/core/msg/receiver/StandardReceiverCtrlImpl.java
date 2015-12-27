@@ -7,9 +7,12 @@ import org.objectagon.core.msg.address.StandardAddress;
 /**
  * Created by christian on 2015-11-16.
  */
-public abstract class StandardReceiverCtrlImpl<R extends Receiver<A>, A extends Address> implements StandardReceiverCtrl<R, A> {
+public abstract class StandardReceiverCtrlImpl<P extends Receiver.CreateNewAddressParams> implements StandardReceiverCtrl<P> {
 
+    private long addressCounter = 0;
     private final Server.Ctrl server;
+
+    protected Server.Ctrl getServer() {return server;}
 
     public StandardReceiverCtrlImpl(Server.Ctrl server) {
         this.server = server;
@@ -17,8 +20,18 @@ public abstract class StandardReceiverCtrlImpl<R extends Receiver<A>, A extends 
 
     public Server.ServerId getServerId() { return server.getServerId(); }
 
-    protected void registerReceiver(A address, R receiver) {
+
+    @Override
+    public <U extends Address> U createNewAddress(Receiver<U> receiver, P params) {
+        Long addressId;
+        synchronized (this) { addressId = addressCounter++; }
+        U address = internalCreateAddress(addressId, params);
         server.registerReceiver(address, receiver);
+        return address;
+    }
+
+    protected <U extends Address> U internalCreateAddress(Long addressId, P params) {
+        return (U) StandardAddress.standard(getServerId(), getCtrlId(), addressId);
     }
 
     @Override

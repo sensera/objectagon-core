@@ -19,12 +19,12 @@ import org.objectagon.core.storage.standard.StandardIdentity;
 /**
  * Created by christian on 2015-11-01.
  */
-public class User extends StandardEntity<StandardData, User> {
+public class User extends StandardEntity<StandardData> {
 
     public static Message.Field USER_NAME = NamedField.text("userName");
     public static Message.Field PASSWORD = NamedField.password("password");
 
-    public User(Entity.EntityCtrl<StandardIdentity,User> entityCtrl, StandardData data) {
+    public User(Entity.EntityCtrl<CreateNewAddressParams> entityCtrl, StandardData data) {
         super(entityCtrl, data);
     }
 }

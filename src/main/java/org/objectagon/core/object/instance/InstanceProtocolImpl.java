@@ -1,8 +1,6 @@
 package org.objectagon.core.object.instance;
 
-import org.objectagon.core.exception.ErrorKind;
-import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.composer.StandardComposer;
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.object.FieldAddress;
 import org.objectagon.core.object.InstanceProtocol;
@@ -15,20 +13,20 @@ import static org.objectagon.core.msg.message.VolatileTextValue.text;
  */
 public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Session> {
 
-    public InstanceProtocolImpl(ProtocolName name) {
-        super(name);
+    public InstanceProtocolImpl(ProtocolName name, Server.ServerId serverId) {
+        super(name, serverId);
     }
 
     @Override
-    public InstanceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return new InstanceProtocolSession(nextSessionId(), composer, transporter, sessionOwner);
+    public InstanceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new InstanceProtocolSession(nextSessionId(), sessionOwner);
     }
 
 
     class InstanceProtocolSession extends AbstractProtocolSession implements InstanceProtocol.Session {
 
-        public InstanceProtocolSession(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public InstanceProtocolSession(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
 
         public void getValue(FieldAddress fieldAddress) {

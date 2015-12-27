@@ -1,12 +1,10 @@
 package org.objectagon.core.service.event;
 
 import org.objectagon.core.Server;
-import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.StandardProtocol;
 
 import java.util.Arrays;
 
@@ -19,19 +17,19 @@ public class EventServiceProtocolImpl extends AbstractProtocol<EventServiceProto
         server.registerProtocol(EVENT_SERVICE_PROTOCOL, EventServiceProtocolImpl::new);
     }
 
-    public EventServiceProtocolImpl() {
-        super(EventServiceProtocol.EVENT_SERVICE_PROTOCOL);
+    public EventServiceProtocolImpl(Server.ServerId serverId) {
+        super(EventServiceProtocol.EVENT_SERVICE_PROTOCOL, serverId);
     }
 
     @Override
-    public EventServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return new EventServiceProtocolSessionImpl(nextSessionId(), composer, transporter, sessionOwner);
+    public EventServiceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new EventServiceProtocolSessionImpl(nextSessionId(), sessionOwner);
     }
 
     protected class EventServiceProtocolSessionImpl extends AbstractProtocolSession implements EventServiceProtocol.Session {
 
-        public EventServiceProtocolSessionImpl(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public EventServiceProtocolSessionImpl(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
 
         public void startListenTo(Address address, Name name) {

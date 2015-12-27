@@ -14,7 +14,7 @@ import org.objectagon.core.storage.standard.StandardData;
 /**
  * Created by christian on 2015-11-01.
  */
-public class UserService extends EntityService<Identity, StandardData, UserService, EntityService.EntityServiceWorker> {
+public class UserService extends EntityService<Identity, StandardData, Receiver.CreateNewAddressParams, EntityService.EntityServiceWorker> {
 
     public UserService(StandardReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -24,4 +24,6 @@ public class UserService extends EntityService<Identity, StandardData, UserServi
     protected EntityServiceWorker createWorker(WorkerContext workerContext) {
         return null;
     }
+
+    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
 }

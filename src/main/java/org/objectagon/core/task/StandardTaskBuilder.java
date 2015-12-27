@@ -27,6 +27,11 @@ public class StandardTaskBuilder implements TaskBuilder {
     }
 
     @Override
+    public <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<U> sendMessageAction) {
+        return new BuilderImpl<>(new StandardTask<>(taskCtrl, taskName, protocolName, composer, sendMessageAction));
+    }
+
+    @Override
     public Builder<ActionTask> action(Task.TaskName taskName, Action action) {
         return new BuilderImpl<>(new ActionTask(taskCtrl, taskName, action));
     }

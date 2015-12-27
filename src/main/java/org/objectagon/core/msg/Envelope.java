@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface Envelope {
 
     void unwrap(Envelope.Unwrapper unwrapper);
-    void Targets(Envelope.Targets targets);
+    void targets(Envelope.Targets targets);
 
     interface Unwrapper {
         void message(Address sender, Message message);

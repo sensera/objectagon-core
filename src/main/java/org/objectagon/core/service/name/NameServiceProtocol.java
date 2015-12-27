@@ -9,6 +9,7 @@ import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
+import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2015-10-13.
@@ -26,7 +27,12 @@ public interface NameServiceProtocol extends Protocol<NameServiceProtocol.Sessio
     interface Session extends Protocol.Session {
         void registerName(Address address, Name name);
         void unregisterName(Name name);
-        void lookupAddressByName(Name name);
+        Task lookupAddressByName(Name name);
+    }
+
+    enum TaskName implements Task.TaskName {
+        LOOKUP_ADDRESS
+
     }
 
     enum NameServiceErrorKind implements StandardProtocol.ErrorKind {

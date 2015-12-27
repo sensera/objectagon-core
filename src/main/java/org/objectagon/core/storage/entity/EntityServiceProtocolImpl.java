@@ -2,9 +2,6 @@ package org.objectagon.core.storage.entity;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Transporter;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.storage.EntityServiceProtocol;
 
@@ -17,8 +14,8 @@ public class EntityServiceProtocolImpl extends AbstractProtocol<EntityServicePro
         server.registerProtocol(ENTITY_SERVICE_PROTOCOL, EntityServiceProtocolImpl::new);
     }
 
-    public EntityServiceProtocolImpl() {
-        super(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL);
+    public EntityServiceProtocolImpl(Server.ServerId serverId) {
+        super(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL, serverId);
     }
 
     public ClientSession createClientSession(Address target) {
@@ -26,13 +23,13 @@ public class EntityServiceProtocolImpl extends AbstractProtocol<EntityServicePro
     }
 
     @Override
-    public EntityServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return new EntityServiceProtocolSession(nextSessionId(), composer, transporter, sessionOwner);
+    public EntityServiceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new EntityServiceProtocolSession(nextSessionId(), sessionOwner);
     }
 
     private class EntityServiceProtocolSession extends AbstractProtocolSession implements EntityServiceProtocol.Session {
-        public EntityServiceProtocolSession(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public EntityServiceProtocolSession(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
     }
 }

@@ -1,6 +1,6 @@
 package org.objectagon.core.service;
 
-import org.objectagon.core.msg.*;
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 
@@ -9,20 +9,20 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
  */
 public class ServiceProtocolImpl extends AbstractProtocol<ServiceProtocol.Session> implements ServiceProtocol {
 
-    public ServiceProtocolImpl() {
-        super(SERVICE_PROTOCOL);
+    public ServiceProtocolImpl(Server.ServerId serverId) {
+        super(SERVICE_PROTOCOL, serverId);
     }
 
 
     @Override
-    public ServiceProtocol.Session createSession(Transporter transporter, Composer composer, SessionOwner sessionOwner) {
-        return new ServiceProtocolSessionImpl(nextSessionId(), composer, transporter, sessionOwner);
+    public ServiceProtocol.Session createSession(SessionOwner sessionOwner) {
+        return new ServiceProtocolSessionImpl(nextSessionId(), sessionOwner);
     }
 
     protected class ServiceProtocolSessionImpl extends AbstractProtocolSession implements ServiceProtocol.Session {
 
-        public ServiceProtocolSessionImpl(SessionId sessionId, Composer composer, Transporter transporter, SessionOwner sessionOwner) {
-            super(sessionId, composer, transporter, sessionOwner);
+        public ServiceProtocolSessionImpl(SessionId sessionId, SessionOwner sessionOwner) {
+            super(sessionId, sessionOwner);
         }
 
         public void replyWithError(ErrorKind errorKind) {

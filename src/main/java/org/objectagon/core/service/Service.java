@@ -21,7 +21,7 @@ public interface Service {
         Stopped, Starting, Started, Stopping;
     }
 
-    interface ServiceActionCommands<W extends ServiceWorker, A extends Address, B extends Receiver<A>> extends Reactor.ActionInitializer {
+    interface ServiceActionCommands<W extends ServiceWorker> extends Reactor.ActionInitializer {
         boolean isStarting();
         boolean isStopping();
         boolean isStarted();
@@ -32,8 +32,6 @@ public interface Service {
         void setStartedStatusAndClearCurrentTask();
 
         void setStoppedStatusAndClearCurrentTask();
-
-        A createNewAddress(B receiver);
 
         void transport(Envelope envelope);
 

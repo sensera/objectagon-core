@@ -5,6 +5,7 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.AddressList;
 import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.address.StandardAddress;
@@ -26,29 +27,33 @@ import static org.objectagon.core.utils.Util.concat;
 /**
  * Created by christian on 2015-10-13.
  */
-public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl, StandardAddress, EventServiceImpl> {
+public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl, StandardAddress, Receiver.CreateNewAddressParams> {
 
     public static NamedAddress EVENT_SERVICE_ADDRESS = new NamedAddress(EventServiceProtocol.EVENT_SERVICE_PROTOCOL);
 
     public static ReceiverCtrlIdName EVENT_SERVICE_CTRL_ID_NAME = new ReceiverCtrlIdName("EventService");
 
     public static void registerAtServer(Server.Ctrl server) {
-        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
+        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName, CreateNewAddressParams> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
                 StandardFactory.create(server, EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
         server.registerFactory(EVENT_SERVICE_CTRL_ID_NAME, eventServiceStandardAddressReceiverCtrlIdNameStandardFactory);
     }
 
-    public static Server.Factory<EventServiceImpl> factory(Server.Ctrl server) {
-        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
+    public static Server.Factory factory(Server.Ctrl server) {
+        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName, CreateNewAddressParams> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
                 StandardFactory.create(server, EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
         return eventServiceStandardAddressReceiverCtrlIdNameStandardFactory;
     }
 
     private Map<String,AddressList> eventListeners = new HashMap<String, AddressList>();
 
+    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
+
     public EventServiceImpl(StandardReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
+
+
 
     @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
