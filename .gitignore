@@ -16,3 +16,6 @@
 # JIRA plugin
 atlassian-ide-plugin.xml
 
+# Maven
+log/
+target/
