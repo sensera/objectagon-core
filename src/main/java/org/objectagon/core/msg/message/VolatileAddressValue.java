@@ -34,8 +34,11 @@ public class VolatileAddressValue implements Message.Value {
         this.value = value;
     }
     public void writeTo(Message.Writer writer) {
-        writer.write(value);
+        writer.write(field, value);
     }
 
-
+    @Override
+    public String toString() {
+        return field.getName()+" "+value;
+    }
 }

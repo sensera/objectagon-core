@@ -31,6 +31,13 @@ public class StandardEnvelope implements Envelope {
 
     @Override
     public void targets(Targets targets) {
-        targets.target(target).orElseThrow(()-> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, address(target)));
+        targets.target(target).
+                orElseThrow(()-> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, address(target))).
+                transport(this);
+    }
+
+    @Override
+    public String toString() {
+        return "*"+message+"@"+target+" from "+sender;
     }
 }

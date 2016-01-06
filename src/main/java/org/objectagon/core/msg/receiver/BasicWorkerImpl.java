@@ -99,6 +99,11 @@ public class BasicWorkerImpl implements BasicWorker {
         });
     }
 
+    @Override
+    public boolean isError() {
+        return getMessageName().equals(StandardProtocol.MessageName.ERROR_MESSAGE);
+    }
+
     public Task.SuccessAction replyOkSuccessAction() {
         return ((messageName, values) -> {
             replyOk();

@@ -12,6 +12,7 @@ import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.receiver.*;
+import org.objectagon.core.server.SingletonFactory;
 import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
@@ -32,8 +33,9 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     public static ReceiverCtrlIdName NAME_SERVICE_CTRL_NAME = new ReceiverCtrlIdName("NameService");
 
     public static void registerAtServer(Server.Ctrl server) {
-        StandardFactory<NameServiceImpl, StandardAddress, ReceiverCtrlIdName,Receiver.CreateNewAddressParams> nameServiceStandardAddressReceiverCtrlIdNameStandardFactory = StandardFactory.create(server, NAME_SERVICE_CTRL_NAME, StandardAddress::standard, NameServiceImpl::new);
-        server.registerFactory(NAME_SERVICE_CTRL_NAME, nameServiceStandardAddressReceiverCtrlIdNameStandardFactory);
+        server.registerFactory(NAME_SERVICE_CTRL_NAME,
+                new SingletonFactory<ReceiverCtrlIdName, Address>(server, NAME_SERVICE_CTRL_NAME, NAME_SERVICE_ADDRESS, NameServiceImpl::new)
+        );
     }
 
     private Map<String, Address> addressByName = new HashMap<String, Address>();
@@ -67,6 +69,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     }
 
     public void setAddressName(Address address, String name) throws UserException {
+        //System.out.println("NameServiceImpl.setAddressName address="+address+" name="+name);
         if (addressByName.containsKey(name))
             throw new UserException(ErrorClass.NAME_SERVICE, ErrorKind.NAME_ALLREADY_REGISTERED);
         addressByName.put(name, address);
@@ -101,6 +104,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         public boolean initialize() {
             address = context.getValue(StandardField.ADDRESS).asAddress();
             name = context.getValue(StandardField.NAME).asText();
+            //System.out.println("RegisterNameAction.initialize "+address+" "+name);
             return true;
         }
 
@@ -148,6 +152,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         public Optional<Message.Value> internalRun() throws UserException {
             Address address = initializer.getAddressByName(name)
                     .orElseThrow(() -> new UserException(ErrorClass.NAME_SERVICE, ErrorKind.INCONSISTENCY));
+            //System.out.println("LookupAddressByName.internalRun found address "+address);
             return Optional.of(address(address));
         }
     }

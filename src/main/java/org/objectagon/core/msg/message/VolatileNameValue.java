@@ -33,7 +33,7 @@ public class VolatileNameValue implements Message.Value {
         this.value = value;
     }
     public void writeTo(Message.Writer writer) {
-        writer.write(value);
+        writer.write(field, value);
     }
 
 

@@ -32,7 +32,7 @@ public class VolatileMessageValue implements Message.Value {
     }
 
     public void writeTo(Message.Writer writer) {
-        writer.write(value);
+        writer.write(field, value);
     }
 
 }

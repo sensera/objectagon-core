@@ -93,13 +93,15 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Receiver.C
 
     @Override
     protected void handle(TaskWorker worker) {
-        if (worker.getMessageName().equals(StandardProtocol.MessageName.ERROR_MESSAGE)) {
+        if (worker.isError()) {
             Message.Value errorClass = worker.getValue(StandardProtocol.FieldName.ERROR_CLASS);
             Message.Value errorKind = worker.getValue(StandardProtocol.FieldName.ERROR_KIND);
             Iterable<Message.Value> values = worker.getValues();
             failed(ErrorClass.valueOf(errorClass.asText()), ErrorKind.valueOf(errorKind.asText()), values);
+            worker.setHandled();
         } else {
             success(worker.getMessageName(), worker.getValues());
+            worker.setHandled();
         }
     }
 

@@ -26,4 +26,9 @@ public class FieldNameImpl implements Message.FieldName {
     public int hashCode() {
         return Objects.hash(name);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

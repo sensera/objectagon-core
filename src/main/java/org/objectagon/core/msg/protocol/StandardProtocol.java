@@ -1,10 +1,9 @@
 package org.objectagon.core.msg.protocol;
 
-import org.objectagon.core.exception.ErrorClass;
-import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.*;
+import org.objectagon.core.utils.Util;
 
 import java.util.*;
 
@@ -105,8 +104,13 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
             return lookupValueInParamsByField(values, field).orElse(new UnknownValue(field));
         }
 
+        @Override
+        public String toString() {
+            return "Error "+errorSeverity+" "+errorClass+" "+errorKind + Util.printValuesToString(getValues());
+        }
+
         public static Message error(org.objectagon.core.exception.ErrorKind errorKind) {
-            return new ErrorMessage(ErrorSeverity.Unknown, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind);
+            return new ErrorMessage(ErrorSeverity.UNKNOWN, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind);
         }
 
     }
@@ -115,7 +119,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
         Critical,
         Severe,
         User,
-        Unknown
+        UNKNOWN
     }
 
     interface ErrorClass {

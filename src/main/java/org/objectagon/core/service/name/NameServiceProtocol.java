@@ -25,13 +25,13 @@ public interface NameServiceProtocol extends Protocol<NameServiceProtocol.Sessio
     }
 
     interface Session extends Protocol.Session {
-        void registerName(Address address, Name name);
-        void unregisterName(Name name);
+        Task registerName(Address address, Name name);
+        Task unregisterName(Name name);
         Task lookupAddressByName(Name name);
     }
 
     enum TaskName implements Task.TaskName {
-        LOOKUP_ADDRESS
+        REGISTER_NAME, UNREGISTER_NAME, LOOKUP_ADDRESS
 
     }
 

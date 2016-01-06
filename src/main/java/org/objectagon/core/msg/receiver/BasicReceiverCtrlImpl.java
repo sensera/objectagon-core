@@ -44,6 +44,11 @@ public abstract class BasicReceiverCtrlImpl<P extends Receiver.CreateNewAddressP
         return sessionFactory.createSession(protocolName, composer);
     }
 
+    @Override
+    public <S extends Protocol.Session> Protocol.FuncReply session(Protocol.ProtocolName protocolName, Composer composer, Protocol.Func<S> func) {
+        return sessionFactory.session(protocolName, composer, func);
+    }
+
     public void transport(Envelope envelope) {
         transporter.transport(envelope);
     }

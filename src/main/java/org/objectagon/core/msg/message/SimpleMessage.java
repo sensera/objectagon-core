@@ -3,6 +3,7 @@ package org.objectagon.core.msg.message;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
+import org.objectagon.core.utils.Util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,4 +74,9 @@ public class SimpleMessage extends AbstractMessage implements Message {
     public SimpleMessage setValue(Value value) { values.put(value.getField(), value); return this;}
 
     public SimpleMessage setValues(Iterable<Value> values) { values.forEach(this::setValue); return this;}
+
+    @Override
+    public String toString() {
+        return ""+getName() + Util.printValuesToString(getValues());
+    }
 }

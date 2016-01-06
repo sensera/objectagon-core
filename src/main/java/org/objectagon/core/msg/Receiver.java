@@ -12,6 +12,8 @@ public interface Receiver<U extends Address> {
 
     void receive(Envelope envelope);
 
+    default void initialize() {}
+
     interface ReceiverCtrl<P extends CreateNewAddressParams> extends Transporter, Protocol.SessionFactory {
         <U extends Address> U createNewAddress(Receiver<U> receiver, P params);
     }
@@ -57,7 +59,7 @@ public interface Receiver<U extends Address> {
         Iterable<Message.Value> getValues();
 
         default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {
-            return createErrorMessageProfile(StandardProtocol.ErrorSeverity.Unknown, errorClass, errorKind, values);
+            return createErrorMessageProfile(StandardProtocol.ErrorSeverity.UNKNOWN, errorClass, errorKind, values);
         }
 
         default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorSeverity errorSeverity, final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {

@@ -16,6 +16,7 @@ public class StandardTask<S extends Protocol.Session> extends AbstractTask {
     private final Protocol.ProtocolName protocolName;
     private final Composer composer;
     private final SendMessageAction<S> sendMessageAction;
+    private S session;
 
     public StandardTask(TaskCtrl taskCtrl, TaskName taskName, Protocol.ProtocolName protocolName, Address target, SendMessageAction<S> sendMessageAction) {
         super(taskCtrl, taskName);
@@ -33,7 +34,10 @@ public class StandardTask<S extends Protocol.Session> extends AbstractTask {
 
     @Override
     protected void internalStart() {
-        sendMessageAction.run(getReceiverCtrl().createSession(protocolName, composer));
+        session = getReceiverCtrl().createSession(protocolName, composer);
+        addSuccessAction((messageName, values) -> session.terminate());
+        addFailedAction((errorClass, errorKind, values) -> session.terminate());
+        sendMessageAction.run(session);
     }
 
     public interface SendMessageAction<U extends Protocol.Session> {

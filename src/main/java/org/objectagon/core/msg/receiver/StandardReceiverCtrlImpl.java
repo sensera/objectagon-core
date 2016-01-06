@@ -49,4 +49,9 @@ public abstract class StandardReceiverCtrlImpl<P extends Receiver.CreateNewAddre
     public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
         return server.createSession(protocolName, composer);
     }
+
+    @Override
+    public <S extends Protocol.Session> Protocol.FuncReply session(Protocol.ProtocolName protocolName, Composer composer, Protocol.Func<S> func) {
+        return server.session(protocolName, composer, func);
+    }
 }

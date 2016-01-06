@@ -2,6 +2,7 @@ package org.objectagon.core.exception;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.utils.Util;
 
 import java.util.Arrays;
 
@@ -21,14 +22,17 @@ public class SevereError extends RuntimeException implements StandardProtocol.Er
     @Override public StandardProtocol.ErrorSeverity getErrorSeverity() {return StandardProtocol.ErrorSeverity.Severe;}
 
     public SevereError(ErrorClass errorClass, ErrorKind errorKind, Message.Value...params) {
-        this.errorClass = errorClass;
-        this.errorKind = errorKind;
-        this.params = Arrays.asList(params);
+        this(errorClass, errorKind, Arrays.asList(params));
     }
 
     public SevereError(ErrorClass errorClass, ErrorKind errorKind, Iterable<Message.Value> params) {
+        super("SevereError " + errorClass + " " + errorKind + paramsToString(params));
         this.errorClass = errorClass;
         this.errorKind = errorKind;
         this.params = params;
+    }
+
+    private static String paramsToString(Iterable<Message.Value> params) {
+        return Util.printValuesToString(params);
     }
 }

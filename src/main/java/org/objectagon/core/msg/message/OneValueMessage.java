@@ -1,7 +1,10 @@
 package org.objectagon.core.msg.message;
 
+import org.objectagon.core.utils.Util;
+
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.singleton;
+import static org.objectagon.core.utils.Util.printValuesToString;
 
 /**
  * Created by christian on 2015-10-08.
@@ -13,7 +16,7 @@ public class OneValueMessage extends AbstractMessage {
 
     private OneValueMessage(MessageName name, Value value) {
         super(name);
-        if (this.value==null)
+        if (value==null)
             throw new NullPointerException("Value is null!");
         this.value = value;
     }
@@ -27,5 +30,10 @@ public class OneValueMessage extends AbstractMessage {
     @Override
     public Iterable<Value> getValues() {
         return singleton(value);
+    }
+
+    @Override
+    public String toString() {
+        return getName() + printValuesToString(getValues());
     }
 }

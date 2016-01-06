@@ -21,4 +21,9 @@ public class MinimalMessage extends AbstractMessage {
 
     @Override
     public Iterable<Value> getValues() {return Collections.EMPTY_LIST;}
+
+    @Override
+    public String toString() {
+        return ""+getName();
+    }
 }

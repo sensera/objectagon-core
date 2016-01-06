@@ -51,11 +51,11 @@ public interface Message {
     }
 
     interface Writer {
-        void write(String text);
-        void write(Long number);
-        void write(Message message);
-        void write(Address address);
-        void write(Name name);
+        void write(Field field, String text);
+        void write(Field field, Long number);
+        void write(Field field, Message message);
+        void write(Field field, Address address);
+        void write(Field field, Name name);
     }
 
     @FunctionalInterface

@@ -9,15 +9,10 @@ import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.SimpleMessage;
-import org.objectagon.core.msg.message.VolatileAddressValue;
-import org.objectagon.core.msg.message.VolatileNumberValue;
-import org.objectagon.core.msg.receiver.BasicReceiver;
-import org.objectagon.core.msg.receiver.BasicReceiverImpl;
-import org.objectagon.core.service.ServiceProtocol;
+import org.objectagon.core.msg.message.VolatileNameValue;
 import org.objectagon.core.task.*;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import static org.objectagon.core.msg.message.VolatileNumberValue.number;
 import static org.objectagon.core.utils.Util.concat;
@@ -47,6 +42,10 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
         return new LocalSessionId(sessionId);
     }
 
+    void terminateSession(Session session) {
+
+    }
+
     @Override
     public void receive(Envelope envelope) {
         notImplemented();
@@ -57,6 +56,7 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
         final protected Composer composer;
         final private Transporter transporter;
         final protected SessionOwner sessionOwner;
+        long idCounter = 0;
 
         @Override public SessionId getSessionId() {return sessionId;}
         @Override public SessionId getAddress() {return sessionId;}
@@ -70,7 +70,7 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
         }
 
         public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
-            transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.Unknown, ErrorClass.UNKNOWN, errorKind)));
+            transport(composer.create(new StandardProtocol.ErrorMessage(StandardProtocol.ErrorSeverity.UNKNOWN, ErrorClass.UNKNOWN, errorKind)));
         }
 
         protected void send(Message.MessageName message, Message.Value... values) {
@@ -89,7 +89,7 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
 
         <S extends Session> S interpretSessionRequest(ProtocolName protocolName) {
             if (!protocolName.equals(name))
-                throw new SevereError(ErrorClass.PROTOCOL, ErrorKind.ILLEGAL_PROTOCOL);
+                return sessionOwner.createSession(protocolName);
             return (S) this;
         }
 
@@ -103,11 +103,31 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
                 public <U extends Session> U createSession(ProtocolName protocolName, Composer composer) {
                     return interpretSessionRequest(protocolName);
                 }
+
+                @Override
+                public <S extends Session> FuncReply session(ProtocolName protocolName, Composer composer, Func<S> func) {
+                    S session = interpretSessionRequest(protocolName);
+                    FuncReply reply;
+                    try {
+                        reply = func.run(session);
+                    } finally {
+                        session.terminate();
+                    }
+                    return reply;
+                }
             };
         }
 
         protected Task task(Task.TaskName taskName, SendMessageAction sendMessageAction) {
-            return new SessionTask(getTaskCtrl(sessionId), taskName, sendMessageAction);
+            SessionTask sessionTask = new SessionTask(getTaskCtrl(sessionId), taskName, sendMessageAction);
+            sessionTask.initialize();
+            sessionOwner.registerReceiver(sessionTask.getAddress(), sessionTask);
+            return sessionTask;
+        }
+
+        @Override
+        public void terminate() {
+            terminateSession(this);
         }
 
         @Override
@@ -117,11 +137,9 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
 
         private abstract class LocalTaskCtrl implements Task.TaskCtrl {
             private final CtrlId ctrlId;
-            long idCounter;
 
             public LocalTaskCtrl(CtrlId ctrlId) {
                 this.ctrlId = ctrlId;
-                idCounter = 0;
             }
 
             @Override
@@ -148,15 +166,17 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
         protected class SessionTask extends AbstractTask implements Send {
 
             private final SendMessageAction sendMessageAction;
+            private final Composer taskComposer;
 
             public SessionTask(TaskCtrl taskCtrl, TaskName name, SendMessageAction sendMessageAction) {
                 super(taskCtrl, name);
                 this.sendMessageAction = sendMessageAction;
+                this.taskComposer = composer.alternateReceiver(this);
             }
 
             @Override
             public void send(Message.MessageName message, Message.Value... values) {
-                transport(composer.create(
+                transport(taskComposer.create(
                         SimpleMessage.simple(message)
                                 .setValues(concat(values))
                 ));
@@ -164,7 +184,7 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
 
             @Override
             public void send(Message.MessageName message, Iterable<Message.Value> values) {
-                transport(composer.create(
+                transport(taskComposer.create(
                         SimpleMessage.simple(message)
                                 .setValues(values)
                 ));
@@ -200,6 +220,11 @@ public abstract class AbstractProtocol<U extends Protocol.Session> implements Pr
         @Override
         public Message.Value toValue() {
             return number(StandardField.SESSION_ID, sessionId);
+        }
+
+        @Override
+        public String toString() {
+            return "¤"+sessionId;
         }
     }
 

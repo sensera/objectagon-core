@@ -8,8 +8,10 @@ import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.envelope.StandardEnvelope;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.utils.Util;
 
 import static org.objectagon.core.msg.message.SimpleMessage.simple;
+import static org.objectagon.core.utils.Util.printValuesToString;
 
 /**
  * Created by christian on 2015-10-06.
@@ -39,12 +41,17 @@ public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.Cr
     abstract protected void handle(W worker);
 
     public void receive(Envelope envelope) {
-        System.out.println("BasicReceiverImpl.receive");
+        //System.out.println("BasicReceiverImpl.receive "+envelope+" for class "+this.getClass().getSimpleName());
         envelope.unwrap((sender, message) -> {
             W worker = createWorker(getBasicWorkerContext(sender, message));
             handle(worker);
-            if (!worker.isHandled())
-                worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
+            if (!worker.isHandled()) {
+                if (worker.messageHasName(StandardProtocol.MessageName.ERROR_MESSAGE)) {
+                    System.out.println("BasicReceiverImpl.receive IGNORED ERROR " + worker.getMessageName() + printValuesToString(worker.getValues()));
+                } else {
+                    worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
+                }
+            }
         });
     }
 
@@ -135,6 +142,11 @@ public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.Cr
         @Override
         public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
             return getReceiverCtrl().createSession(protocolName, composer);
+        }
+
+        @Override
+        public <S extends Protocol.Session> Protocol.FuncReply session(Protocol.ProtocolName protocolName, Composer composer, Protocol.Func<S> func) {
+            return getReceiverCtrl().session(protocolName, composer, func);
         }
     }
 

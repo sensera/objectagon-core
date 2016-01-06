@@ -1,17 +1,18 @@
-package org.objectagon.core.msg.address;
+package org.objectagon.core.msg.name;
 
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
 
 import java.util.Objects;
 
 /**
- * Created by christian on 2015-10-11.
+ * Created by christian on 2016-01-06.
  */
-public class NamedAddress implements Address {
-    Name name;
+public class StandardName implements Name {
+    String name;
 
-    public NamedAddress(Name name) {
+    public static StandardName name(String name) { return new StandardName(name);}
+
+    public StandardName(String name) {
         this.name = name;
     }
 
@@ -19,7 +20,7 @@ public class NamedAddress implements Address {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        NamedAddress that = (NamedAddress) o;
+        StandardName that = (StandardName) o;
         return Objects.equals(name, that.name);
     }
 
@@ -30,6 +31,6 @@ public class NamedAddress implements Address {
 
     @Override
     public String toString() {
-        return name.toString();
+        return name;
     }
 }

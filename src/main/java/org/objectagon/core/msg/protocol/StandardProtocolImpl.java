@@ -13,6 +13,10 @@ import static org.objectagon.core.utils.Util.notImplemented;
  */
 public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.StandardSession> implements StandardProtocol {
 
+    public static void registerAtServer(Server server) {
+        server.registerProtocol(STANDARD_PROTOCOL, serverId -> new StandardProtocolImpl(serverId));
+    }
+
     public StandardProtocolImpl(Server.ServerId serverId) {
         super(STANDARD_PROTOCOL, serverId);
     }
@@ -43,7 +47,7 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
         }
 
         public void replyWithError(ErrorKind errorKind) {
-            transporter.transport(composer.create(new ErrorMessage(ErrorSeverity.Unknown, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind)));
+            transporter.transport(composer.create(new ErrorMessage(ErrorSeverity.UNKNOWN, org.objectagon.core.exception.ErrorClass.UNKNOWN, errorKind)));
         }
 
         public void replyOk() {
@@ -71,6 +75,11 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
         @Override
         public void replyWithError(org.objectagon.core.exception.ErrorKind errorKind) {
             transporter.transport(composer.create(ErrorMessage.error(errorKind)));
+        }
+
+        @Override
+        public void terminate() {
+            terminateSession(this);
         }
 
         @Override

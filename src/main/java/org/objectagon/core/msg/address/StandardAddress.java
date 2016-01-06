@@ -36,4 +36,9 @@ public class StandardAddress implements Address {
     public int hashCode() {
         return Objects.hash(serverId, ctrlId, addressId);
     }
+
+    @Override
+    public String toString() {
+        return addressId+":"+ctrlId+"@"+serverId;
+    }
 }
