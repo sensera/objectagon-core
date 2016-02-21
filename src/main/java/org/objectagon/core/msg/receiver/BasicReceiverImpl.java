@@ -1,14 +1,12 @@
 package org.objectagon.core.msg.receiver;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.envelope.StandardEnvelope;
-import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.StandardProtocol;
-import org.objectagon.core.utils.Util;
 
 import static org.objectagon.core.msg.message.SimpleMessage.simple;
 import static org.objectagon.core.utils.Util.printValuesToString;
@@ -16,23 +14,11 @@ import static org.objectagon.core.utils.Util.printValuesToString;
 /**
  * Created by christian on 2015-10-06.
  */
-public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.CreateNewAddressParams, C extends BasicReceiverCtrl<P>, W extends BasicWorker> implements BasicReceiver<A> {
+public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker> extends AbstractReceiver<A> implements BasicReceiver<A> {
 
-    private C receiverCtrl;
-    private A address;
-
-    public A getAddress() {return address;}
-    public C getReceiverCtrl() {return receiverCtrl;}
-
-    public BasicReceiverImpl(C receiverCtrl) {
-        this.receiverCtrl = receiverCtrl;
+    public BasicReceiverImpl(ReceiverCtrl receiverCtrl) {
+        super(receiverCtrl);
     }
-
-    public void initialize() {
-        this.address = this.receiverCtrl.createNewAddress(this, createNewAddressParams());
-    }
-
-    abstract protected P createNewAddressParams();
 
     protected TriggerBuilder<W> triggerBuilder(W worker) {
         return new TriggerBuilder<>(worker);
@@ -91,6 +77,11 @@ public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.Cr
         public Composer alternateReceiver(Receiver receiver) {
             return new BasicComposer(receiver, target);
         }
+
+        @Override
+        public Address getSenderAddress() {
+            return receiver.getAddress();
+        }
     }
 
     private class BasicWorkerContext implements WorkerContext {
@@ -114,7 +105,7 @@ public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.Cr
         }
 
         public Transporter getTransporter() {
-            return receiverCtrl;
+            return getReceiverCtrl();
         }
 
         public Address getSender() {
@@ -140,13 +131,20 @@ public abstract class BasicReceiverImpl<A extends Address, P extends Receiver.Cr
         }
 
         @Override
-        public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
-            return getReceiverCtrl().createSession(protocolName, composer);
+        public <R extends Receiver> R createReceiver(Name name, Initializer initializer) {
+            return getReceiverCtrl().createReceiver(name, initializer);
         }
 
         @Override
-        public <S extends Protocol.Session> Protocol.FuncReply session(Protocol.ProtocolName protocolName, Composer composer, Protocol.Func<S> func) {
-            return getReceiverCtrl().session(protocolName, composer, func);
+        public <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName) {
+            Protocol protocol = getReceiverCtrl().createReceiver(protocolName, null);
+            return (U) protocol.createReply(() -> createReplyToSenderComposer());
+        }
+
+        @Override
+        public <U extends Protocol.Send> U createSend(Protocol.ProtocolName protocolName, Address target) {
+            Protocol protocol = getReceiverCtrl().createReceiver(protocolName, null);
+            return (U) protocol.createSend(() -> createTargetComposer(target));
         }
     }
 

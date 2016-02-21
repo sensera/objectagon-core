@@ -31,12 +31,12 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
         return getWorkerContext().getMessageName();
     }
 
-    public ServiceProtocol.Session createServiceProtocolSession() {
+    public ServiceProtocol.Reply createServiceProtocolReply() {
         return createReplySession(ServiceProtocol.SERVICE_PROTOCOL);
     }
 
     public void replyWithError(ServiceProtocol.ErrorKind errorKind) {
-        createServiceProtocolSession().replyWithError(errorKind);
+        createServiceProtocolReply().replyWithError(errorKind);
     }
 
     @Override
@@ -45,10 +45,10 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
     }
 
     protected  <U extends Protocol.Session> U createReplySession(Protocol.ProtocolName protocolName) {
-        return getWorkerContext().createSession(protocolName, getWorkerContext().createReplyToSenderComposer());
+        return (U) getWorkerContext().createReply(protocolName);
     }
 
     protected  <U extends Protocol.Session> U createTargetSession(Protocol.ProtocolName protocolName, Address target) {
-        return getWorkerContext().createSession(protocolName, getWorkerContext().createTargetComposer(target));
+        return (U) getWorkerContext().createSend(protocolName, target);
     }
 }

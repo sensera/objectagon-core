@@ -9,25 +9,25 @@ import java.util.Optional;
  */
 public class StandardTaskBuilder implements TaskBuilder {
 
-    Task.TaskCtrl taskCtrl;
+    Receiver.ReceiverCtrl taskCtrl;
     Hook hook;
 
-    public StandardTaskBuilder(Task.TaskCtrl taskCtrl) {
+    public StandardTaskBuilder(Receiver.ReceiverCtrl taskCtrl) {
         this(taskCtrl, null);
     }
 
-    public StandardTaskBuilder(Task.TaskCtrl taskCtrl, Hook hook) {
+    public StandardTaskBuilder(Receiver.ReceiverCtrl taskCtrl, Hook hook) {
         this.taskCtrl = taskCtrl;
         this.hook = hook;
     }
 
     @Override
-    public <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction) {
+    public <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction) {
         return new BuilderImpl<>(new StandardTask<>(taskCtrl, taskName, protocolName, target, sendMessageAction));
     }
 
     @Override
-    public <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<U> sendMessageAction) {
+    public <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<S> sendMessageAction) {
         return new BuilderImpl<>(new StandardTask<>(taskCtrl, taskName, protocolName, composer, sendMessageAction));
     }
 
@@ -37,17 +37,17 @@ public class StandardTaskBuilder implements TaskBuilder {
     }
 
     @Override
-    public <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction) {
+    public <S extends Protocol.Send> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction) {
         return new ChainedBuilderImpl<>(new StandardTask<>(taskCtrl, taskName, protocolName, target, sendMessageAction));
     }
 
     @Override
-    public <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Action action) {
+    public ChainedBuilder chain(Task.TaskName taskName, Action action) {
         return new ChainedBuilderImpl<>(new ActionTask(taskCtrl, taskName, action));
     }
 
     @Override
-    public <U extends Protocol.Session> SequenceBuilder sequence(Task.TaskName taskName) {
+    public SequenceBuilder sequence(Task.TaskName taskName) {
         return new SequenceBuilderImpl(new SequenceTask(taskCtrl, taskName));
     }
 
@@ -126,14 +126,14 @@ public class StandardTaskBuilder implements TaskBuilder {
         }
 
         @Override
-        public <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction) {
-            StandardTask<U> subTask = new StandardTask<>(taskCtrl, taskName, protocolName, target, sendMessageAction);
+        public <S extends Protocol.Send> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction) {
+            StandardTask<S> subTask = new StandardTask<>(taskCtrl, taskName, protocolName, target, sendMessageAction);
             task.add(subTask);
             return new BuilderImpl<>(subTask);
         }
 
         @Override
-        public <U extends Protocol.Session> Builder<ActionTask> action(Task.TaskName taskName, Action action) {
+        public Builder<ActionTask> action(Task.TaskName taskName, Action action) {
             ActionTask subTask = new ActionTask(taskCtrl, taskName, action);
             task.add(subTask);
             return new BuilderImpl<>(subTask);

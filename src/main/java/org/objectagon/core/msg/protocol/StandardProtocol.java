@@ -1,8 +1,10 @@
 package org.objectagon.core.msg.protocol;
 
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.*;
+import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.Util;
 
 import java.util.*;
@@ -10,14 +12,15 @@ import java.util.*;
 /**
  * Created by christian on 2015-10-06.
  */
-public interface StandardProtocol extends Protocol<StandardProtocol.StandardSession> {
+public interface StandardProtocol extends Protocol<StandardProtocol.StandardSend, StandardProtocol.StandardReply> {
 
     ProtocolName STANDARD_PROTOCOL = new ProtocolNameImpl("STANDARD_PROTOCOL");
 
-    enum MessageName implements Message.MessageName {
+    enum MessageName implements Message.MessageName, Task.TaskName {
+        PING_MESSAGE,
+        LOG_MESSAGE,
         ERROR_MESSAGE,
         OK_MESSAGE,
-
     }
 
     enum FieldName implements Message.Field {
@@ -45,13 +48,15 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
 
     }
 
-    interface StandardSession extends Protocol.Session {
+    interface StandardReply extends Protocol.Reply {
         void replyWithError(ErrorClass errorClass, ErrorKind errorKind);
         void replyWithError(ErrorKind errorKind);
-        void replyOk();
-        void replyWithParam(Message.Value param);
-        void replyWithParam(Iterable<Message.Value> param);
         void replyWithError(ErrorMessageProfile errorMessageProfile);
+    }
+
+    interface StandardSend extends Protocol.Send {
+        Task ping(Address target);
+        Task log(Address target, Iterable<Message.Value> params);
     }
 
     class ErrorMessage extends AbstractMessage {
@@ -101,7 +106,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSess
                 return VolatileTextValue.text(field, errorClass);
             else if (field.equals(StandardProtocol.FieldName.ERROR_KIND))
                 return VolatileTextValue.text(field, errorKind);
-            return lookupValueInParamsByField(values, field).orElse(new UnknownValue(field));
+            return lookupValueInParamsByField(values, field).orElse(UnknownValue.create(field));
         }
 
         @Override

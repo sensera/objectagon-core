@@ -6,8 +6,11 @@ import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Envelope;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Transporter;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.VolatileAddressValue;
+
+import java.util.Optional;
 
 import static org.objectagon.core.msg.message.VolatileAddressValue.address;
 
@@ -31,8 +34,8 @@ public class StandardEnvelope implements Envelope {
 
     @Override
     public void targets(Targets targets) {
-        targets.target(target).
-                orElseThrow(()-> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, address(target))).
+        targets.target(this.target).
+                orElseThrow(() -> new SevereError(ErrorClass.ENVELOPE, ErrorKind.UNKNOWN_TARGET, address(this.target))).
                 transport(this);
     }
 

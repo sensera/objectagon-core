@@ -5,31 +5,43 @@ import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
+import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
+import org.objectagon.core.storage.EntityServiceProtocol;
 
 import java.util.Arrays;
 
 /**
  * Created by christian on 2015-10-13.
  */
-public class EventServiceProtocolImpl extends AbstractProtocol<EventServiceProtocol.Session>  implements EventServiceProtocol {
+public class EventServiceProtocolImpl extends AbstractProtocol<EventServiceProtocol.Send, EntityServiceProtocol.Reply>  implements EventServiceProtocol {
 
     public static void registerAtServer(Server server) {
-        server.registerProtocol(EVENT_SERVICE_PROTOCOL, EventServiceProtocolImpl::new);
+        server.registerFactory(EVENT_SERVICE_PROTOCOL, EventServiceProtocolImpl::new);
     }
 
-    public EventServiceProtocolImpl(Server.ServerId serverId) {
-        super(EventServiceProtocol.EVENT_SERVICE_PROTOCOL, serverId);
+    public EventServiceProtocolImpl(ReceiverCtrl receiverCtrl) {
+        super(receiverCtrl);
     }
 
     @Override
-    public EventServiceProtocol.Session createSession(SessionOwner sessionOwner) {
-        return new EventServiceProtocolSessionImpl(nextSessionId(), sessionOwner);
+    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return new ProtocolAddressImpl(EVENT_SERVICE_PROTOCOL, serverId);
     }
 
-    protected class EventServiceProtocolSessionImpl extends AbstractProtocolSession implements EventServiceProtocol.Session {
+    @Override
+    public EventServiceProtocol.Send createSend(CreateSendParam createSend) {
+        return new EventServiceProtocolSendImpl(createSend);
+    }
 
-        public EventServiceProtocolSessionImpl(SessionId sessionId, SessionOwner sessionOwner) {
-            super(sessionId, sessionOwner);
+    @Override
+    public Reply createReply(CreateReplyParam createReply) {
+        return new AbstractProtocolReply(createReply) {};
+    }
+
+    protected class EventServiceProtocolSendImpl extends AbstractProtocolSend implements EventServiceProtocol.Send {
+
+        public EventServiceProtocolSendImpl(CreateSendParam sendParam) {
+            super(sendParam);
         }
 
         public void startListenTo(Address address, Name name) {

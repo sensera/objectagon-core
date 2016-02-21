@@ -18,6 +18,5 @@ import java.util.Optional;
 public interface BasicWorker extends Receiver.Worker {
     Task.SuccessAction replyWithSelectedFieldFromResult(Message.Field field, ErrorClass onErrorClass);
 
-
     boolean isError();
 }

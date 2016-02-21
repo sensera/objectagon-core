@@ -4,17 +4,13 @@ import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Name;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.address.AddressList;
 import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.receiver.Reactor;
-import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 import org.objectagon.core.msg.receiver.StandardAction;
-import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
-import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
 
@@ -27,33 +23,24 @@ import static org.objectagon.core.utils.Util.concat;
 /**
  * Created by christian on 2015-10-13.
  */
-public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl, StandardAddress, Receiver.CreateNewAddressParams> {
+public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServiceWorkerImpl, StandardAddress> {
 
     public static NamedAddress EVENT_SERVICE_ADDRESS = new NamedAddress(EventServiceProtocol.EVENT_SERVICE_PROTOCOL);
 
-    public static ReceiverCtrlIdName EVENT_SERVICE_CTRL_ID_NAME = new ReceiverCtrlIdName("EventService");
-
-    public static void registerAtServer(Server.Ctrl server) {
-        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName, CreateNewAddressParams> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
-                StandardFactory.create(server, EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
-        server.registerFactory(EVENT_SERVICE_CTRL_ID_NAME, eventServiceStandardAddressReceiverCtrlIdNameStandardFactory);
-    }
-
-    public static Server.Factory factory(Server.Ctrl server) {
-        StandardFactory<EventServiceImpl, StandardAddress, ReceiverCtrlIdName, CreateNewAddressParams> eventServiceStandardAddressReceiverCtrlIdNameStandardFactory =
-                StandardFactory.create(server, EVENT_SERVICE_CTRL_ID_NAME, StandardAddress::standard, EventServiceImpl::new);
-        return eventServiceStandardAddressReceiverCtrlIdNameStandardFactory;
+    public static void registerAtServer(Server server) {
+        server.registerFactory(EVENT_SERVICE_ADDRESS, EventServiceImpl::new);
     }
 
     private Map<String,AddressList> eventListeners = new HashMap<String, AddressList>();
 
-    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
-
-    public EventServiceImpl(StandardReceiverCtrl receiverCtrl) {
+    public EventServiceImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
 
-
+    @Override
+    protected StandardAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return StandardAddress.standard(serverId, timestamp, id);
+    }
 
     @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
@@ -105,7 +92,8 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         }
 
         public void broadcast(Address target, Message.MessageName message, Message.Value... values) {
-            this.<BroadcastEventServiceProtocol.Session>createTargetSession(BroadcastEventServiceProtocol.BROADCAST_EVENT_SERVICE_PROTOCOL, target).broadcast(message, concat(values));
+            BroadcastEventServiceProtocol.Send broadcastEventServiceSend = this.createTargetSession(BroadcastEventServiceProtocol.BROADCAST_EVENT_SERVICE_PROTOCOL, target);
+            broadcastEventServiceSend.broadcast(message, concat(values));
         }
     }
 

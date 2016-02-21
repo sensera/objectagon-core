@@ -14,12 +14,12 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-08.
  */
-public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address, P extends Receiver.CreateNewAddressParams> extends StandardReceiverImpl<A, P, StandardReceiverCtrl<P>, W> implements Service, Service.ServiceActionCommands<W> {
+public abstract class AbstractService<W extends Service.ServiceWorker, A extends Address> extends StandardReceiverImpl<A, W> implements Service, Service.ServiceActionCommands<W> {
 
     private Status status = Status.Stopped;
     private Task currentTask;
 
-    public AbstractService(StandardReceiverCtrl<P> receiverCtrl) {
+    public AbstractService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
 

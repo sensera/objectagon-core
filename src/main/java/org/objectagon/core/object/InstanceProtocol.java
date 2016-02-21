@@ -8,7 +8,7 @@ import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 /**
  * Created by christian on 2015-11-01.
  */
-public interface InstanceProtocol extends Protocol<InstanceProtocol.Session> {
+public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, InstanceProtocol.Reply> {
 
     ProtocolName INSTANCE_PROTOCOL = new ProtocolNameImpl("INSTANCE_PROTOCOL");
 
@@ -23,9 +23,6 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Session> {
     }
 
     enum FieldName implements Message.Field {
-        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
-
         FIELD("FIELD", Message.FieldType.Address),
         VALUE("VALUE", Message.FieldType.Any),
         INSTANCE_CLASS("INSTANVE_CLASS", Message.FieldType.Address),
@@ -51,50 +48,11 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Session> {
 
     }
 
-    interface Session extends Protocol.Session {
+    interface Send extends Protocol.Send {
         void getValue(FieldAddress fieldAddress);
         void setValue(FieldAddress fieldAddress, String value);
     }
 
+    interface Reply extends Protocol.Reply {}
 }
 
-/*    ClientSession createClientSession(Address address);
-
-    ProtocolName SERVICE_PROTOCOL = new ProtocolNameImpl("SERVICE_PROTOCOL");
-
-    enum MessageName implements Message.MessageName {
-        START_SERVICE,
-        STOP_SERVICE,
-        FAILED,
-    }
-
-    enum FieldName implements Message.Field {
-        ERROR_SEVERITY("ERROR_SEVERITY", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
-
-        private Message.FieldName name;
-        private Message.FieldType fieldType;
-
-        public Message.FieldName getName() {return name;}
-        public Message.FieldType getFieldType() {return fieldType;}
-
-        FieldName(String name, Message.FieldType fieldType) {
-            this.name = new FieldNameImpl(name);
-            this.fieldType = fieldType;
-        }
-
-    }
-
-    interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
-    }
-
-    interface ClientSession extends Protocol.Session {
-        void startService();
-        void stopService();
-    }
-
-    enum ErrorKind {
-        ServiceIsStoppning, ServiceIsStarting;
-    }
-*/

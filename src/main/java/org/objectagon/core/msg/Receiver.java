@@ -6,30 +6,24 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
 /**
  * Created by christian on 2015-10-06.
  */
-public interface Receiver<U extends Address> {
+public interface Receiver<A extends Address> {
 
-    U getAddress();
+    A getAddress();
 
     void receive(Envelope envelope);
 
-    default void initialize() {}
+    void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer);
 
-    interface ReceiverCtrl<P extends CreateNewAddressParams> extends Transporter, Protocol.SessionFactory {
-        <U extends Address> U createNewAddress(Receiver<U> receiver, P params);
+    interface ReceiverCtrl extends Transporter, Server.CreateReceiverByName, Server.Factory {
+        void registerFactory(Name name, Server.Factory factory);
+        Server.ServerId getServerId();
     }
 
-    interface CreateNewAddressParams {}
-
-    public interface CtrlId extends Name { }
+    interface SetInitialValues {}
 
     @FunctionalInterface
-    interface CreateNewAddress<C extends Receiver.CtrlId, A extends Address> {
-        A createNewAddress(Server.ServerId serverId, C ctrlId, long id);
-    }
-
-    @FunctionalInterface
-    interface CreateNewAddressWithParams<C extends Receiver.CtrlId, A extends Address, P extends CreateNewAddressParams> {
-        A createNewAddress(Server.ServerId serverId, C ctrlId, long id, P params);
+    interface Initializer<A extends Address> {
+        <C extends SetInitialValues> C initialize(A address);
     }
 
     interface Worker {
@@ -58,6 +52,8 @@ public interface Receiver<U extends Address> {
 
         Iterable<Message.Value> getValues();
 
+        <R extends Receiver> R createReceiver(Name name, Initializer initializer);
+
         default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {
             return createErrorMessageProfile(StandardProtocol.ErrorSeverity.UNKNOWN, errorClass, errorKind, values);
         }
@@ -72,7 +68,7 @@ public interface Receiver<U extends Address> {
         }
     }
 
-    interface WorkerContext extends Protocol.SessionFactory {
+    interface WorkerContext  {
 
         Composer createReplyToSenderComposer();
 
@@ -89,6 +85,12 @@ public interface Receiver<U extends Address> {
         Message.MessageName getMessageName();
 
         Iterable<Message.Value> getValues();
+
+        <R extends Receiver> R createReceiver(Name name, Initializer initializer);
+
+        <U extends Protocol.Send> U createSend(Protocol.ProtocolName protocolName, Address target);
+
+        <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName);
 
     }
 

@@ -1,5 +1,6 @@
 package org.objectagon.core.task;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -8,6 +9,7 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
@@ -20,7 +22,7 @@ import java.util.List;
 /**
  * Created by christian on 2015-10-11.
  */
-public abstract class AbstractTask extends BasicReceiverImpl<Address, Receiver.CreateNewAddressParams, Task.TaskCtrl, Task.TaskWorker> implements Task {
+public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<A, Task.TaskWorker> implements Task<A> {
 
     private Status status = Status.Unstarted;
     private TaskName name;
@@ -29,14 +31,13 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Receiver.C
 
     public TaskName getName() {return name;}
 
-    public AbstractTask(TaskCtrl taskCtrl, TaskName name) {
+    public AbstractTask(ReceiverCtrl taskCtrl, TaskName name) {
         super(taskCtrl);
         this.name = name;
     }
 
-    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
-
     public final void start() {
+        System.out.println("AbstractTask.start "+name);
         status = Status.Started;
         try {
             internalStart();
@@ -48,6 +49,7 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Receiver.C
     }
 
     protected void success(Message.MessageName messageName, Iterable<Message.Value> values) {
+        System.out.println("AbstractTask.success "+name+" "+messageName);
         status = Status.Completed;
         intSuccess(messageName, values);
         successActions.stream().forEach(successAction -> {
@@ -64,6 +66,7 @@ public abstract class AbstractTask extends BasicReceiverImpl<Address, Receiver.C
     }
 
     protected void failed(ErrorClass errorClass, ErrorKind errorKind, Iterable<Message.Value> values) {
+        System.out.println("AbstractTask.failed "+name+" "+errorClass+" "+errorKind);
         status = Status.Completed;
         intFailed(errorClass, errorKind, values);
         failedActions.stream().forEach(failedAction -> failedAction.failed(errorClass, errorKind, values));

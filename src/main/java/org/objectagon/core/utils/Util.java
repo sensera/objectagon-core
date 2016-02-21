@@ -3,6 +3,7 @@ package org.objectagon.core.utils;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.message.UnknownValue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,17 @@ public class Util {
 
     public static void notImplemented()  {
         throw new RuntimeException("Not implemented!");
+    }
+
+    public static Message.Value getValueByField(Iterable<Message.Value> params, Message.Field field) {
+        for (Message.Value value : params)
+            if (value.getField().equals(field))
+                return value;
+        return UnknownValue.create(field);
+    }
+
+    public static boolean emptyOrNull(String value) {
+        return value == null || value.equals("");
     }
 
     @FunctionalInterface

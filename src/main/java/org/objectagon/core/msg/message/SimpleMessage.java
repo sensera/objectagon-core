@@ -44,7 +44,10 @@ public class SimpleMessage extends AbstractMessage implements Message {
     }
 
     public Value getValue(Field field) {
-        return values.get(field);
+        Value value = values.get(field);
+        if (value==null)
+            return UnknownValue.create(field);
+        return value;
     }
 
     @Override

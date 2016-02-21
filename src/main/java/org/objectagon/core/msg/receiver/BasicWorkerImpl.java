@@ -3,16 +3,16 @@ package org.objectagon.core.msg.receiver;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.message.VolatileMessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.Util;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.objectagon.core.msg.message.VolatileMessageValue.messageName;
 
@@ -31,26 +31,37 @@ public class BasicWorkerImpl implements BasicWorker {
         this.workerContext = workerContext;
     }
 
-    protected StandardProtocol.StandardSession createStandardProtocolSession() {
-        return this.workerContext.createSession(StandardProtocol.STANDARD_PROTOCOL, getWorkerContext().createReplyToSenderComposer());
+    protected StandardProtocol.StandardSend createStandardProtocolSend(Address target) {
+        StandardProtocol standardProtocol = this.workerContext.createReceiver(StandardProtocol.STANDARD_PROTOCOL, null);
+        return standardProtocol.createSend(() -> workerContext.createTargetComposer(target)); //getWorkerContext().createReplyToSenderComposer());
+    }
+
+    protected StandardProtocol.StandardReply createStandardProtocolReply() {
+        return this.workerContext.<StandardProtocol>createReceiver(StandardProtocol.STANDARD_PROTOCOL, null).createReply(workerContext::createReplyToSenderComposer);
+    }
+
+    @Override
+    public <R extends Receiver> R createReceiver(Name name, Receiver.Initializer initializer) {
+        return workerContext.createReceiver(name, initializer);
     }
 
     public void replyOk() {
-        createStandardProtocolSession().replyOk();
+        createStandardProtocolReply().replyOk();
+        setHandled();
     }
 
     public void replyWithError(StandardProtocol.ErrorKind errorKind) {
-        createStandardProtocolSession().replyWithError(errorKind);
+        createStandardProtocolReply().replyWithError(errorKind);
         setHandled();
     }
 
     public void replyWithError(StandardProtocol.ErrorMessageProfile errorMessageProfile) {
-        createStandardProtocolSession().replyWithError(errorMessageProfile);
+        createStandardProtocolReply().replyWithError(errorMessageProfile);
         setHandled();
     }
 
     public void replyWithParam(Message.Value param) {
-        createStandardProtocolSession().replyWithParam(param);
+        createStandardProtocolReply().replyWithParam(param);
         setHandled();
     }
 
@@ -63,12 +74,13 @@ public class BasicWorkerImpl implements BasicWorker {
         List<Message.Value> newValues = new LinkedList<>();
         newValues.add(messageName(StandardProtocol.FieldName.PARAM, message));
         values.forEach(newValues::add);
-        createStandardProtocolSession().replyWithParam(newValues);
+        createStandardProtocolReply().replyWithParam(newValues);
+        setHandled();
     }
 
     @Override
     public void replyWithParam(Iterable<Message.Value> values) {
-        createStandardProtocolSession().replyWithParam(values);
+        createStandardProtocolReply().replyWithParam(values);
         setHandled();
     }
 

@@ -1,17 +1,20 @@
-package org.objectagon.core.msg.receiver;
+package org.objectagon.core.storage.entity;
 
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.Name;
 
 import java.util.Objects;
 
 /**
- * Created by christian on 2015-11-22.
+ * Created by christian on 2016-01-11.
  */
-public class ReceiverCtrlIdName implements Receiver.CtrlId {
-
+public class EntityName implements Name {
     private String name;
 
-    public ReceiverCtrlIdName(String name) {
+    public static EntityName create(String name) {
+        return new EntityName(name);
+    }
+
+    private EntityName(String name) {
         this.name = name;
     }
 
@@ -19,7 +22,7 @@ public class ReceiverCtrlIdName implements Receiver.CtrlId {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ReceiverCtrlIdName that = (ReceiverCtrlIdName) o;
+        EntityName that = (EntityName) o;
         return Objects.equals(name, that.name);
     }
 
@@ -30,8 +33,7 @@ public class ReceiverCtrlIdName implements Receiver.CtrlId {
 
     @Override
     public String toString() {
-        return "ReceiverCtrlIdName{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
+
 }

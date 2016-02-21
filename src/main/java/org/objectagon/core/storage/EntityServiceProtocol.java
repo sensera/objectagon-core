@@ -6,15 +6,14 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2015-10-17.
  */
-public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Session> {
+public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Send, Protocol.Reply> {
 
     ProtocolName ENTITY_SERVICE_PROTOCOL = new ProtocolNameImpl("ENTITY_SERVICE_PROTOCOL");
-
-    ClientSession createClientSession(Address target);
 
     enum MessageName implements Message.MessageName {
         CREATE,
@@ -22,12 +21,7 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
     }
 
     enum FieldName implements Message.Field {
-        ADDRESS("ADDRESS", Message.FieldType.Address),
-        NAME("NAME", Message.FieldType.Name),
-        MESSAGE("MESSAGE", Message.FieldType.Message),
-
-        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
+        PERSISTENCY_SERVICE("PERSISTENCY_SERVICE", Message.FieldType.Address);
 
         private Message.FieldName name;
         private Message.FieldType fieldType;
@@ -46,18 +40,14 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
         }
     }
 
-    interface Session extends Protocol.Session {
+    enum TaskName implements Task.TaskName {
+        Get, Create
+
     }
 
-    interface ClientSession extends Protocol.Session {
-        void start();
-        void stop();
-        void add();
-        void remove();
-        void commit();
-        void rollback();
+    interface Send extends Protocol.Send {
+        Task create(Version version);
+        Task get(Version version, Identity identity);
     }
 
-    enum ErrorKind {
-    }
 }

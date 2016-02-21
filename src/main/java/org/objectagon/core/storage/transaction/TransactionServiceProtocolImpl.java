@@ -1,56 +1,79 @@
 package org.objectagon.core.storage.transaction;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
+import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.storage.TransactionServiceProtocol;
+import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2015-10-17.
  */
-public class TransactionServiceProtocolImpl extends AbstractProtocol<TransactionServiceProtocol.Session> implements TransactionServiceProtocol {
+public class TransactionServiceProtocolImpl extends AbstractProtocol<TransactionServiceProtocol.Send, TransactionServiceProtocol.Reply> implements TransactionServiceProtocol {
 
-    public TransactionServiceProtocolImpl(ProtocolName name, Server.ServerId serverId) {
-        super(name, serverId);
+    public static void registerAtServer(Server server) {
+        server.registerFactory(TRANSACTION_SERVICE_PROTOCOL, TransactionServiceProtocolImpl::new);
+    }
+
+    public TransactionServiceProtocolImpl(ReceiverCtrl receiverCtrl) {
+        super(receiverCtrl);
     }
 
     @Override
-    public TransactionServiceProtocol.Session createSession(SessionOwner sessionOwner) {
-        return new TransactionServiceProtocolSession(nextSessionId(), sessionOwner);
+    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return new ProtocolAddressImpl(TRANSACTION_SERVICE_PROTOCOL, serverId);
     }
 
-    private class TransactionServiceProtocolSession extends AbstractProtocolSession implements TransactionServiceProtocol.Session {
-        public TransactionServiceProtocolSession(SessionId sessionId, SessionOwner sessionOwner) {
-            super(sessionId, sessionOwner);
+    @Override
+    public TransactionServiceProtocol.Send createSend(CreateSendParam createSend) {
+        return new TransactionServiceProtocolSend(createSend);
+    }
+
+    @Override
+    public Reply createReply(CreateReplyParam createReply) {
+        return new AbstractProtocolReply(createReply) {};
+    }
+
+    private class TransactionServiceProtocolSend extends AbstractProtocolSend implements TransactionServiceProtocol.Send {
+        public TransactionServiceProtocolSend(CreateSendParam sendParam) {
+            super(sendParam);
         }
 
         @Override
-        public void start() {
-
+        public Task start() {
+            return null;
         }
 
         @Override
-        public void stop() {
+        public Task stop() {
 
+            return null;
         }
 
         @Override
-        public void add() {
+        public Task add() {
 
+            return null;
         }
 
         @Override
-        public void remove() {
+        public Task remove() {
 
+            return null;
         }
 
         @Override
-        public void commit() {
+        public Task commit() {
 
+            return null;
         }
 
         @Override
-        public void rollback() {
+        public Task rollback() {
 
+            return null;
         }
 
     }

@@ -11,12 +11,12 @@ import java.util.Optional;
  */
 public interface TaskBuilder {
 
-    <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
-    <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<U> sendMessageAction);
-    <U extends Protocol.Session> Builder<ActionTask> action(Task.TaskName taskName, Action action);
-    <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
-    <U extends Protocol.Session> ChainedBuilder chain(Task.TaskName taskName, Action action);
-    <U extends Protocol.Session> SequenceBuilder sequence(Task.TaskName taskName);
+    <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
+    <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<S> sendMessageAction);
+    Builder<ActionTask> action(Task.TaskName taskName, Action action);
+    <S extends Protocol.Send> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
+    ChainedBuilder chain(Task.TaskName taskName, Action action);
+    SequenceBuilder sequence(Task.TaskName taskName);
 
     Optional<Task> current();
 
@@ -31,8 +31,8 @@ public interface TaskBuilder {
     }
 
     interface SequenceBuilder extends Builder<SequenceTask> {
-        <U extends Protocol.Session> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<U> sendMessageAction);
-        <U extends Protocol.Session> Builder<ActionTask> action(Task.TaskName taskName, Action action);
+        <S extends Protocol.Send> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
+        Builder<ActionTask> action(Task.TaskName taskName, Action action);
     }
 
     interface Action {

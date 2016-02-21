@@ -3,25 +3,19 @@ package org.objectagon.core;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Name;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.composer.StandardComposer;
+import org.objectagon.core.msg.message.UnknownValue;
 import org.objectagon.core.msg.protocol.StandardProtocolImpl;
 import org.objectagon.core.msg.receiver.*;
 import org.objectagon.core.server.LocalServerId;
 import org.objectagon.core.server.ServerImpl;
-import org.objectagon.core.service.name.NameServiceImpl;
-import org.objectagon.core.service.name.NameServiceProtocol;
-import org.objectagon.core.service.name.NameServiceProtocolImpl;
 import org.objectagon.core.service.name.NameServiceProtocolImplIntegration;
+import org.objectagon.core.storage.entity.EntityServiceProtocolImplIntegration;
 import org.objectagon.core.task.Task;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -41,7 +35,6 @@ public class IntegrationTests implements Suite.RegisterSuite {
     Tests tests = new Tests();
 
     Name commanderName = new Name(){};
-    Receiver.CtrlId commanderCtrlId = new ReceiverCtrlIdName("integration.test.commander");
     Commander commander;
 
     private List<Suite> suites = new LinkedList<>();
@@ -51,8 +44,8 @@ public class IntegrationTests implements Suite.RegisterSuite {
         return testEntity;
     }
 
-    public IntegrationTestEntity registerTest(String name, IntegrationTestEntityAction action, String... dependentOn) {
-        return registerTest(new IntegrationTestEntityImpl(name, action, dependentOn));
+    public <S extends Protocol> IntegrationTestEntity registerTest(String name, Protocol.ProtocolName protocolName, Address target, IntegrationTestEntityAction<S> action, String... dependentOn) {
+        return registerTest(new IntegrationTestEntityImpl<S>(name, protocolName, target, action, dependentOn));
     }
 
     void setUpTestDependencies() {
@@ -68,15 +61,15 @@ public class IntegrationTests implements Suite.RegisterSuite {
 
         StandardProtocolImpl.registerAtServer(server);
 
-        NameServiceProtocolImpl.registerAtServer(server);
+        server.registerFactory(commanderName, Commander::new);
 
-        NameServiceImpl.registerAtServer(server);
+        commander = server.createReceiver(commanderName, null);
 
-        server.registerFactory(commanderName, new CommanderCtrl(server, commanderCtrlId));
-
-        commander = server.createReceiver(commanderName);
-
-        suites.stream().forEach(suite -> suite.setup(server));
+        suites.stream().forEach(suite -> suite.setup(new Suite.Setup() {
+            @Override public void registerAtServer(Suite.RegisterAtServer registerAtServer) {
+                registerAtServer.register(server);
+            }
+        }));
     }
 
     void createTest() {
@@ -88,38 +81,26 @@ public class IntegrationTests implements Suite.RegisterSuite {
         suites.add(suite);
     }
 
-    private class CommanderCtrl extends BasicReceiverCtrlImpl implements Server.Factory {
-        public CommanderCtrl(ServerImpl server, Receiver.CtrlId ctrlId) {
-            super(server, server, server, server.getServerId(), ctrlId);
-        }
-
-        @Override
-        protected Address internalCreateNewAddress(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId, Receiver.CreateNewAddressParams param) {
-            return StandardAddress.standard(serverId, ctrlId, addressId);
-
-        }
-
-        @Override
-        public <R extends Receiver> R create() {
-            return (R) new Commander(this);
-        }
-    }
 
     public class Commander extends BasicReceiverImpl {
-        public Commander(BasicReceiverCtrl receiverCtrl) {
+        public Commander(ReceiverCtrl receiverCtrl) {
             super(receiverCtrl);
         }
 
-        @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
         @Override protected BasicWorker createWorker(WorkerContext workerContext) {return new BasicWorkerImpl(workerContext);}
 
         @Override
         protected void handle(BasicWorker worker) {
             System.out.println("Commander.handle "+worker.getMessageName());
         }
+
+        @Override
+        protected Address createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+            return StandardAddress.standard(serverId, timestamp, id);
+        }
     }
 
-    public interface IntegrationTestEntity  {
+    public interface IntegrationTestEntity<S extends Protocol>  {
         boolean sameName(String name);
 
         void resolveDependency(Tests tests);
@@ -135,14 +116,20 @@ public class IntegrationTests implements Suite.RegisterSuite {
         void printStatus();
 
         boolean notCompleted();
+
+        Message.Value getValue(Message.Field field);
+
+        Message.Value getDependencyValue(String dependencyName, Message.Field field);
     }
 
-    public class IntegrationTestEntityImpl implements IntegrationTestEntity, Task.SuccessAction, Task.FailedAction {
+    public class IntegrationTestEntityImpl<S extends Protocol> implements IntegrationTestEntity<S>, Task.SuccessAction, Task.FailedAction {
         boolean completed = false;
         boolean success = false;
+        Protocol.ProtocolName protocolName;
+        Address target;
         String name;
-        NameServiceProtocol.Session session;
-        IntegrationTestEntityAction action;
+        S session;
+        IntegrationTestEntityAction<S> action;
         Task task;
         List<IntegrationTestEntityDependency> dependentOn = new LinkedList<>();
         List<IntegrationTestEntity> waiters = new LinkedList<>();
@@ -152,6 +139,19 @@ public class IntegrationTests implements Suite.RegisterSuite {
         ErrorClass errorClass;
         ErrorKind errorKind;
         Iterable<Message.Value> values;
+
+        @Override
+        public Message.Value getValue(Message.Field field) {
+            for (Message.Value value : values)
+                if (value.getField().equals(field))
+                    return value;
+            return UnknownValue.create(field);
+        }
+
+        @Override
+        public Message.Value getDependencyValue(String dependencyName, Message.Field field) {
+            return dependentOn.stream().filter(integrationTestEntityDependency -> integrationTestEntityDependency.sameName(dependencyName)).findFirst().get().getValue(field);
+        }
 
         public boolean isCompleted() {return completed;}
 
@@ -184,8 +184,10 @@ public class IntegrationTests implements Suite.RegisterSuite {
             waiters.add(waiter);
         }
 
-        public IntegrationTestEntityImpl(String name, IntegrationTestEntityAction action, String... dependentOn) {
+        public IntegrationTestEntityImpl(String name, Protocol.ProtocolName protocolName, Address target, IntegrationTestEntityAction action, String... dependentOn) {
             this.name = name;
+            this.protocolName = protocolName;
+            this.target = target;
             this.action = action;
             Arrays.asList(dependentOn).stream().forEach(s -> this.dependentOn.add(createDependency(s)));
         }
@@ -201,10 +203,9 @@ public class IntegrationTests implements Suite.RegisterSuite {
                 }
             }
             executor.execute(() -> {
-                session = server.createSession(
-                        NameServiceProtocol.NAME_SERVICE_PROTOCOL,
-                        StandardComposer.create(commander, NameServiceImpl.NAME_SERVICE_ADDRESS));
-                task = action.action(this, commander, session);
+                session = server.createReceiver(protocolName, null);
+                Composer composer = new StandardComposer(session, target);
+                task = action.action(this, commander, composer, session);
                 task.addSuccessAction(this);
                 task.addFailedAction(this);
                 task.start();
@@ -217,7 +218,6 @@ public class IntegrationTests implements Suite.RegisterSuite {
                     return;
                 completed = true;
             }
-            session.terminate();
             waiters.stream().forEach(
                     IntegrationTestEntity::start
             );
@@ -250,8 +250,8 @@ public class IntegrationTests implements Suite.RegisterSuite {
     }
 
     @FunctionalInterface
-    public interface IntegrationTestEntityAction {
-        Task action(IntegrationTestEntity testEntity, Commander commander, NameServiceProtocol.Session session);
+    public interface IntegrationTestEntityAction<P extends Protocol> {
+        Task action(IntegrationTestEntity testEntity, Commander commander, Composer composer, P protocol);
     }
 
     public static class Tests {
@@ -335,11 +335,20 @@ public class IntegrationTests implements Suite.RegisterSuite {
         public boolean isCompleted() {
             return isDependentOf.isCompleted();
         }
+
+        public boolean sameName(String dependencyName) {
+            return name.equals(dependencyName);
+        }
+
+        public Message.Value getValue(Message.Field field) {
+            return isDependentOf.getValue(field);
+        }
     }
 
     public static void main(String[] params) {
         IntegrationTests tests = new IntegrationTests();
-        NameServiceProtocolImplIntegration.register(tests);
+        //NameServiceProtocolImplIntegration.register(tests);
+        EntityServiceProtocolImplIntegration.register(tests);
 
         tests.setup();
         tests.createTest();

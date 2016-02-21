@@ -29,9 +29,9 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
         super(workerContext);
     }
 
-    public PersistenceServiceProtocol createPersistenceServiceProtocol() {
-        return getWorkerContext().createSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, getWorkerContext().createReplyToSenderComposer());
-    }
+//    public PersistenceServiceProtocol createPersistenceServiceProtocol() {
+//        return getWorkerContext().createSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, getWorkerContext().createReplyToSenderComposer());
+//    }
 
     @Override
     public TaskBuilder getTaskBuilder() {

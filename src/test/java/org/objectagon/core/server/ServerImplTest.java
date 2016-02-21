@@ -23,7 +23,7 @@ public class ServerImplTest {
     @Before
     public void setUp() throws Exception {
         serverId = LocalServerId.local("name");
-        server = new ServerImpl(serverId);
+        server = new ServerImpl(serverId, () -> 100);
         server.envelopeProcessor = envelope -> envelope.targets(server::processEnvelopeTarget); // Direct envelope processing
     }
 
@@ -31,22 +31,24 @@ public class ServerImplTest {
     public void testRegisterReceiver() {
         Name name = mock(Name.class);
         Receiver receiver = mock(Receiver.class);
+        Receiver.Initializer initializer = mock(Receiver.Initializer.class);
         when(receiver.getAddress()).thenReturn(mock(Address.class));
 
-        server.registerFactory(name, new Server.Factory() {
-            @Override public <R extends Receiver> R create() {return (R) receiver;}
-        });
+        server.registerFactory(name, receiverCtrl -> receiver);
 
-        assertEquals(receiver, server.createReceiver(name));
 
-        verify(receiver, times(1)).initialize();
+        assertEquals(receiver, server.createReceiver(name, initializer));
+
+        verify(receiver, times(1)).initialize(serverId, 100, 0, initializer);
     }
 
     @Test
     public void testCreateReceiverFail() {
+        Receiver.Initializer initializer = mock(Receiver.Initializer.class);;
+
         Name nameNotRegisteredAtServer = mock(Name.class);
         try {
-            server.createReceiver(nameNotRegisteredAtServer);
+            server.createReceiver(nameNotRegisteredAtServer, initializer);
             fail("Receiver non existent!");
         } catch (SevereError e) {
             if (ErrorClass.SERVER.equals(e.getErrorClass()) &&
@@ -73,17 +75,15 @@ public class ServerImplTest {
     public void testTransportEnvelopeToFactoryCreatedReceiver() {
         Name name = mock(Name.class);
         Address target = mock(Address.class);
+        Receiver.Initializer initializer = mock(Receiver.Initializer.class);;
 
-                server.registerFactory(name, new Server.Factory() {
-            @Override
-            public <R extends Receiver> R create() {
-                Receiver receiver = mock(Receiver.class);
-                when(receiver.getAddress()).thenReturn(target);
-                return (R) receiver;
-            }
+        server.registerFactory(name, receiverCtrl -> {
+            Receiver receiver = mock(Receiver.class);
+            when(receiver.getAddress()).thenReturn(target);
+            return receiver;
         });
 
-        server.createReceiver(name);
+        server.createReceiver(name, initializer);
 
         server.transport(new StandardEnvelope(mock(Address.class), target, mock(Message.class)));
     }

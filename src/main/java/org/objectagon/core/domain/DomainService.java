@@ -1,8 +1,7 @@
 package org.objectagon.core.domain;
 
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
-import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
@@ -10,9 +9,9 @@ import org.objectagon.core.service.ServiceWorkerImpl;
 /**
  * Created by christian on 2015-11-14.
  */
-public class DomainService extends AbstractService<Service.ServiceWorker, StandardAddress, Receiver.CreateNewAddressParams> {
+public class DomainService extends AbstractService<Service.ServiceWorker, StandardAddress> {
 
-    public DomainService(StandardReceiverCtrl receiverCtrl) {
+    public DomainService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
 
@@ -21,5 +20,8 @@ public class DomainService extends AbstractService<Service.ServiceWorker, Standa
         return new ServiceWorkerImpl(workerContext);
     }
 
-    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
+    @Override
+    protected StandardAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return StandardAddress.standard(serverId, timestamp, id);
+    }
 }

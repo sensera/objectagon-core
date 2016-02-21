@@ -2,6 +2,7 @@ package org.objectagon.core.service;
 
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Envelope;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.receiver.BasicWorker;

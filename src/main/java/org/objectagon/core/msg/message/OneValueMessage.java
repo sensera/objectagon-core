@@ -24,7 +24,7 @@ public class OneValueMessage extends AbstractMessage {
     public Value getValue(Field field) {
         if (value.getField().equals(field))
             return value;
-        return new UnknownValue(field);
+        return UnknownValue.create(field);
     }
 
     @Override

@@ -1,8 +1,12 @@
 package org.objectagon.core.task;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.address.StandardAddress;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +19,7 @@ public class SequenceTask extends AbstractTask {
     private List<Task> sequence = new LinkedList<>();
     private int atSequence = 0;
 
-    public SequenceTask(TaskCtrl taskCtrl, TaskName name) {
+    public SequenceTask(Receiver.ReceiverCtrl taskCtrl, TaskName name) {
         super(taskCtrl, name);
     }
 
@@ -40,5 +44,14 @@ public class SequenceTask extends AbstractTask {
         }
         atSequence++;
         activeTask().start();
+    }
+    @Override
+    protected void handle(TaskWorker worker) {
+
+    }
+
+    @Override
+    protected Address createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return StandardAddress.standard(serverId, timestamp, id);
     }
 }

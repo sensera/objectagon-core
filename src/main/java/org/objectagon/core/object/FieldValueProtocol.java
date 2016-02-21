@@ -4,11 +4,12 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2015-11-29.
  */
-public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Session> {
+public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Send, FieldValueProtocol.Reply> {
 
     ProtocolName FIELD_VALUE_PROTOCOL = new ProtocolNameImpl("FIELD_VALUE_PROTOCOL");
 
@@ -23,9 +24,6 @@ public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Session>
     }
 
     enum FieldName implements Message.Field {
-        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
-
         FIELD("FIELD", Message.FieldType.Address),
         VALUE("VALUE", Message.FieldType.Any),
         INSTANCE_CLASS("INSTANVE_CLASS", Message.FieldType.Address),
@@ -51,10 +49,17 @@ public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Session>
 
     }
 
-    interface Session extends Protocol.Session {
-        void getValue();
-        void setValue(Message.Value value);
+    interface Send extends Protocol.Send {
+        Task getValue();
+        Task setValue(Message.Value value);
     }
 
+    interface Reply extends Protocol.Reply {
+    }
+
+    @FunctionalInterface
+    interface FieldValueProtocolAction {
+        Task action(FieldValueProtocol.Send send);
+    }
 
 }

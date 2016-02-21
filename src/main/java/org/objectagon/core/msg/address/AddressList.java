@@ -1,6 +1,7 @@
 package org.objectagon.core.msg.address;
 
 import org.objectagon.core.msg.Address;
+import sun.java2d.pipe.AAShapePipe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,9 @@ import java.util.Optional;
 /**
  * Created by christian on 2015-10-14.
  */
+
 public class AddressList<A extends Address> implements Address {
-    private List<A> addressList = new ArrayList<A>();
+    private List<A> addressList = new ArrayList<>();
 
     public AddressList() {}
 

@@ -19,7 +19,7 @@ public class VolatileNameValue implements Message.Value {
 
     public Message.Field getField() {return field;}
     public String asText() {
-        return "";
+        return value != null ? value.toString() : "";
     }
     public Long asNumber() {
         return 0l;

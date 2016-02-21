@@ -58,4 +58,9 @@ public class StandardComposer implements Composer {
         return new StandardComposer(receiver, target);
     }
 
+    @Override
+    public Address getSenderAddress() {
+        return receiver.getAddress();
+    }
+
 }

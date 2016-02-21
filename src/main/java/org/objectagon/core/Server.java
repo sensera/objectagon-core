@@ -1,34 +1,43 @@
 package org.objectagon.core;
 
 import org.objectagon.core.msg.*;
+import org.objectagon.core.task.TaskBuilder;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public interface Server extends Transporter {
 
-    <U extends Protocol.Session> void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory<U> factory);
+    <R extends Receiver> R createReceiver(Name name, Receiver.Initializer initializer);
 
-    <R extends Receiver> R createReceiver(Name name);
+    void transport(Envelope envelope);
+    void registerFactory(Name name, Factory factory);
 
-    interface Factory {
-        <R extends Receiver> R create();
+    TaskBuilder getTaskBuilder();
+
+    interface Factory<R extends Receiver> {
+        R create(Receiver.ReceiverCtrl receiverCtrl);
     }
 
-    interface ServerId {}
+    ServerId getServerId();
 
-    interface EnvelopeProcessor extends Transporter {
+    interface ServerId extends Name {}
 
+    interface EnvelopeProcessor extends Transporter {}
+
+    interface CreateReceiverByName {
+        <R extends Receiver> R createReceiver(Name name, Receiver.Initializer initializer);
     }
 
-    interface RegisterReceiver {
-        void registerReceiver(Address address, Receiver receiver);
+    @FunctionalInterface
+    interface RegisterFactory {
+        void registerFactory(Name name, Server.Factory factory);
     }
 
-    interface Ctrl extends RegisterReceiver, Protocol.SessionFactory {
-        ServerId getServerId();
-        void transport(Envelope envelope);
-        void registerFactory(Name name, Factory factory);
+    @FunctionalInterface
+    interface SystemTime {
+        long currentTimeMillis();
     }
+
 
 }

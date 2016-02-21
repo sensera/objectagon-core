@@ -1,13 +1,12 @@
 package org.objectagon.core.object.instance;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.receiver.BasicWorker;
 import org.objectagon.core.object.*;
 import org.objectagon.core.storage.EntityProtocol;
@@ -25,15 +24,18 @@ import java.util.function.Predicate;
 /**
  * Created by christian on 2015-10-20.
  */
-public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,ObjectVersion,InstanceImpl.InstanceWorker, Receiver.CreateNewAddressParams> {
+public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,ObjectVersion,InstanceImpl.InstanceWorker> {
 
-    public InstanceImpl(EntityCtrl<Receiver.CreateNewAddressParams> entityCtrl, InstanceData data) {
-        super(entityCtrl, data);
+    public InstanceImpl(ReceiverCtrl receiverCtrl) {
+        super(receiverCtrl);
     }
 
-    @Override protected CreateNewAddressParams createNewAddressParams() {return null;}
+    @Override
+    protected InstanceIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return new InstanceIdentity();
+    }
 
-    protected void requestValue(InstanceWorker worker, Task.TaskName taskName, StandardTask.SendMessageAction<FieldValueProtocol.Session> action, Task.SuccessAction successAction) {
+    protected void requestValue(InstanceWorker worker, FieldValueProtocol.FieldValueProtocolAction action, Task.SuccessAction successAction) {
         FieldAddress fieldAddress = (FieldAddress) worker.getValue(InstanceProtocol.FieldName.FIELD).asAddress(); //TODO improve this
 
         try {
@@ -41,14 +43,11 @@ public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,Objec
 
             FieldValueAddress fieldValueAddress = instanceData.getValueByField(fieldAddress);
 
-            worker.getTaskBuilder().message(
-                    taskName,
-                    FieldValueProtocol.FIELD_VALUE_PROTOCOL,
-                    fieldValueAddress,
-                    action
-            )
-                    .success(successAction)
-                    .start();
+            FieldValueProtocol fieldValueProtocol = getReceiverCtrl().createReceiver(FieldValueProtocol.FIELD_VALUE_PROTOCOL, null);
+
+            action.action(fieldValueProtocol.createSend(() -> new StandardComposer(this, fieldValueAddress)))
+                    .addSuccessAction(successAction)
+                    .addFailedAction((errorClass, errorKind, values) -> worker.replyWithError(errorKind));
 
         } catch (UserException e) {
             if (e.getErrorKind().equals(ErrorKind.FIELD_NOT_FOUND)) {
@@ -61,8 +60,7 @@ public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,Objec
     private void getValue(InstanceWorker worker) {
         requestValue(
                 worker,
-                Instance.TaskName.GET_VALUE,
-                FieldValueProtocol.Session::getValue,
+                FieldValueProtocol.Send::getValue,
                 worker.replyWithSelectedFieldFromResult(FieldValueProtocol.FieldName.VALUE, ErrorClass.INSTANCE)
         );
     }
@@ -70,8 +68,7 @@ public class InstanceImpl extends EntityImpl<InstanceIdentity,InstanceData,Objec
     private void setValue(InstanceWorker worker) {
         requestValue(
                 worker,
-                Instance.TaskName.SET_VALUE,
-                session -> session.setValue(worker.getValue(InstanceProtocol.FieldName.VALUE)),
+                send -> send.setValue(worker.getValue(FieldValueProtocol.FieldName.VALUE)),
                 worker.replyWithSelectedFieldFromResult(FieldValueProtocol.FieldName.VALUE, ErrorClass.INSTANCE)
         );
     }

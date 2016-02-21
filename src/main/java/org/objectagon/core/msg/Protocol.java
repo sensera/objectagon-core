@@ -1,55 +1,51 @@
 package org.objectagon.core.msg;
 
-import org.objectagon.core.Server;
-import org.objectagon.core.exception.ErrorKind;
-import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.task.Task;
+import org.objectagon.core.msg.protocol.ProtocolNameStandardAddress;
 
 /**
  * Created by christian on 2015-10-06.
  */
-public interface Protocol<U extends Protocol.Session> extends Receiver<Protocol.ProtocolName>{
-    ProtocolName getName();
+public interface Protocol<S extends Protocol.Send, R extends Protocol.Reply> extends Receiver<Protocol.ProtocolAddress> {
 
-    U createSession(SessionOwner sessionOwner);
+    S createSend(CreateSendParam createSend);
+    R createReply(CreateReplyParam createReply);
 
-    interface ProtocolName extends Name, Address {}
+    interface ProtocolName extends Name {
+        String getName();
+    }
 
-    interface Session extends Receiver<SessionId> {
-        SessionId getSessionId();
-        void replyWithError(org.objectagon.core.exception.ErrorKind errorKind);
+    interface ProtocolAddress extends Address {
+        ProtocolNameStandardAddress create(long timestamp, long addressId);
+    }
+
+    interface SenderAddress extends Address {}
+
+    interface CreateSendParam {
+        Composer getComposer();
+    }
+    interface CreateReplyParam {
+        Composer getComposer();
+    }
+
+    interface Session {
         void terminate();
     }
 
-    interface SessionId extends Address, CtrlId {
-        Message.Value toValue();
-    }
+    interface Send extends Session {}
 
-    interface Factory<U extends Protocol.Session> {
-        Protocol<U> create(Server.ServerId serverId);
-    }
-
-    interface SessionFactory {
-        <U extends Protocol.Session> U createSession(ProtocolName protocolName, Composer composer);
-        <S extends Session> FuncReply session(ProtocolName protocolName, Composer composer, Func<S> func);
-    }
-
-    interface SessionOwner {
-        Transporter getTransporter();
-        Composer getComposer();
-        void registerReceiver(Address address, Receiver receiver);
-        void terminated(SessionId session);
-
-        <S extends Session> S createSession(ProtocolName protocolName);
+    interface Reply extends Session {
+        void replyOk();
+        void replyWithParam(Message.Value param);
+        void replyWithParam(Iterable<Message.Value> param);
     }
 
     @FunctionalInterface
-    interface Func<S extends Session> {
-        FuncReply run(S session);
+    interface CreateSend<S extends Send>{
+        S createSend(CreateSendParam createSend);
     }
 
-    interface FuncReply {
-        Message.MessageName name();
-        Iterable<Message.Value> values();
+    @FunctionalInterface
+    interface CreateReply<R extends Reply> {
+        R createReply(CreateReplyParam createReply);
     }
 }

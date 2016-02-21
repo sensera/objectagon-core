@@ -8,12 +8,11 @@ import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.msg.protocol.StandardProtocol;
-import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 
 /**
  * Created by christian on 2015-10-13.
  */
-public interface BroadcastEventServiceProtocol extends Protocol<BroadcastEventServiceProtocol.Session> {
+public interface BroadcastEventServiceProtocol extends Protocol<BroadcastEventServiceProtocol.Send, Protocol.Reply> {
 
     ProtocolName BROADCAST_EVENT_SERVICE_PROTOCOL = new ProtocolNameImpl("BROADCAST_EVENT_SERVICE_PROTOCOL");
 
@@ -21,8 +20,7 @@ public interface BroadcastEventServiceProtocol extends Protocol<BroadcastEventSe
         BROADCAST,
     }
 
-    interface Session extends Protocol.Session {
+    interface Send extends Protocol.Send {
         void broadcast(Message.MessageName message, Iterable<Message.Value> values);
     }
-
 }

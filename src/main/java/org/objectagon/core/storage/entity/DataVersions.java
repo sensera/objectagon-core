@@ -6,6 +6,7 @@ import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Version;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +20,13 @@ public class DataVersions<D extends Data, V extends Version>  {
 
     public DataVersions(D data) {
         this.data = data;
+    }
+
+    public DataVersions(Iterable<D> data) {
+        Iterator<D> dataIterator = data.iterator();
+        this.data = dataIterator.next();
+        if (dataIterator.hasNext())
+            chain = new DataChain(null, dataIterator);
     }
 
     public void commit(final V version) {
@@ -60,6 +68,13 @@ public class DataVersions<D extends Data, V extends Version>  {
         public DataChain(DataChain prev, D data) {
             this.prev = prev;
             this.data = data;
+        }
+
+        public DataChain(DataChain prev, Iterator<D> dataIterator) {
+            this.prev = prev;
+            data = dataIterator.next();
+            if (dataIterator.hasNext())
+                next = new DataChain(this, dataIterator);
         }
 
         public boolean equalsVersion(V version) {

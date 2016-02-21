@@ -4,14 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.address.StandardAddress;
-import org.objectagon.core.msg.composer.StandardComposer;
-import org.objectagon.core.msg.protocol.StandardProtocol;
-import org.objectagon.core.msg.receiver.ReactorImpl;
-import org.objectagon.core.msg.receiver.StandardReceiverCtrl;
-import org.objectagon.core.server.LocalServerId;
-import org.objectagon.core.task.Task;
+import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.service.AbstractProtocolTest;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -20,61 +16,60 @@ import static org.mockito.Mockito.*;
 
 public class NameServiceProtocolImplTest extends AbstractProtocolTest {
 
-    Server.ServerId serverId;
-    Server server;
-    Server.Ctrl serverCtrl;
-    StandardReceiverCtrl ctrl;
-    NameServiceImpl nameService;
-    StandardAddress nameServiceAddress;
-    Receiver receiver;
-    Composer composer;
-    Protocol.SessionOwner sessionOwner;
-    Transporter transportToService = envelope -> nameService.receive(envelope);
-    StandardProtocol.StandardSession standardProtocolSession;
     NameServiceProtocolImpl protocol;
-    NameServiceProtocol.Session session;
-
-    Address address = mock(Address.class);
-    Name name = mock(Name.class);
+    NameServiceProtocol.Send send;
+    Name name;
+    Address address;
+    Address senderAddress;
 
     @Before
     public void setup() {
-        serverId = LocalServerId.local("TestServer");
-        nameServiceAddress = StandardAddress.standard(serverId, NameServiceImpl.NAME_SERVICE_CTRL_NAME, 1);
-        server = mock(Server.class);
-        serverCtrl = mock(Server.Ctrl.class);
-        ctrl = mock(StandardReceiverCtrl.class);
-        receiver = mock(Receiver.class);
-        sessionOwner = mock(Protocol.SessionOwner.class);
-        standardProtocolSession = mock(StandardProtocol.StandardSession.class);
+        super.setup();
+        name = mock(Name.class);
+        address = mock(Address.class);
+        senderAddress = mock(Address.class);
+        protocol = new NameServiceProtocolImpl(receiverCtrl);
+        protocol.initialize(mock(Server.ServerId.class), 100, 0, null);
+        Protocol.CreateSendParam createSendParam = mock(Protocol.CreateSendParam.class);
 
-        composer = StandardComposer.create(receiver, address);
+        when(createSendParam.getComposer()).thenReturn(composer);
+        when(composer.getSenderAddress()).thenReturn(senderAddress);
+        when(composer.alternateReceiver(any(Receiver.class))).thenReturn(composer);
 
-        when(ctrl.getReactor()).thenReturn(new ReactorImpl());
-        when(ctrl.createSession(eq(StandardProtocol.STANDARD_PROTOCOL), any(Composer.class))).thenReturn(standardProtocolSession);
-        when(sessionOwner.getComposer()).thenReturn(composer);
-        when(sessionOwner.getTransporter()).thenReturn(transportToService);
-
-        nameService = new NameServiceImpl(ctrl);
-
-        protocol = new NameServiceProtocolImpl(serverId);
-        session = protocol.createSession(sessionOwner);
+        send = protocol.createSend(createSendParam);
     }
 
     @Test
-    public void registerName() {
-        session.registerName(address, name);
-
-        verify(standardProtocolSession, atLeastOnce()).replyOk();
+    public void registerName()  {
+        startTaskAndVerifySentEvelope(
+                send.registerName(address, name),
+                message -> {
+                    assertEquals(message.getName(), NameServiceProtocol.MessageName.REGISTER_NAME);
+                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), address);
+                    assertEquals(message.getValue(StandardField.NAME).asName(), name);
+                });
     }
 
     @Test
-    public void lookupName() throws FailedException {
-        registerName();
-
-        session.lookupAddressByName(name).start();
-
-        verify(standardProtocolSession, atLeastOnce()).replyWithParam(any(Message.Value.class));
+    public void unregisterName()  {
+        startTaskAndVerifySentEvelope(
+                send.unregisterName(name),
+                message -> {
+                    assertEquals(message.getName(), NameServiceProtocol.MessageName.UNREGISTER_NAME);
+                    assertEquals(message.getValue(StandardField.NAME).asName(), name);
+                });
     }
+
+    @Test
+    public void lookupName() {
+        startTaskAndVerifySentEvelope(
+                send.lookupAddressByName(name),
+                (message) -> {
+                    assertEquals(message.getName(), NameServiceProtocol.MessageName.LOOKUP_ADDRESS_BY_NAME);
+                    assertEquals(message.getValue(StandardField.NAME).asName(), name);
+                });
+    }
+
+
 
 }

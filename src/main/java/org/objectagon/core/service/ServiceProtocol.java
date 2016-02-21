@@ -7,15 +7,16 @@ import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2015-10-08.
  */
-public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
+public interface ServiceProtocol extends Protocol<ServiceProtocol.Send, ServiceProtocol.Reply> {
 
     ProtocolName SERVICE_PROTOCOL = new ProtocolNameImpl("SERVICE_PROTOCOL");
 
-    enum MessageName implements Message.MessageName {
+    enum MessageName implements Message.MessageName, Task.TaskName {
         START_SERVICE,
         STOP_SERVICE,
         FAILED,
@@ -43,9 +44,12 @@ public interface ServiceProtocol extends Protocol<ServiceProtocol.Session> {
 
     }
 
-    interface Session extends Protocol.Session {
-        void startService();
-        void stopService();
+    interface Send extends Protocol.Send {
+        Task startService();
+        Task stopService();
+    }
+
+    interface Reply extends Protocol.Reply {
         void replyWithError(ErrorKind errorKind);
     }
 

@@ -11,15 +11,16 @@ import java.util.*;
 /**
  * Created by christian on 2015-11-01.
  */
-public class StandardData extends AbstractData<StandardIdentity,StandardVersion>  {
+public class StandardData extends AbstractData<Identity,Version>  {
 
-    public static StandardData.Build create(StandardIdentity identity, StandardVersion version) { return new Build(identity, version);}
+    public static StandardData.Build create(Identity identity, Version version) { return new Build(identity, version);}
     public static StandardData.Build upgrade(StandardData original) { return new Build(original);}
 
     private List<Message.Value> values = new LinkedList<>();
 
-    private StandardData(StandardIdentity identity, StandardVersion version) {
+    private StandardData(Identity identity, Version version, Iterable<Message.Value> values) {
         super(identity, version);
+        values.forEach(this.values::add);
     }
 
     @Override
@@ -29,8 +30,8 @@ public class StandardData extends AbstractData<StandardIdentity,StandardVersion>
 
     public static class Build {
         private Map<Message.Field,Message.Value> values = new HashMap<>();
-        private StandardIdentity identity;
-        private StandardVersion version;
+        private Identity identity;
+        private Version version;
 
         public Build(StandardData original) {
             this.identity = original.getIdentity();
@@ -38,7 +39,7 @@ public class StandardData extends AbstractData<StandardIdentity,StandardVersion>
             setValues(original);
         }
 
-        public Build(StandardIdentity identity, StandardVersion version) {
+        public Build(Identity identity, Version version) {
             this.identity = identity;
             this.version = version;
         }
@@ -49,8 +50,12 @@ public class StandardData extends AbstractData<StandardIdentity,StandardVersion>
         }
 
         public Build setValue(Message.Value value) {
-            values.put(value.getField(),value);
+            values.put(value.getField(), value);
             return this;
+        }
+
+        public StandardData create() {
+            return new StandardData(identity, version, values.values());
         }
 
     }

@@ -1,44 +1,29 @@
 package org.objectagon.core.msg.address;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.UnknownValue;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
  * Created by christian on 2015-10-06.
  */
+@EqualsAndHashCode
+@ToString()
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class StandardAddress implements Address {
-    private Server.ServerId serverId;
-    private Receiver.CtrlId ctrlId;
-    private long addressId;
+    protected Server.ServerId serverId;
+    protected long timestamp;
+    protected long addressId;
 
-    public static StandardAddress standard(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId) { return new StandardAddress(serverId, ctrlId, addressId);}
+    public static StandardAddress standard(Server.ServerId serverId, long timestamp, long addressId) { return new StandardAddress(serverId, timestamp, addressId);}
 
-    protected StandardAddress(Server.ServerId serverId, Receiver.CtrlId ctrlId, long addressId) {
-        this.serverId = serverId;
-        this.ctrlId = ctrlId;
-        this.addressId = addressId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        StandardAddress that = (StandardAddress) o;
-        return Objects.equals(addressId, that.addressId) &&
-                Objects.equals(serverId, that.serverId) &&
-                Objects.equals(ctrlId, that.ctrlId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(serverId, ctrlId, addressId);
-    }
-
-    @Override
-    public String toString() {
-        return addressId+":"+ctrlId+"@"+serverId;
-    }
 }

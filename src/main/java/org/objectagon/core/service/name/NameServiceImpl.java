@@ -6,45 +6,44 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.receiver.*;
-import org.objectagon.core.server.SingletonFactory;
-import org.objectagon.core.server.StandardFactory;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
+import org.objectagon.core.utils.Util;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.objectagon.core.msg.message.VolatileAddressValue.address;
+import static org.objectagon.core.utils.Util.emptyOrNull;
 
 /**
  * Created by christian on 2015-10-13.
  */
-public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, StandardAddress, Receiver.CreateNewAddressParams>  {
+public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, StandardAddress>  {
 
     public static NamedAddress NAME_SERVICE_ADDRESS = new NamedAddress(NameServiceProtocol.NAME_SERVICE_PROTOCOL);
 
-    public static ReceiverCtrlIdName NAME_SERVICE_CTRL_NAME = new ReceiverCtrlIdName("NameService");
-
-    public static void registerAtServer(Server.Ctrl server) {
-        server.registerFactory(NAME_SERVICE_CTRL_NAME,
-                new SingletonFactory<ReceiverCtrlIdName, Address>(server, NAME_SERVICE_CTRL_NAME, NAME_SERVICE_ADDRESS, NameServiceImpl::new)
-        );
+    public static void registerAtServer(Server server) {
+        server.registerFactory(NAME_SERVICE_ADDRESS, NameServiceImpl::new);
     }
 
-    private Map<String, Address> addressByName = new HashMap<String, Address>();
+    Map<String, Address> addressByName = new HashMap<>();
 
-    public NameServiceImpl(StandardReceiverCtrl receiverCtrl) {
+    public NameServiceImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
 
-    @Override protected Receiver.CreateNewAddressParams createNewAddressParams() {return null;}
+    @Override
+    protected StandardAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
+        return StandardAddress.standard(serverId, timestamp, id);
+    }
 
     @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
@@ -101,10 +100,11 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
             super(initializer, context);
         }
 
-        public boolean initialize() {
+        public boolean initialize() throws UserException {
             address = context.getValue(StandardField.ADDRESS).asAddress();
             name = context.getValue(StandardField.NAME).asText();
-            //System.out.println("RegisterNameAction.initialize "+address+" "+name);
+            if (emptyOrNull(name))
+                throw new UserException(ErrorClass.NAME_SERVICE, ErrorKind.NAME_MISSING_OR_EMPTY);
             return true;
         }
 

@@ -5,7 +5,12 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.message.VolatileNameValue;
+import org.objectagon.core.task.StandardTaskBuilder;
+import org.objectagon.core.task.TaskBuilder;
+import org.objectagon.core.utils.IdCounter;
 
 import java.util.*;
 
@@ -14,18 +19,24 @@ import static org.objectagon.core.msg.message.VolatileNameValue.name;
 /**
  * Created by christian on 2015-11-16.
  */
-public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver, Protocol.SessionFactory {
+public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver.ReceiverCtrl {
 
     private ServerId serverId;
+    private SystemTime systemTime;
+    private IdCounter idCounter = new IdCounter(0);
     private Map<Name, Factory> factories = new HashMap<>();
     private Map<Address, Receiver> receivers = new HashMap<>();
-    private Map<Protocol.ProtocolName, ProtocolReference> protocols = new HashMap<>();
     EnvelopeProcessor envelopeProcessor;
 
     @Override public ServerId getServerId() {return serverId;}
 
     public ServerImpl(ServerId serverId) {
+        this(serverId, System::currentTimeMillis);
+    }
+
+    public ServerImpl(ServerId serverId, SystemTime systemTime) {
         this.serverId = serverId;
+        this.systemTime = systemTime;
         this.envelopeProcessor = new EnvelopeProcessorImpl(this::processEnvelopeTarget);
     }
 
@@ -42,52 +53,40 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
     }
 
     @Override
-    public <U extends Protocol.Session> void registerProtocol(Protocol.ProtocolName protocolName, Protocol.Factory<U> factory) {
-        protocols.put(protocolName, new ProtocolReference(serverId, protocolName, factory));
+    public TaskBuilder getTaskBuilder() {
+        return new StandardTaskBuilder(this);
     }
 
     @Override
-    public <U extends Protocol.Session> U createSession(Protocol.ProtocolName protocolName, Composer composer) {
-        ProtocolReference<U> protocolReference = protocols.get(protocolName);
-        if (protocolReference==null)
-            throw new SevereError(ErrorClass.SERVER, ErrorKind.PROTOCOL_NOT_FOUND, VolatileNameValue.name(protocolName));
-        return protocolReference.create(this, composer);
+    public Receiver create(Receiver.ReceiverCtrl receiverCtrl) {
+        throw new RuntimeException("Not implemented!");
     }
 
     @Override
-    public <S extends Protocol.Session> Protocol.FuncReply session(Protocol.ProtocolName protocolName, Composer composer, Protocol.Func<S> func) {
-        ProtocolReference<S> protocolReference = protocols.get(protocolName);
-        if (protocolReference==null)
-            throw new SevereError(ErrorClass.SERVER, ErrorKind.PROTOCOL_NOT_FOUND, VolatileNameValue.name(protocolName));
-        S session = protocolReference.create(this, composer);
-        Protocol.FuncReply reply;
-        try {
-            reply = func.run(session);
-        } finally {
-            session.terminate();
-        }
-        return reply;
-    }
-
-    @Override
-    public <R extends Receiver> R createReceiver(Name name) {
+    public <R extends Receiver> R createReceiver(Name name, Receiver.Initializer initializer) {
         Factory factory = getFactoryByName(name).orElseThrow(() -> new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_NOT_FOUND, name(name)));
-        R receiver = factory.create();
-        receiver.initialize();
+        R receiver = (R) factory.create(this);
+        receiver.initialize(serverId, systemTime.currentTimeMillis(), idCounter.next(), initializer);
         if (receiver.getAddress()==null)
             throw new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_HAS_NO_ADDRESS, VolatileNameValue.name(name));
         registerReceiver(receiver.getAddress(), receiver);
         return receiver;
     }
 
-    @Override
     public void registerReceiver(Address address, Receiver receiver) {
-        receivers.put(address, receiver);
+        Receiver allreadyExists = receivers.put(address, receiver);
+        if (allreadyExists!=null)
+            throw new SevereError(ErrorClass.SERVER, ErrorKind.INCONSISTENCY, VolatileAddressValue.address(address));
     }
 
     Optional<Transporter> processEnvelopeTarget(Address target) {
         Receiver receiver = receivers.get(target);
         if (receiver==null) {
+            System.out.println("ServerImpl.processEnvelopeTarget >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+            receivers.keySet().forEach(System.out::println);
+            System.out.println("ServerImpl.processEnvelopeTarget <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            receivers.keySet().forEach(address -> System.out.println("ServerImpl.processEnvelopeTarget " + address.getClass().getSimpleName() + "=" + target.getClass().getSimpleName() + " => " + address.equals(target)));
+            System.out.println("ServerImpl.processEnvelopeTarget ****************************************************");
             return Optional.empty();
         }
         return Optional.of(receiver::receive);
@@ -119,72 +118,30 @@ public class ServerImpl implements Server, Server.Ctrl, Server.RegisterReceiver,
         public void run() {
             synchronized (this) {
                 while (true) {
-                    while (!queue.isEmpty()) {
-                        Envelope envelope = queue.poll();
-                        envelope.targets(targets);
-                    }
                     try {
-                        wait(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        while (!queue.isEmpty()) {
+                            Envelope envelope = queue.poll();
+                            envelope.targets(targets);
+                        }
+                        try {
+                            wait(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } catch (SevereError severeError) {
+                        switch (severeError.getErrorKind()) {
+                            case UNKNOWN_TARGET: {
+                                System.out.println("EnvelopeProcessorImpl.run -------------------- SevereError ---------------------");
+                                System.out.println("Cannot find "+severeError.getValue(StandardField.ADDRESS).asAddress());
+                            }
+                            default:
+                                severeError.printStackTrace();
+                        }
                     }
                 }
             }
         }
     }
 
-    private class ProtocolReference<U extends Protocol.Session>  {
-        private final ServerId serverId;
-        private Protocol.ProtocolName protocolName;
-        private Protocol.Factory protocolFactory;
-        private Protocol<U> protocol;
-        private Map<Protocol.SessionId, U> sessions = new HashMap<>();
 
-        public ProtocolReference(ServerId serverId, Protocol.ProtocolName protocolName, Protocol.Factory protocolFactory) {
-            this.serverId = serverId;
-            this.protocolName = protocolName;
-            this.protocolFactory = protocolFactory;
-        }
-
-        public Protocol<U> getProtocol() {
-            if (protocol==null)
-                protocol = protocolFactory.create(serverId);
-            return protocol;
-        }
-
-        public U create(Transporter transporter, Composer composer) {
-            U session = getProtocol().createSession(new Protocol.SessionOwner() {
-                @Override
-                public Transporter getTransporter() {
-                    return transporter;
-                }
-
-                @Override
-                public Composer getComposer() {
-                    return composer;
-                }
-
-                @Override
-                public void registerReceiver(Address address, Receiver receiver) {
-                    ServerImpl.this.registerReceiver(address, receiver);
-                }
-
-                @Override
-                public void terminated(Protocol.SessionId session) {
-                    invalidateSession(session);
-                }
-
-                @Override
-                public <S extends Protocol.Session> S createSession(Protocol.ProtocolName protocolName) {
-                    return ServerImpl.this.createSession(protocolName, composer);
-                }
-            });
-            sessions.put(session.getSessionId(), session);
-            return session;
-        }
-
-        private void invalidateSession(Protocol.SessionId sessionId) {
-            sessions.remove(sessionId);
-        }
-    }
 }

@@ -20,7 +20,7 @@ public abstract class StandardAction <I extends Reactor.ActionInitializer, C ext
     }
 
     @Override
-    public boolean initialize() { return true; }
+    public boolean initialize() throws UserException { return true; }
 
     @Override
     public final void run() {

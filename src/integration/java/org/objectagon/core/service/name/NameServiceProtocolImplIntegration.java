@@ -1,9 +1,9 @@
 package org.objectagon.core.service.name;
 
 import org.objectagon.core.IntegrationTests;
-import org.objectagon.core.Server;
 import org.objectagon.core.Suite;
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.name.StandardName;
 
 /**
@@ -18,17 +18,27 @@ public class NameServiceProtocolImplIntegration implements Suite {
         registerSuite.add(new NameServiceProtocolImplIntegration());
     }
 
-    public void setup(Server server) {
-        nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE_CTRL_NAME);
+    public void setup(Setup setup) {
+        setup.registerAtServer(server -> {
+            NameServiceProtocolImpl.registerAtServer(server);
+            nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE_ADDRESS, null);
+        });
     }
 
     public void createTests(IntegrationTests tests) {
+        IntegrationTests.IntegrationTestEntityAction<NameServiceProtocol> sessionIntegrationTestEntityAction = (testEntity, commander, composer,  protocol) -> protocol.createSend(() -> composer).registerName(nameService.getAddress(), testName);
         tests.registerTest("RegisterName",
-                        (testEntity, commander, session) -> session.registerName(nameService.getAddress(), testName)
+                NameServiceProtocol.NAME_SERVICE_PROTOCOL,
+                NameServiceImpl.NAME_SERVICE_ADDRESS,
+                sessionIntegrationTestEntityAction
         );
+
+        IntegrationTests.IntegrationTestEntityAction<NameServiceProtocol> sessionIntegrationTestEntityAction1 = (testEntity, commander, composer, protocol) -> protocol.createSend(() -> composer).lookupAddressByName(testName);
         tests.registerTest("LookupName",
-                        (testEntity, commander, session) -> session.lookupAddressByName(testName),
-                        "RegisterName"
+                NameServiceProtocol.NAME_SERVICE_PROTOCOL,
+                NameServiceImpl.NAME_SERVICE_ADDRESS,
+                sessionIntegrationTestEntityAction1,
+                "RegisterName"
         );
     }
 

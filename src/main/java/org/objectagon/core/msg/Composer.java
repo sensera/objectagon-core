@@ -14,6 +14,8 @@ public interface Composer {
 
     Composer alternateReceiver(Receiver receiver);
 
+    Address getSenderAddress();
+
     interface Builder {
         Builder set(Message.Field field, Message.Value value);
         Envelope create();

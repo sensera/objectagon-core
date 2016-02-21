@@ -4,16 +4,12 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.address.NamedAddress;
-import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
-import org.objectagon.core.msg.protocol.StandardProtocol;
-import org.objectagon.core.msg.receiver.ReceiverCtrlIdName;
 
 /**
  * Created by christian on 2015-10-13.
  */
-public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Session> {
+public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Send, Protocol.Reply> {
 
     ProtocolName EVENT_SERVICE_PROTOCOL = new ProtocolNameImpl("EVENT_SERVICE_PROTOCOL");
 
@@ -23,7 +19,7 @@ public interface EventServiceProtocol extends Protocol<EventServiceProtocol.Sess
         BROADCAST,
     }
 
-    interface Session extends Protocol.Session {
+    interface Send extends Protocol.Send {
         void startListenTo(Address address, Name name);
         void stopListenTo(Address address, Name name);
         void broadcast(Name name, Message.MessageName message, Message.Value... values);

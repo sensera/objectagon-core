@@ -30,7 +30,7 @@ public interface Reactor<T extends Reactor.Trigger> {
     }
 
     interface Action {
-        boolean initialize();
+        boolean initialize() throws UserException;
         void run();
     }
 

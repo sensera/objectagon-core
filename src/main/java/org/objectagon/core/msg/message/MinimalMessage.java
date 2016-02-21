@@ -16,7 +16,7 @@ public class MinimalMessage extends AbstractMessage {
     }
 
     public Value getValue(Field field) {
-        return new UnknownValue(field);
+        return UnknownValue.create(field);
     }
 
     @Override

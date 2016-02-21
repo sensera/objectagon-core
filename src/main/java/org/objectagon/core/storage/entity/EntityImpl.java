@@ -1,22 +1,30 @@
 package org.objectagon.core.storage.entity;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.storage.*;
-import org.objectagon.core.storage.persitence.PersistenceServiceProtocolImpl;
 import org.objectagon.core.task.*;
 
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker, P extends Receiver.CreateNewAddressParams>  extends BasicReceiverImpl<I, P, Entity.EntityCtrl<P>, W> implements Entity<I, D> {
+public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker>  extends BasicReceiverImpl<I, W> implements Entity<I, D> {
 
     private DataVersions<D,V> data;
+    private Address persistenceAddress;
 
-    public EntityImpl(EntityCtrl<P> entityCtrl, D data) {
-        super(entityCtrl);
-        this.data = new DataVersions<D,V>(data);
+    public EntityImpl(ReceiverCtrl receiverCtrl) {
+        super(receiverCtrl);
+    }
+
+    @Override
+    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<I> initializer) {
+        super.initialize(serverId, timestamp, id, initializer);
+        EntityConfig entityConfig = initializer.initialize(getAddress());
+        data = new DataVersions<>(entityConfig.getDatas());
+        persistenceAddress = entityConfig.getPersistenceAddress();
     }
 
     protected D getDataByVersion(V version) {
@@ -25,25 +33,16 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
 
     abstract protected V createVersionFromValue(Message.Value value);
 
-    private Task.TaskCtrl createTaskCtrl() {
-        return new TaskCtrlImpl(
-                envelope -> getReceiverCtrl().transport(envelope),
-                getReceiverCtrl(),
-                (address, receiver) -> getReceiverCtrl().registerReceiver(address, receiver),
-                getReceiverCtrl().getServerId(),
-                getAddress());  //TODO improve getAddress() with id counter
-    }
-
     private void commit(EntityWorker entityWorker) {
         V version = createVersionFromValue(entityWorker.getValue(EntityProtocol.FieldName.VERSION));
 
         Data dataVersion = data.getDataByVersion(version);
 
-        StandardTask.SendMessageAction<PersistenceServiceProtocol.Session> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
+        StandardTask.SendMessageAction<PersistenceServiceProtocol.Send> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(
                 TaskName.DELETE_DATA_VERSION_FROM_PERSISTANCE,
                 PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL,
-                getReceiverCtrl().getPersistenceAddress(),
+                persistenceAddress,
                 removeDataFromPersistence
         );
         chain.next().action(
@@ -58,11 +57,11 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
 
         Data dataVersion = data.getDataByVersion(version);
 
-        StandardTask.SendMessageAction<PersistenceServiceProtocol.Session> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
+        StandardTask.SendMessageAction<PersistenceServiceProtocol.Send> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(
                 TaskName.DELETE_DATA_VERSION_FROM_PERSISTANCE,
                 PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL,
-                getReceiverCtrl().getPersistenceAddress(),
+                persistenceAddress,
                 removeDataFromPersistence
         );
         chain.next().action(

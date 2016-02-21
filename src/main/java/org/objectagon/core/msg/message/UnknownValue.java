@@ -11,7 +11,9 @@ public class UnknownValue implements Message.Value {
 
     private Message.Field field;
 
-    public UnknownValue(Message.Field field) {
+    public static UnknownValue create(Message.Field field) { return new UnknownValue(field);}
+
+    private UnknownValue(Message.Field field) {
         this.field = field;
     }
 

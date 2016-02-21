@@ -10,11 +10,9 @@ import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 /**
  * Created by christian on 2015-10-17.
  */
-public interface EntityProtocol extends Protocol<EntityProtocol.Session> {
+public interface EntityProtocol extends Protocol<EntityProtocol.Send, Protocol.Reply> {
 
     ProtocolName ENTITY_PROTOCOL = new ProtocolNameImpl("ENTITY_PROTOCOL");
-
-    ClientSession createClientSession(Address target);
 
     enum MessageName implements Message.MessageName {
         GET_VALUE,
@@ -27,12 +25,6 @@ public interface EntityProtocol extends Protocol<EntityProtocol.Session> {
     }
 
     enum FieldName implements Message.Field {
-        ADDRESS("ADDRESS", Message.FieldType.Address),
-        NAME("NAME", Message.FieldType.Name),
-        MESSAGE("MESSAGE", Message.FieldType.Message),
-
-        ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
-        ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
         VERSION("VERSION", Message.FieldType.Number);
 
         private Message.FieldName name;
@@ -52,11 +44,7 @@ public interface EntityProtocol extends Protocol<EntityProtocol.Session> {
         }
     }
 
-    interface Session extends Protocol.Session {
-        void replyWithError(ErrorKind errorKind);
-    }
-
-    interface ClientSession extends Protocol.Session {
+    interface Send extends Protocol.Send {
         void start();
         void stop();
         void add();
@@ -65,6 +53,4 @@ public interface EntityProtocol extends Protocol<EntityProtocol.Session> {
         void rollback();
     }
 
-    enum ErrorKind {
-    }
 }

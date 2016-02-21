@@ -15,6 +15,6 @@ public interface Envelope {
     }
 
     interface Targets {
-        <A extends Address> Optional<Transporter> target(A address);
+         Optional<Transporter> target(Address address);
     }
 }
