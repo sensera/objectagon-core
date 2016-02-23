@@ -21,9 +21,10 @@ public interface Message {
         Field getField();
         String asText();
         Long asNumber();
-        Address asAddress();
+        <A extends Address> A asAddress();
         MessageName asMessage();
         Name asName();
+        Values asValues();
 
         void writeTo(Writer writer);
     }
@@ -44,10 +45,7 @@ public interface Message {
         Message,
         Name,
         Password,
-        ListOfTexts,
-        ListOfNumbers,
-        ListOfFloats,
-        ListOfAddresses
+        Values
     }
 
     interface Writer {
@@ -56,6 +54,7 @@ public interface Message {
         void write(Field field, Message message);
         void write(Field field, Address address);
         void write(Field field, Name name);
+        void write(Field field, Values values);
     }
 
     @FunctionalInterface

@@ -22,7 +22,7 @@ public class VolatileNumberValue implements Message.Value {
     public Long asNumber() {
         return value;
     }
-    public Address asAddress() {return null;}
+    public <A extends Address> A  asAddress() {return null;}
     public Message.MessageName asMessage() {return null;}
     public Name asName() {return null;}
 
@@ -34,5 +34,7 @@ public class VolatileNumberValue implements Message.Value {
     public void writeTo(Message.Writer writer) {
         writer.write(field, value);
     }
+    @Override
+    public Message.Values asValues() {return null;}
 
 }

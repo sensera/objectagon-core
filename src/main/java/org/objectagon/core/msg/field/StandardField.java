@@ -11,6 +11,7 @@ public enum StandardField implements Message.Field {
     ADDRESS("ADDRESS", Message.FieldType.Address),
     NAME("NAME", Message.FieldType.Name),
     MESSAGE("MESSAGE", Message.FieldType.Message),
+    VALUES("VALUES", Message.FieldType.Values),
     SESSION_ID("SESSION_ID", Message.FieldType.Number),
 
     ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),

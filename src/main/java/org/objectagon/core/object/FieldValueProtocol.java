@@ -28,8 +28,8 @@ public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Send, Fi
         VALUE("VALUE", Message.FieldType.Any),
         INSTANCE_CLASS("INSTANVE_CLASS", Message.FieldType.Address),
         RELATION_CLASS("RELATION_CLASS", Message.FieldType.Address),
-        VALUES("VALUES", Message.FieldType.ListOfAddresses),
-        RELATIONS("RELATIONS", Message.FieldType.ListOfAddresses);
+        VALUES("VALUES", Message.FieldType.Values),
+        RELATIONS("RELATIONS", Message.FieldType.Values);
 
         private Message.FieldName name;
         private Message.FieldType fieldType;

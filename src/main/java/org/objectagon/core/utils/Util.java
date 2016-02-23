@@ -93,6 +93,11 @@ public class Util {
         }
 
         @Override
+        public void write(Message.Field field, Message.Values values) {
+            append(field.getName().toString(), "["+toString(values.values())+"]");
+        }
+
+        @Override
         public String toString() {
             return sb.toString();
         }

@@ -15,7 +15,7 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
 
     ProtocolName PERSISTENCE_SERVICE_PROTOCOL = new ProtocolNameImpl("PERSISTENCE_SERVICE_PROTOCOL");
 
-    enum MessageName implements Message.MessageName {
+    enum MessageName implements Message.MessageName, Task.TaskName {
         CREATE,
         UPDATE,
         REMOVE,

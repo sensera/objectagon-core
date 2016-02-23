@@ -24,7 +24,7 @@ public class VolatileNameValue implements Message.Value {
     public Long asNumber() {
         return 0l;
     }
-    public Address asAddress() {return null;}
+    public <A extends Address> A  asAddress() {return null;}
     public Message.MessageName asMessage() {return null;}
     public Name asName() {return value;}
 
@@ -36,5 +36,7 @@ public class VolatileNameValue implements Message.Value {
         writer.write(field, value);
     }
 
+    @Override
+    public Message.Values asValues() {return null;}
 
 }

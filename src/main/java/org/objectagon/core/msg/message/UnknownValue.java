@@ -30,13 +30,16 @@ public class UnknownValue implements Message.Value {
     }
 
     @Override
-    public Address asAddress() {return null;}
+    public <A extends Address> A  asAddress() {return null;}
 
     @Override
     public Message.MessageName asMessage() {return null;}
 
     @Override
     public Name asName() {return null;}
+
+    @Override
+    public Message.Values asValues() {return null;}
 
     public void writeTo(Message.Writer writer) {}
 }
