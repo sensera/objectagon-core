@@ -1,5 +1,6 @@
 package org.objectagon.core.msg.message;
 
+import lombok.EqualsAndHashCode;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -11,6 +12,7 @@ import org.objectagon.core.msg.field.StandardField;
 /**
  * Created by christian on 2016-02-23.
  */
+@EqualsAndHashCode
 public class MessageValue<V> implements Message.Value {
 
     public static Message.Value text(Message.Field field, String value) { return new MessageValue<>(field, value);}

@@ -10,4 +10,9 @@ public interface Version {
     Message.Field VERSION = NamedField.number("Version");
 
     Message.Value asValue();
+
+    @FunctionalInterface
+    interface Create<V extends Version> {
+        V create(Message.Value value);
+    }
 }

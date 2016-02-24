@@ -16,6 +16,8 @@ import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.PersistenceServiceProtocol;
 import org.objectagon.core.storage.Version;
+import org.objectagon.core.storage.standard.StandardIdentity;
+import org.objectagon.core.storage.standard.StandardVersion;
 
 import java.util.List;
 
@@ -47,8 +49,8 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
         name = mock(Name.class);
         address = mock(Address.class);
         senderAddress = mock(Address.class);
-        identity = mock(Identity.class);
-        version = mock(Version.class);
+        identity = StandardIdentity.standardIdentity(mock(Server.ServerId.class), 10l, 10l);
+        version = StandardVersion.create(10l);
         data = mock(Data.class);
         personName = mock(Message.Field.class);
         protocol = new PersistenceServiceProtocolImpl(receiverCtrl);
@@ -58,14 +60,12 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
         when(createSendParam.getComposer()).thenReturn(composer);
         when(composer.getSenderAddress()).thenReturn(senderAddress);
         when(composer.alternateReceiver(any(Receiver.class))).thenReturn(composer);
-        when(version.asValue()).thenReturn(VolatileNumberValue.number(Version.VERSION, 10l));
 
         dataValues = () -> asList(VolatileTextValue.text(personName, "Pelle"));
 
-        when(data.values()).thenReturn(asList(
-                VolatileAddressValue.address(identity),
-                version.asValue(),
-                MessageValue.values(dataValues)));
+        when(data.values()).thenReturn(asList(MessageValue.values(dataValues)));
+        when(data.getIdentity()).thenReturn(identity);
+        when(data.getVersion()).thenReturn(version);
 
         send = protocol.createSend(createSendParam);
     }
@@ -86,9 +86,9 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
                 send.create(data),
                 message -> {
                     assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.CREATE);
-                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), name);
+                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), identity);
                     assertEquals(message.getValue(Version.VERSION).asNumber(), new Long(10l));
-                    assertEquals(message.getValue(StandardField.VALUES).asValues(), dataValues);
+                    assertEquals(message.getValue(StandardField.VALUES).asValues().values(), MessageValue.values(data.values()).asValues().values());
                 });
     }
 
@@ -120,9 +120,9 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
                 send.update(data),
                 (message) -> {
                     assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.UPDATE);
-                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), name);
+                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), identity);
                     assertEquals(message.getValue(Version.VERSION).asNumber(), new Long(10l));
-                    assertEquals(message.getValue(StandardField.VALUES).asValues(), dataValues);
+                    assertEquals(message.getValue(StandardField.VALUES).asValues().values(), MessageValue.values(data.values()).asValues().values());
                 });
     }
 

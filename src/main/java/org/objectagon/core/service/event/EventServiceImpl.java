@@ -68,10 +68,11 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
 
     void stopListenTo(String name, Address address) {
         AddressList addressList = eventListeners.get(name);
-        if (addressList!=null)
+        if (addressList!=null) {
             addressList.remove(address);
-        if (addressList.isEmpty())
-            eventListeners.remove(name);
+            if (addressList.isEmpty())
+                eventListeners.remove(name);
+        }
     }
 
     void broadcast(String name, Message.MessageName message, EventServiceWorkerImpl serviceWorker) {

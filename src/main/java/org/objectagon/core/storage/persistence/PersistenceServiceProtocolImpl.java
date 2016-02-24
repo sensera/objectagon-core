@@ -81,8 +81,8 @@ public class PersistenceServiceProtocolImpl extends AbstractProtocol<Persistence
         @Override
         public Task all(Identity identity) {
             return task(
-                    MessageName.GET,
-                    send -> send.send(MessageName.GET, address(identity)));
+                    MessageName.ALL,
+                    send -> send.send(MessageName.ALL, address(identity)));
         }
     }
 }

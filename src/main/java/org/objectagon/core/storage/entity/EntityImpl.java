@@ -12,7 +12,7 @@ import org.objectagon.core.task.*;
  */
 public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker>  extends BasicReceiverImpl<I, W> implements Entity<I, D> {
 
-    private DataVersions<D,V> data;
+    private DataVersionsContainer<D,V> data;
     private Address persistenceAddress;
 
     public EntityImpl(ReceiverCtrl receiverCtrl) {
@@ -23,7 +23,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
     public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<I> initializer) {
         super.initialize(serverId, timestamp, id, initializer);
         EntityConfig entityConfig = initializer.initialize(getAddress());
-        data = new DataVersions<>(entityConfig.getDatas());
+        data = new DataVersionsContainer<>(entityConfig.getDatas());
         persistenceAddress = entityConfig.getPersistenceAddress();
     }
 

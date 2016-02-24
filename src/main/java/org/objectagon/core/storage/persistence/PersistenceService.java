@@ -111,7 +111,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         @Override
         protected Optional<Message.Value> internalRun() throws UserException {
             initializer.store(identity, version, values);
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -134,7 +134,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         @Override
         protected Optional<Message.Value> internalRun() throws UserException {
             initializer.store(identity, version, values);
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -176,7 +176,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         @Override
         protected Optional<Message.Value> internalRun() throws UserException {
             initializer.remove(identity, version);
-            return null;
+            return Optional.empty();
         }
     }
 

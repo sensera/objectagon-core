@@ -32,7 +32,6 @@ public abstract class EntityService<I extends Identity, D extends Data, W extend
     public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<I> initializer) {
         super.initialize(serverId, timestamp, id, initializer);
         Object object = initializer.initialize(getAddress());
-        System.out.println("EntityService.initialize "+object.getClass().getName());
         EntityServiceConfig config = (EntityServiceConfig) object;
         entityName = config.getEntityName();
         getReceiverCtrl().registerFactory(entityName, createEntityFactory());
@@ -90,7 +89,6 @@ public abstract class EntityService<I extends Identity, D extends Data, W extend
 
         @Override
         protected Optional<Message.Value> internalRun() throws UserException {
-
 
             Initializer<I> entityInitializer = new Initializer<I>() {
                 @Override
