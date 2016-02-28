@@ -54,7 +54,7 @@ public class EntityServiceProtocolImplIntegration implements Suite {
         );
 
 /*
-        IntegrationTests.IntegrationTestEntityAction<EntityServiceProtocol.Session> testGet = (testEntity, commander, session) -> session.get();
+        IntegrationTests.IntegrationTestEntityAction<EntityServiceProtocol.Session> testGet = (testEntity, commander, session) -> session.getData();
         tests.registerTest("Get",
                 EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL,
                 testEntityService.getAddress(),

@@ -2,15 +2,10 @@ package org.objectagon.core.storage.persistence;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
-import org.objectagon.core.service.name.NameServiceProtocol;
-import org.objectagon.core.storage.Data;
-import org.objectagon.core.storage.Identity;
-import org.objectagon.core.storage.PersistenceServiceProtocol;
-import org.objectagon.core.storage.Version;
+import org.objectagon.core.storage.*;
+import org.objectagon.core.storage.data.DataMessageValue;
 import org.objectagon.core.task.Task;
 
 import static org.objectagon.core.msg.message.VolatileAddressValue.address;
@@ -51,31 +46,31 @@ public class PersistenceServiceProtocolImpl extends AbstractProtocol<Persistence
         }
 
         @Override
-        public Task create(Data data) {
+        public Task pushData(Data data) {
             return task(
-                    MessageName.CREATE,
-                    send -> send.send(MessageName.CREATE, address(data.getIdentity()), data.getVersion().asValue(), MessageValue.values(data.values())));
+                    MessageName.PUSH_DATA,
+                    send -> send.send(MessageName.PUSH_DATA, address(data.getIdentity()), data.getVersion().asValue(), DataMessageValue.data(data)));
         }
 
         @Override
-        public Task update(Data data) {
+        public Task pushDataVersion(DataVersion dataVersion) {
             return task(
-                    MessageName.UPDATE,
-                    send -> send.send(MessageName.UPDATE, address(data.getIdentity()), data.getVersion().asValue(), MessageValue.values(data.values())));
+                    MessageName.PUSH_DATA_VERSION,
+                    send -> send.send(MessageName.PUSH_DATA_VERSION, address(dataVersion.getIdentity()), dataVersion.getVersion().asValue(), DataMessageValue.data(dataVersion)));
         }
 
         @Override
-        public Task remove(Identity identity, Version version) {
+        public Task getData(Identity identity, Version version) {
             return task(
-                    MessageName.REMOVE,
-                    send -> send.send(MessageName.REMOVE, address(identity), version.asValue()));
+                    MessageName.GET_DATA,
+                    send -> send.send(MessageName.GET_DATA, address(identity), version.asValue()));
         }
 
         @Override
-        public Task get(Identity identity, Version version) {
+        public Task getDataVersion(Identity identity, Version version) {
             return task(
-                    MessageName.GET,
-                    send -> send.send(MessageName.GET, address(identity), version.asValue()));
+                    MessageName.GET_DATA_VERSION,
+                    send -> send.send(MessageName.GET_DATA, address(identity), version.asValue()));
         }
 
         @Override

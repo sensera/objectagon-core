@@ -34,6 +34,11 @@ public class MessageValue<V> implements Message.Value {
     }
 
     @Override
+    public <X> X getValue() {
+        return (X) value;
+    }
+
+    @Override
     public Message.Field getField() {
         return field;
     }

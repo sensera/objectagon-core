@@ -42,4 +42,9 @@ public class UnknownValue implements Message.Value {
     public Message.Values asValues() {return null;}
 
     public void writeTo(Message.Writer writer) {}
+
+    @Override
+    public <V> V getValue() {
+        return null;
+    }
 }

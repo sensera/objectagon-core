@@ -1,5 +1,10 @@
 package org.objectagon.core.msg;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.message.MessageValue;
+
 import java.util.Collections;
 
 /**
@@ -19,6 +24,7 @@ public interface Message {
 
     interface Value {
         Field getField();
+        <V> V getValue();
         String asText();
         Long asNumber();
         <A extends Address> A asAddress();
@@ -33,6 +39,12 @@ public interface Message {
         FieldName getName();
         FieldType getFieldType();
         boolean sameField(Value value);
+
+        default void verifyField(Message.Value value) {
+            if (!this.equals(value.getField()))
+                throw new SevereError(ErrorClass.FIELD, ErrorKind.WRONG_FIELD, value, MessageValue.name(getName()));
+        }
+
     }
 
     enum FieldType {

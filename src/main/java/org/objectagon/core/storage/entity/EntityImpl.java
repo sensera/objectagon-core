@@ -38,7 +38,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
 
         Data dataVersion = data.getDataByVersion(version);
 
-        StandardTask.SendMessageAction<PersistenceServiceProtocol.Send> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
+        /*StandardTask.SendMessageAction<PersistenceServiceProtocol.Send> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(
                 TaskName.DELETE_DATA_VERSION_FROM_PERSISTANCE,
                 PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL,
@@ -49,13 +49,13 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
                 TaskName.COMMIT_DATA_VERSION,
                 () -> data.commit(version)
         );
-        chain.start();
+        chain.start();*/
     }
 
     private void rollback(EntityWorker entityWorker) {
         V version = createVersionFromValue(entityWorker.getValue(EntityProtocol.FieldName.VERSION));
 
-        Data dataVersion = data.getDataByVersion(version);
+        /*Data dataVersion = data.getDataByVersion(version);
 
         StandardTask.SendMessageAction<PersistenceServiceProtocol.Send> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(
@@ -68,7 +68,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
                 TaskName.ROLLBACK_DATA_VERSION,
                 () -> data.rollback(version)
         );
-        chain.start();
+        chain.start();*/
     }
 
     @Override

@@ -8,33 +8,20 @@ import org.objectagon.core.service.ServiceProtocol;
 /**
  * Created by christian on 2015-10-08.
  */
-public class VolatileMessageValue implements Message.Value {
+public class VolatileMessageValue extends MessageValue<Message.MessageName>  {
 
     public static VolatileMessageValue messageName(Message.Field field, Message.MessageName value) { return new VolatileMessageValue(field, value);}
 
-    private Message.Field field;
-    private Message.MessageName value;
-
-    public Message.Field getField() {return field;}
-    public String asText() {
-        return null;
+    public VolatileMessageValue(Message.Field field, Message.MessageName value) {
+        super(field, value);
     }
-    public Long asNumber() {
-        return 0l;
-    }
-    public <A extends Address> A  asAddress() {return null;}
-    public Message.MessageName asMessage() {return value;}
-    public Name asName() {return null;}
 
-    private VolatileMessageValue(Message.Field field, Message.MessageName value) {
-        this.field = field;
-        this.value = value;
+    @Override
+    public Message.MessageName asMessage() {
+        return value;
     }
 
     public void writeTo(Message.Writer writer) {
         writer.write(field, value);
     }
-
-    @Override
-    public Message.Values asValues() {return null;}
 }

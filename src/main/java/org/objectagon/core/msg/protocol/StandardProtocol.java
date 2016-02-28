@@ -1,5 +1,8 @@
 package org.objectagon.core.msg.protocol;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
@@ -45,7 +48,6 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSend
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;
         }
-
     }
 
     interface StandardReply extends Protocol.Reply {

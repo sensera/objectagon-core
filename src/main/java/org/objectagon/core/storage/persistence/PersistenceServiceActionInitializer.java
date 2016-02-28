@@ -2,23 +2,26 @@ package org.objectagon.core.storage.persistence;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.receiver.Reactor;
+import org.objectagon.core.storage.Data;
+import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.Version;
+
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Created by christian on 2016-02-23.
  */
 public interface PersistenceServiceActionInitializer extends Reactor.ActionInitializer {
-    void store(Identity identity, Version version, Message.Values values);
+    void pushData(Identity identity, Version version, Data data);
 
-    Message.Values get(Identity identity, Version version);
+    void pushDataVersion(Identity identity, Version version, DataVersion dataVersion);
 
-    void remove(Identity identity, Version version);
+    Optional<Data> getData(Identity identity, Version version);
 
-    void all(Identity identity, AllVersions allVersions);
+    Optional<DataVersion> getDataVersion(Identity identity, Version version);
 
-    @FunctionalInterface
-    interface AllVersions {
-        void valuesVersions(Version version, Message.Values values);
-    }
+    void all(Identity identity, Consumer<Data> allVersions);
+
 }

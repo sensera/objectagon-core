@@ -1,5 +1,6 @@
 package org.objectagon.core.storage.data;
 
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.Version;
@@ -23,4 +24,6 @@ public abstract class AbstractData<I extends Identity, V extends Version> implem
         this.identity = identity;
         this.version = version;
     }
+
+
 }

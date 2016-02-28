@@ -3,9 +3,11 @@ package org.objectagon.core.object.instance;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Converter;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.address.AddressList;
 import org.objectagon.core.object.*;
+import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.data.AbstractData;
 
 import static org.objectagon.core.msg.message.VolatileAddressValue.address;
@@ -25,13 +27,18 @@ public class InstanceData extends AbstractData<InstanceIdentity, ObjectVersion> 
         this.instanceClassAddress = instanceClassAddress;
     }
 
-    @Override
+    //@Override
     public Iterable<Message.Value> values() {
         return concat(
                 address(InstanceProtocol.FieldName.INSTANCE_CLASS, instanceClassAddress),
                 address(InstanceProtocol.FieldName.VALUES, values),
                 address(InstanceProtocol.FieldName.RELATIONS, relations)
         );
+    }
+
+    @Override
+    public void convert(Converter.FromData<Data<InstanceIdentity, ObjectVersion>> fromData) {
+
     }
 
     public FieldValueAddress getValueByField(FieldAddress fieldAddress) throws UserException {

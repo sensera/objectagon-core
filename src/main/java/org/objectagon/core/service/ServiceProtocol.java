@@ -1,10 +1,14 @@
 package org.objectagon.core.service;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.task.Task;
@@ -41,7 +45,6 @@ public interface ServiceProtocol extends Protocol<ServiceProtocol.Send, ServiceP
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;
         }
-
     }
 
     interface Send extends Protocol.Send {

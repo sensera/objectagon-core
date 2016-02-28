@@ -1,5 +1,8 @@
 package org.objectagon.core.msg.message;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
 
 /**
@@ -15,6 +18,7 @@ public class NamedField implements Message.Field {
     public static NamedField message(String name) { return new NamedField(name, Message.FieldType.Message);}
     public static NamedField name(String name) { return new NamedField(name, Message.FieldType.Name);}
     public static NamedField password(String name) { return new NamedField(name, Message.FieldType.Password);}
+    public static NamedField values(String name) { return new NamedField(name, Message.FieldType.Values);}
 
     private FieldNameImpl name;
     private Message.FieldType fieldType;
@@ -31,4 +35,5 @@ public class NamedField implements Message.Field {
         this.name = new FieldNameImpl(name);
         this.fieldType = fieldType;
     }
+
 }

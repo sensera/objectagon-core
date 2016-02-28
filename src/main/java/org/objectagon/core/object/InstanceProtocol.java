@@ -1,8 +1,12 @@
 package org.objectagon.core.object;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.FieldNameImpl;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 
 /**
@@ -45,7 +49,6 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Instan
             this.name = new FieldNameImpl(name);
             this.fieldType = fieldType;
         }
-
     }
 
     interface Send extends Protocol.Send {

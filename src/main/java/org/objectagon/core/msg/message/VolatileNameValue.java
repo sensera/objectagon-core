@@ -8,35 +8,19 @@ import org.objectagon.core.msg.field.StandardField;
 /**
  * Created by christian on 2015-10-08.
  */
-public class VolatileNameValue implements Message.Value {
+public class VolatileNameValue extends MessageValue<Name> {
 
     public static VolatileNameValue name(Message.Field field, Name value) { return new VolatileNameValue(field, value);}
 
     public static VolatileNameValue name(Name value) { return new VolatileNameValue(StandardField.NAME, value);}
 
-    private Message.Field field;
-    private Name value;
-
-    public Message.Field getField() {return field;}
-    public String asText() {
-        return value != null ? value.toString() : "";
-    }
-    public Long asNumber() {
-        return 0l;
-    }
-    public <A extends Address> A  asAddress() {return null;}
-    public Message.MessageName asMessage() {return null;}
-    public Name asName() {return value;}
-
     protected VolatileNameValue(Message.Field field, Name value) {
-        this.field = field;
-        this.value = value;
+        super(field, value);
     }
+
+    public Name asName() {return value;}
     public void writeTo(Message.Writer writer) {
         writer.write(field, value);
     }
-
-    @Override
-    public Message.Values asValues() {return null;}
 
 }

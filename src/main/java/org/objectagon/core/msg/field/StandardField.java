@@ -1,7 +1,11 @@
 package org.objectagon.core.msg.field;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.FieldNameImpl;
+import org.objectagon.core.msg.message.MessageValue;
 
 /**
  * Created by christian on 2015-10-17.

@@ -16,18 +16,18 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
     ProtocolName PERSISTENCE_SERVICE_PROTOCOL = new ProtocolNameImpl("PERSISTENCE_SERVICE_PROTOCOL");
 
     enum MessageName implements Message.MessageName, Task.TaskName {
-        CREATE,
-        UPDATE,
-        REMOVE,
-        GET,
+        PUSH_DATA,
+        PUSH_DATA_VERSION,
+        GET_DATA,
+        GET_DATA_VERSION,
         ALL,
     }
 
     interface Send extends Protocol.Send {
-        Task create(Data data);
-        Task update(Data data);
-        Task remove(Identity identity, Version version);
-        Task get(Identity identity, Version version);
+        Task pushData(Data data);
+        Task pushDataVersion(DataVersion dataVersion);
+        Task getData(Identity identity, Version version);
+        Task getDataVersion(Identity identity, Version version);
         Task all(Identity identity);
     }
 }

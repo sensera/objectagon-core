@@ -1,5 +1,6 @@
 package org.objectagon.core.storage.standard;
 
+import org.objectagon.core.msg.Converter;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Identity;
@@ -24,8 +25,8 @@ public class StandardData extends AbstractData<Identity,Version>  {
     }
 
     @Override
-    public Iterable<Message.Value> values() {
-        return values;
+    public void convert(Converter.FromData<Data<Identity, Version>> fromData) {
+
     }
 
     public static class Build {
@@ -36,7 +37,9 @@ public class StandardData extends AbstractData<Identity,Version>  {
         public Build(StandardData original) {
             this.identity = original.getIdentity();
             this.version = original.getVersion();
-            setValues(original);
+            //setValues(original);
+            if ((1==1))
+                throw new RuntimeException("Not correct implemented!");
         }
 
         public Build(Identity identity, Version version) {
