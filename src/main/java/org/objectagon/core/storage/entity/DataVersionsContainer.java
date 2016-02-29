@@ -4,6 +4,7 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.storage.Data;
+import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Version;
 
 import java.util.Iterator;
@@ -15,7 +16,7 @@ import java.util.Optional;
  * Created by christian on 2015-11-01.
  */
 public class DataVersionsContainer<D extends Data, V extends Version>  {
-    D data;
+    DataVersion<>
     DataChain chain;
 
     public DataVersionsContainer(D data) {

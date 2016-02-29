@@ -5,15 +5,26 @@ import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.storage.*;
+import org.objectagon.core.storage.data.DataKey;
 import org.objectagon.core.task.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by christian on 2015-10-17.
  */
 public abstract class EntityImpl<I extends Identity, D extends Data, V extends Version, W extends EntityWorker>  extends BasicReceiverImpl<I, W> implements Entity<I, D> {
 
-    private DataVersionsContainer<D,V> data;
+    //private DataVersionsContainer<D,V> data;
+    private DataVersion<I,V> dataVersion;
+    private Map<V,D> dataCache = new HashMap<>();
     private Address persistenceAddress;
+
+    public DataVersion<I, V> getDataVersion() {
+        return dataVersion;
+    }
 
     public EntityImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -23,12 +34,12 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
     public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<I> initializer) {
         super.initialize(serverId, timestamp, id, initializer);
         EntityConfig entityConfig = initializer.initialize(getAddress());
-        data = new DataVersionsContainer<>(entityConfig.getDatas());
+        dataVersion = entityConfig.getDataVersion();
         persistenceAddress = entityConfig.getPersistenceAddress();
     }
 
-    protected D getDataByVersion(V version) {
-        return data.getDataByVersion(version);
+    protected Optional<D> getDataByVersion(V version) {
+        return Optional.ofNullable(dataCache.get(version));
     }
 
     abstract protected V createVersionFromValue(Message.Value value);
@@ -36,7 +47,8 @@ public abstract class EntityImpl<I extends Identity, D extends Data, V extends V
     private void commit(EntityWorker entityWorker) {
         V version = createVersionFromValue(entityWorker.getValue(EntityProtocol.FieldName.VERSION));
 
-        Data dataVersion = data.getDataByVersion(version);
+        Optional<D> dataVersion = getDataByVersion(version);
+
 
         /*StandardTask.SendMessageAction<PersistenceServiceProtocol.Send> removeDataFromPersistence = session -> session.remove(dataVersion.getIdentity(), version);
         TaskBuilder.ChainedBuilder chain = entityWorker.getTaskBuilder().chain(

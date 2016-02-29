@@ -4,23 +4,29 @@ import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.VolatileAddressValue;
+import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
+import org.objectagon.core.msg.receiver.StandardAction;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.task.Task;
 
 import java.util.*;
 
 /**
  * Created by christian on 2015-10-17.
  */
-public abstract class EntityService<I extends Identity, D extends Data, W extends EntityService.EntityServiceWorker> extends AbstractService<W,I> {
+public abstract class EntityService<I extends Identity, D extends Data, W extends EntityService.EntityServiceWorker> extends AbstractService<W,I> implements EntityServiceActionInitializer {
 
     private EntityName entityName;
+    private Address persistencyService;
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
 
@@ -34,6 +40,7 @@ public abstract class EntityService<I extends Identity, D extends Data, W extend
         Object object = initializer.initialize(getAddress());
         EntityServiceConfig config = (EntityServiceConfig) object;
         entityName = config.getEntityName();
+        persistencyService = config.getPersistencyService();
         getReceiverCtrl().registerFactory(entityName, createEntityFactory());
     }
 
@@ -44,14 +51,19 @@ public abstract class EntityService<I extends Identity, D extends Data, W extend
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.CREATE),
-                (initializer, context) -> new CreateEntityAction<W,I,D>((Service.ServiceActionCommands<W>)initializer, (W) context));
+                (initializer, context) -> new CreateEntityAction<W,I,D>((EntityService.this), (W) context));
     }
 
-    protected abstract D createInitialDataFromValues(I identity, Version version, Iterable<Message.Value> values);
+    protected abstract DataVersion createInitialDataFromValues(I identity, Version version, Iterable<Message.Value> values);
 
     @Override
     public void addCompletedListener(W serviceWorker) {
 
+    }
+
+    @Override
+    public Address getPersistencyService() {
+        return persistencyService;
     }
 
     public class EntityServiceWorker extends ServiceWorkerImpl {
@@ -60,48 +72,45 @@ public abstract class EntityService<I extends Identity, D extends Data, W extend
         }
         public EntityName getEntityName() {return entityName;}
 
-        public Iterable<D> getInitializeEntityWithValues(Version version) {
-            return Arrays.asList(createInitialDataFromValues(getAddress(), version, getValues()));
+        public DataVersion getInitializeEntityWithValues(Version version) {
+            return createInitialDataFromValues(getAddress(), version, getValues());
         }
 
         public Version getVersionValue() {
             return StandardVersion.create(getValue(Version.VERSION));
         }
+
+        public Task persistDataVersion(DataVersion dataVersion) {
+            PersistenceServiceProtocol.Send send = createTargetSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, persistencyService);
+            return send.pushDataVersion(dataVersion);
+        }
     }
 
-
-
-    private static class CreateEntityAction<W extends EntityService.EntityServiceWorker, I extends Identity, D extends Data> extends AbstractServiceAction<W> {
+    private static class CreateEntityAction<W extends EntityService.EntityServiceWorker, I extends Identity, D extends Data> extends AsyncAction<EntityServiceActionInitializer, W> {
 
         Version version;
-        Address persistencyService;
+        DataVersion dataVersion;
 
-        public CreateEntityAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
-            super(serviceActionCommands, serviceWorker);
+        public CreateEntityAction(EntityServiceActionInitializer initializer, W context) {
+            super(initializer, context);
         }
 
         @Override
         public boolean initialize() throws UserException {
             version = context.getVersionValue();
-            persistencyService = context.getValue(EntityServiceProtocol.FieldName.PERSISTENCY_SERVICE).asAddress();
+            dataVersion = context.getInitializeEntityWithValues(version);
             return super.initialize();
         }
 
         @Override
-        protected Optional<Message.Value> internalRun() throws UserException {
-
+        protected Task internalRun(W context) throws UserException {
             Initializer<I> entityInitializer = new Initializer<I>() {
                 @Override
                 public <C extends SetInitialValues> C initialize(I address) {
                     return (C) new Entity.EntityConfig() {
-                        @Override
-                        public <D extends Data> Iterable<D> getDatas() {
-                            return context.getInitializeEntityWithValues(version);
-                        }
-
-                        @Override
-                        public Address getPersistenceAddress() {
-                            return persistencyService;
+                        @Override public DataVersion getDataVersion() {return dataVersion;}
+                        @Override public Address getPersistenceAddress() {
+                            return initializer.getPersistencyService();
                         }
                     };
                 }
@@ -111,11 +120,14 @@ public abstract class EntityService<I extends Identity, D extends Data, W extend
             if (entity==null)
                 throw new NullPointerException("entity is null!");
 
-            return Optional.of(VolatileAddressValue.address(entity.getAddress()));
+            setSuccessAction((messageName, values) -> context.replyWithParam(MessageValue.address(entity.getAddress())));
+
+            return context.persistDataVersion(dataVersion);
         }
     }
 
     protected interface EntityServiceConfig extends Receiver.SetInitialValues {
         EntityName getEntityName();
+        Address getPersistencyService();
     }
 }

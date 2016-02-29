@@ -29,7 +29,7 @@ public interface Message {
         Long asNumber();
         <A extends Address> A asAddress();
         MessageName asMessage();
-        Name asName();
+        <N extends Name> N asName();
         Values asValues();
 
         void writeTo(Writer writer);
@@ -38,13 +38,15 @@ public interface Message {
     interface Field {
         FieldName getName();
         FieldType getFieldType();
-        boolean sameField(Value value);
 
         default void verifyField(Message.Value value) {
             if (!this.equals(value.getField()))
                 throw new SevereError(ErrorClass.FIELD, ErrorKind.WRONG_FIELD, value, MessageValue.name(getName()));
         }
 
+        default boolean sameField(Message.Value value) {
+            return equals(value.getField());
+        }
     }
 
     enum FieldType {

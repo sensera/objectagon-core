@@ -14,4 +14,10 @@ public interface Data<I extends Identity, V extends Version>  {
     V getVersion();
 
     void convert(Converter.FromData<Data<I,V>> fromData);
+
+    <C extends Change<I, V>> C change();
+
+    interface Change<I extends Identity, V extends Version> {
+        <D extends Data<I,V>> D create(V version);
+    }
 }

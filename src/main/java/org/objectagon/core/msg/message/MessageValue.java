@@ -64,8 +64,8 @@ public class MessageValue<V> implements Message.Value {
     }
 
     @Override
-    public Name asName() {
-        return (Name) value;
+    public <N extends Name> N asName() {
+        return (N) value;
     }
 
     @Override

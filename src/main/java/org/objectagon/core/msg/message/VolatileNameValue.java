@@ -18,7 +18,7 @@ public class VolatileNameValue extends MessageValue<Name> {
         super(field, value);
     }
 
-    public Name asName() {return value;}
+    public <N extends Name> N asName() {return (N) value;}
     public void writeTo(Message.Writer writer) {
         writer.write(field, value);
     }

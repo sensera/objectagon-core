@@ -38,4 +38,8 @@ public interface DataVersion<I extends Identity, V extends Version> extends Data
     interface NodeBuilder<V extends Version> {
         NodeBuilder add(V version, Transaction transaction, NodeType nodeType);
     }
+
+    interface ChangeDataVersion<I extends Identity, V extends Version> extends Change<I,V> {
+
+    }
 }

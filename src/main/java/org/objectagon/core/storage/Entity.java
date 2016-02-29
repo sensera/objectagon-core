@@ -15,7 +15,7 @@ public interface Entity<I extends Identity, D extends Data> extends Receiver<I> 
     }
 
     interface EntityConfig extends SetInitialValues {
-        <D extends Data> Iterable<D> getDatas();
+        DataVersion getDataVersion();
         Address getPersistenceAddress();
     }
 }

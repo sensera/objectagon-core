@@ -3,6 +3,7 @@ package org.objectagon.core.storage.entity;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.object.ObjectVersion;
@@ -31,6 +32,18 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
 
     public ObjectVersion getVersion() {
         return objectVersion(getValue(EntityProtocol.FieldName.VERSION));
+    }
+
+    public EntityServiceProtocol.Send createEntityServiceProtocolSend(Address target) {
+        return getWorkerContext()
+                .<EntityServiceProtocol>createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL, null)
+                .createSend(() -> getWorkerContext().createTargetComposer(target));
+    }
+
+    public PersistenceServiceProtocol.Send createPersistenceServiceProtocolSend(Address target) {
+        return getWorkerContext()
+                .<PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, null)
+                .createSend(() -> getWorkerContext().createTargetComposer(target));
     }
 
 }
