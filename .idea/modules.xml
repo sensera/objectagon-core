@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/bdd/bdd.iml" filepath="$PROJECT_DIR$/bdd/bdd.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
       <module fileurl="file://$PROJECT_DIR$/objectagon-core.iml" filepath="$PROJECT_DIR$/objectagon-core.iml" />
     </modules>
   </component>
