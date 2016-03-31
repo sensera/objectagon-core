@@ -2,9 +2,11 @@ package feature.util;
 
 import org.junit.Assert;
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.composer.StandardComposer;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.StandardProtocolImpl;
@@ -18,16 +20,25 @@ import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.service.name.NameServiceProtocolImpl;
 import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.StorageServices;
+import org.objectagon.core.storage.Transaction;
+import org.objectagon.core.storage.TransactionServiceProtocol;
+import org.objectagon.core.task.ProtocolTask;
+import org.objectagon.core.task.SequenceTask;
+import org.objectagon.core.task.Task;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by christian on 2016-03-17.
  */
 
 public class TestCore {
+
+
+    enum InitTasks implements Task.TaskName {
+        InitTestCoreTasks,
+        CreateTransaction;
+    }
 
     private static Map<String,TestCore> cores = new HashMap<>();
 
@@ -36,6 +47,12 @@ public class TestCore {
         if (testCore==null) {
             System.out.println("TestCore.get %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% created new "+name+" %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
             testCore = new TestCore(name);
+            Task initialized = testCore.initialize();
+            try {
+                TaskWait.create(initialized).startAndWait(1000L);
+            } catch (UserException e) {
+                throw new RuntimeException("Timout!", e);
+            }
             cores.put(name, testCore);
         }
         return testCore;
@@ -47,6 +64,7 @@ public class TestCore {
     StorageServices storageServices;
     ObjectServices objectServices;
     Optional<TestUser> latestTestUser = Optional.empty();
+    Optional<Transaction> transaction = Optional.empty();
 
     private TestCore(String serverId) {
         this.serverId = LocalServerId.local(serverId);
@@ -56,7 +74,7 @@ public class TestCore {
         NameServiceProtocolImpl.registerAtServer(server);
         EventServiceImpl.registerAtServer(server);
         EventServiceProtocolImpl.registerAtServer(server);
-        server.createReceiver(NameServiceImpl.NAME_SERVICE_ADDRESS, null);
+        server.createReceiver(NameServiceImpl.NAME_SERVICE, null);
         server.createReceiver(EventServiceImpl.EVENT_SERVICE_ADDRESS, null);
 
         StandardProtocolImpl.registerAtServer(server);
@@ -70,6 +88,13 @@ public class TestCore {
                 .createReceivers();
 
         server.registerFactory(TEST_USER, TestUser::new);
+    }
+
+    private Task initialize() {
+        SequenceTask sequenceTask = new SequenceTask((Receiver.ReceiverCtrl) server, InitTasks.InitTestCoreTasks);
+        sequenceTask.add(storageServices.initialize());
+        sequenceTask.add(objectServices.initialize());
+        return sequenceTask;
     }
 
     private static Name TEST_USER = StandardName.name("TEST_USER");
@@ -87,6 +112,17 @@ public class TestCore {
             }
         }));
         return latestTestUser.get();
+    }
+
+    public void createTransaction() throws UserException {
+        Message message = TaskWait.create(
+                new ProtocolTask<>(
+                        (Receiver.ReceiverCtrl) server,
+                        InitTasks.CreateTransaction,
+                        TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL,
+                        storageServices.getTransactionServiceName(), TransactionServiceProtocol.Send::create)
+        ).startAndWait(1000L);
+        transaction = Optional.of(message.getValue(StandardField.ADDRESS).asAddress());
     }
 
     public void stop() {
@@ -126,24 +162,30 @@ public class TestCore {
 
         }
 
+        private Message.Values headers() {
+            List<Message.Value> values = new ArrayList<>();
+            transaction.map(transaction -> MessageValue.address(Transaction.TRANSACTION, transaction)).ifPresent(values::add);
+            return MessageValue.values(values).asValues();
+        }
+
         public EntityServiceProtocol.Send createFieldEntityServiceProtocol() {
             EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL, null);
-            return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getFieldServiceAddress(), MessageValue.values().asValues()));
+            return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getFieldServiceAddress(), headers()));
         }
 
         public EntityServiceProtocol.Send createInstanceClassEntityServiceProtocol() {
             EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL, null);
-            return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getInstanceClassServiceAddress(), MessageValue.values().asValues()));
+            return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getInstanceClassServiceAddress(), headers()));
         }
 
         public InstanceClassProtocol.Send createInstanceClassProtocolSend(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
             InstanceClassProtocol instanceClassProtocol = server.createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL, null);
-            return instanceClassProtocol.createSend(() -> StandardComposer.create(this, instanceClassIdentity, MessageValue.values().asValues()));
+            return instanceClassProtocol.createSend(() -> StandardComposer.create(this, instanceClassIdentity, headers()));
         }
 
         public FieldProtocol.Send createFieldProtocolSend(Field.FieldIdentity fieldIdentity) {
             FieldProtocol fieldProtocol = server.createReceiver(FieldProtocol.FIELD_PROTOCOL, null);
-            return fieldProtocol.createSend(() -> StandardComposer.create(this, fieldIdentity, MessageValue.values().asValues()));
+            return fieldProtocol.createSend(() -> StandardComposer.create(this, fieldIdentity, headers()));
         }
 
         public void verifyResponseMessage(ResponseMessageName responseMessageName) {

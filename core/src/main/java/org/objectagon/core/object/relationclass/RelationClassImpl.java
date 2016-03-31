@@ -59,7 +59,7 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
 
     private void createRelation(EntityWorker entityWorker, RelationClassData relationClassData) {
         entityWorker.start(
-                entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE_ADDRESS, RelationService.NAME).create(
+                entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, RelationService.NAME).create(
                         entityWorker.getValue(Instance.INSTANCE_IDENTITY),
                         MessageValue.address(getAddress()))
         );

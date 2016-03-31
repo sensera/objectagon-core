@@ -1,7 +1,7 @@
 package org.objectagon.core.service;
 
-import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.Server;
+import org.objectagon.core.msg.address.StandardAddress;
 
 import java.util.Objects;
 
@@ -11,6 +11,11 @@ import java.util.Objects;
 
 public class StandardServiceNameAddress extends StandardAddress implements Service.ServiceName {
     Service.ServiceName name;
+
+    @Override
+    public String getName() {
+        return name.getName();
+    }
 
     public static StandardServiceNameAddress name(Service.ServiceName name, Server.ServerId serverId, long timestamp, long addressId) {
         return new StandardServiceNameAddress(name, serverId, timestamp, addressId);
@@ -25,7 +30,13 @@ public class StandardServiceNameAddress extends StandardAddress implements Servi
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof StandardServiceNameAddress)) return false;
+        if (!(o instanceof StandardServiceNameAddress)) {
+            if (o instanceof Service.ServiceName) {
+                Service.ServiceName that = (Service.ServiceName) o;
+                return Objects.equals(that, name);
+            }
+            return false;
+        }
         if (!super.equals(o)) return false;
         StandardServiceNameAddress that = (StandardServiceNameAddress) o;
         return Objects.equals(name, that.name);

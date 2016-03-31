@@ -14,4 +14,5 @@ import org.objectagon.core.msg.Address;
 @AllArgsConstructor
 public class NamedAddress implements Address, Name {
     Name name;
+
 }

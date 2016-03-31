@@ -1,10 +1,15 @@
 package org.objectagon.core.task;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.NamedField;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +32,11 @@ public class SequenceTask extends AbstractTask {
     }
 
     private Task activeTask() {
-        return sequence.get(atSequence);
+        try {
+            return sequence.get(atSequence);
+        } catch (IndexOutOfBoundsException e) {
+            throw new SevereError(ErrorClass.TASK, ErrorKind.INCONSISTENCY, MessageValue.name(getName()), MessageValue.number(NamedField.number("AT_SEQUENCE"), (long) atSequence));
+        }
     }
 
     public void add(Task task) {
@@ -39,9 +48,11 @@ public class SequenceTask extends AbstractTask {
     private void startNextTask(Message.MessageName messageName, Iterable<Message.Value> values) {
         if (sequence.size()==atSequence) {
             success(Task.MessageName.COMPLETED, Message.NO_VALUES);
+            return;
         }
+        Task task = activeTask();
         atSequence++;
-        activeTask().start();
+        task.start();
     }
     @Override
     protected void handle(TaskWorker worker) {

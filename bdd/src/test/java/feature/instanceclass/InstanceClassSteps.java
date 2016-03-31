@@ -19,10 +19,18 @@ public class InstanceClassSteps {
     TestCore testCore;
 
     @Before public void setUp(Scenario scenario) {testCore = TestCore.get(scenario.getName());}
-    @After public void tareDown(Scenario scenario) {testCore.stop();}
+    @After public void tareDown(Scenario scenario) { if (testCore!=null) testCore.stop();}
 
     @Given("^there is a type called (.*)$")
     public void prepareTypeWithName(String typeName) throws UserException {
+        TestCore.TestUser developer = testCore.createTestUser("Developer");
+        Message message = TaskWait.create(developer.createInstanceClassEntityServiceProtocol().create()).startAndWait(1000l);
+        developer.storeResponseMessage(message);
+        developer.setValue(InstanceClass.INSTANCE_CLASS_IDENTITY, message.getValue(StandardField.ADDRESS));
+    }
+
+    @Given("^I create a type called: (.*)$")
+    public void creteTypeWithName(String typeName) throws UserException {
         TestCore.TestUser developer = testCore.createTestUser("Developer");
         Message message = TaskWait.create(developer.createInstanceClassEntityServiceProtocol().create()).startAndWait(1000l);
         developer.storeResponseMessage(message);

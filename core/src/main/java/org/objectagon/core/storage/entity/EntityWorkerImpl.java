@@ -39,13 +39,13 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
                 .<Protocol.ProtocolAddress,EntityServiceProtocol>createReceiver(
                         EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL,
                         null)
-                .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE_ADDRESS, target));
+                .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
     }
 
     public PersistenceServiceProtocol.Send createPersistenceServiceProtocolSend(Name target) {
         return getWorkerContext()
                 .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, null)
-                .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE_ADDRESS, target));
+                .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
     }
 
 

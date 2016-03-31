@@ -47,17 +47,17 @@ public class EntityServiceProtocolImpl extends AbstractProtocol<EntityServicePro
 
         @Override
         public Task create(Message.Value... initialValues) {
-            return task(MessageName.CREATE, send -> send.send(MessageName.CREATE, MessageValue.values(initialValues)));
+            return task(MessageName.CREATE_ENTITY, send -> send.send(MessageName.CREATE_ENTITY, MessageValue.values(initialValues)));
         }
 
         @Override
         public Task get(Identity identity) {
-            return task(MessageName.GET, send -> send.send(MessageName.GET, MessageValue.address(identity)));
+            return task(MessageName.GET_ENTITY, send -> send.send(MessageName.GET_ENTITY, MessageValue.address(identity)));
         }
 
         @Override
         public Task delete(Identity identity) {
-            return task(MessageName.DELETE, send -> send.send(MessageName.DELETE, MessageValue.address(identity)));
+            return task(MessageName.DELETE_ENTITY, send -> send.send(MessageName.DELETE_ENTITY, MessageValue.address(identity)));
         }
     }
 }

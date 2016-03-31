@@ -69,7 +69,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                     InstanceProtocol.MessageName.DROP_FIELD_VALUES,
                     FieldValueProtocol.FIELD_VALUE_PROTOCOL,
                     instanceWorker.getValue(Field.FIELD_IDENTITY).<Field.FieldIdentity>asAddress(),
-                    EntityProtocol.Send::remove)
+                    EntityProtocol.Send::delete)
                 .create()
         );
     }

@@ -12,22 +12,12 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
 
     ProtocolName TRANSACTION_SERVICE_PROTOCOL = new ProtocolNameImpl("TRANSACTION_SERVICE_PROTOCOL");
 
-    enum MessageName implements Message.MessageName {
-        START,
-        END,
-        ADD,
-        REMOVE,
-        COMMIT,
-        ROLLBACK
+    enum MessageName implements Message.MessageName, Task.TaskName {
+        CREATE,
     }
 
     interface Send extends Protocol.Send {
-        Task start();
-        Task stop();
-        Task add();
-        Task remove();
-        Task commit();
-        Task rollback();
+        Task create();
     }
 
 

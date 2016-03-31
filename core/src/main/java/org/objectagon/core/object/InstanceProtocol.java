@@ -3,6 +3,7 @@ package org.objectagon.core.object;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.storage.Entity;
 import org.objectagon.core.task.Task;
 
 /**
@@ -47,7 +48,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Instan
 
     interface Reply extends Protocol.Reply {}
 
-    interface ConfigInstance extends SetInitialValues {
+    interface ConfigInstance extends Entity.EntityConfig {
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
     }
 }

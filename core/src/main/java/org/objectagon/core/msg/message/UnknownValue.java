@@ -35,7 +35,10 @@ public class UnknownValue implements Message.Value {
     public <A extends Address> A  asAddress() {return null;}
 
     @Override
-    public Message.MessageName asMessage() {return null;}
+    public Message.MessageName asMessageName() {return null;}
+
+    @Override
+    public MessageValueMessage asMessage() {return null;}
 
     @Override
     public <N extends Name> N asName() {return null;}

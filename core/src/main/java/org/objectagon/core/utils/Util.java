@@ -3,6 +3,7 @@ package org.objectagon.core.utils;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.UnknownValue;
 
 import java.util.Arrays;
@@ -78,8 +79,13 @@ public class Util {
         }
 
         @Override
-        public void write(Message.Field field, Message message) {
-            append(field.getName().toString(), ""+message.getName());
+        public void write(Message.Field field, MessageValueMessage message) {
+            append(field.getName().toString(), ""+message.getMessageName()+"["+toString(message.getValues())+"]");
+        }
+
+        @Override
+        public void write(Message.Field field, Message.MessageName messageName) {
+            append(field.getName().toString(), ""+messageName);
         }
 
         @Override

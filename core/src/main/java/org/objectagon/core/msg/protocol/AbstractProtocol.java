@@ -182,22 +182,37 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
             public Server.ServerId getServerId() {
                 return getReceiverCtrl().getServerId();
             }
+
+            @Override
+            public void registerAliasForAddress(Name name, Address address) {
+                getReceiverCtrl().registerAliasForAddress(name, address);
+            }
+
+            @Override
+            public void removeAlias(Name name) {
+                getReceiverCtrl().removeAlias(name);
+            }
+
+            @Override
+            public Optional<Address> lookupAddressByAlias(Name name) {
+                return getReceiverCtrl().lookupAddressByAlias(name);
+            }
         }
 
         protected class SessionTask extends AbstractTask<Protocol.SenderAddress> implements Send, Transporter {
 
             private final SendMessageAction sendMessageAction;
-            private final Composer taskComposer;
+            private Composer taskComposer;
 
             public SessionTask(LocalTaskCtrl taskCtrl, TaskName name, SendMessageAction sendMessageAction) {
                 super(taskCtrl, name);
                 this.sendMessageAction = sendMessageAction;
-                this.taskComposer = composer.alternateReceiver(this);
             }
 
             @Override
             public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<Protocol.SenderAddress> initializer) {
                 super.initialize(serverId, timestamp, id, initializer);
+                this.taskComposer = composer.alternateReceiver(this);
                 sessionTasks.put(getAddress(), this);
             }
 

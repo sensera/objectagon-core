@@ -3,6 +3,7 @@ package org.objectagon.core.object;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.storage.Entity;
 import org.objectagon.core.task.Task;
 
 /**
@@ -25,7 +26,7 @@ public interface RelationClassProtocol extends Protocol<RelationClassProtocol.Se
         Task action(FieldValueProtocol.Send send);
     }
 
-    interface ConfigRelationClass extends SetInitialValues {
+    interface ConfigRelationClass extends Entity.EntityConfig {
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
         RelationClass.RelationType getRelationType();
     }

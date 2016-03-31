@@ -18,7 +18,7 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
         PUSH_DATA_AND_VERSION,
         GET_DATA,
         GET_DATA_VERSION,
-        ALL,
+        ALL, PUSH_TRANSACTION_DATA,
     }
 
     interface Send extends Protocol.Send {
@@ -29,6 +29,7 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
         Task getDataVersion(Identity identity, Version version);
         Task getLatestDataVersion(Identity identity);
         Task all(Identity identity);
+        Task pushTransactionData(TransactionManager.TransactionData transactionData);
     }
 
 }

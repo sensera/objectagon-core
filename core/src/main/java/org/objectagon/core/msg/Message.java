@@ -4,6 +4,7 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.MessageValueMessage;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -30,7 +31,8 @@ public interface Message {
         String asText();
         Long asNumber();
         <A extends Address> A asAddress();
-        MessageName asMessage();
+        MessageName asMessageName();
+        MessageValueMessage asMessage();
         <N extends Name> N asName();
         Values asValues();
 
@@ -68,7 +70,8 @@ public interface Message {
     interface Writer {
         void write(Field field, String text);
         void write(Field field, Long number);
-        void write(Field field, Message message);
+        void write(Field field, MessageValueMessage message);
+        void write(Field field, Message.MessageName messageName);
         void write(Field field, Address address);
         void write(Field field, Name name);
         void write(Field field, Values values);

@@ -22,8 +22,8 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value name(Name value) { return new MessageValue<>(StandardField.NAME, value);}
     public static Message.Value messageName(Message.Field field, Message.MessageName value) { return new MessageValue<>(field, value);}
     public static Message.Value messageName(Message.MessageName messageName) { return new MessageValue<>(StandardField.MESSAGE_NAME, messageName);}
-    public static Message.Value message(Message.MessageName messageName, Iterable<Message.Value> values) { return new MessageValue<>(StandardField.MESSAGE_NAME, new MessageValueMessage(messageName, values));}
-    public static Message.Value message(Message.MessageName messageName, Message.Value... values) { return new MessageValue<>(StandardField.MESSAGE_NAME, new MessageValueMessage(messageName, asList(values)));}
+    public static Message.Value message(Message.MessageName messageName, Iterable<Message.Value> values) { return new MessageValue<>(StandardField.MESSAGE, new MessageValueMessage(messageName, values));}
+    public static Message.Value message(Message.MessageName messageName, Message.Value... values) { return new MessageValue<>(StandardField.MESSAGE, new MessageValueMessage(messageName, asList(values)));}
     public static Message.Value message(Message.Field field, Message.MessageName messageName, Iterable<Message.Value> values) {
         return new MessageValue<>(field, new MessageValueMessage(messageName, values));
     }
@@ -74,8 +74,13 @@ public class MessageValue<V> implements Message.Value {
     }
 
     @Override
-    public Message.MessageName asMessage() {
+    public Message.MessageName asMessageName() {
         return (Message.MessageName) value;
+    }
+
+    @Override
+    public MessageValueMessage asMessage() {
+        return (MessageValueMessage) value;
     }
 
     @Override
@@ -91,16 +96,21 @@ public class MessageValue<V> implements Message.Value {
     @Override
     public void writeTo(Message.Writer writer) {
         //TODO move this func to field
-        switch (field.getFieldType()) {
-            case Address: writer.write(field, (Address) asAddress()); break;
-            case Number: writer.write(field, asNumber()); break;
-            case Text: writer.write(field, asText()); break;
-            //case Name: writer.write( (Name) field, asName()); break; //TODO solve this
-            case Message: writer.write(field, asMessage()); break;
-            case Values: writer.write(field, asValues()); break;
-            default:
-                writer.write(field, value != null ? value.toString(): "");
-                //throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.INCONSISTENCY);
+        try {
+            switch (field.getFieldType()) {
+                case Address: writer.write(field, (Address) asAddress()); break;
+                case Number: writer.write(field, asNumber()); break;
+                case Text: writer.write(field, asText()); break;
+                //case Name: writer.write( (Name) field, asName()); break; //TODO solve this
+                case MessageName: writer.write(field, asMessageName()); break;
+                case Message: writer.write(field, asMessage()); break;
+                case Values: writer.write(field, asValues()); break;
+                default:
+                    writer.write(field, value != null ? value.toString(): "");
+                    //throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.INCONSISTENCY);
+            }
+        } catch (Exception e) {
+            System.out.println("MessageValue.writeTo "+e.getMessage());
         }
     }
 

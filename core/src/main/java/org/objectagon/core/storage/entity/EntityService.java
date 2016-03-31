@@ -51,10 +51,10 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.CREATE),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.CREATE_ENTITY),
                 (initializer, context) -> new CreateEntityAction<W, I, D>((EntityService.this), (W) context));
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.GET),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.GET_ENTITY),
                 (initializer, context) -> new GetEntityAction<W, I, D>((EntityService.this), (W) context));
     }
 
@@ -64,6 +64,8 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
     public void addCompletedListener(W serviceWorker) {
 
     }
+
+    public abstract Entity.EntityConfig createEntityConfigForInitialization(DataVersion dataVersion, final Long counter, MessageValueFieldUtil messageValueFieldUtil);
 
     @Override
     public Address getPersistencyService() {
@@ -134,20 +136,16 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
         private Initializer<I> createInitializer(W context, final Consumer<DataVersion<I, StandardVersion>> dataVersionConsumer) {
             return new Initializer<I>() {
-                        @Override
-                        public <C extends SetInitialValues> C initialize(I address) {
-                            return (C) new Entity.EntityConfig() {
-                                @Override public DataVersion getDataVersion() {
-                                    DataVersion dataVersion = context.getInitializeEntityWithValues(address, initialParams);
-                                    dataVersionConsumer.accept(dataVersion);
-                                    return dataVersion;}
-                                @Override public long getDataVersionCounter() {return 0;}
-                            };
-                        }
-                    };
+                @Override
+                public <C extends SetInitialValues> C initialize(I address) {
+                    DataVersion dataVersion = context.getInitializeEntityWithValues(address, initialParams);
+                    dataVersionConsumer.accept(dataVersion);
+
+                    return (C) initializer.createEntityConfigForInitialization(dataVersion, 0L, MessageValueFieldUtil.create(context.getValues()));
+                }
+            };
         }
     }
-
 
     private static class GetEntityAction<W extends EntityService.EntityServiceWorker, I extends Identity, D extends Data> extends AsyncAction<EntityServiceActionInitializer, W> {
 
@@ -171,7 +169,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
                 MessageValueFieldUtil fieldUtil = MessageValueFieldUtil.create(values);
                 DataVersion dataVersion = fieldUtil.getValueByField(DataVersion.DATA_VERSION).getValue();
                 Long counter = fieldUtil.getValueByField(DataVersion.DATA_VERSION_COUNTER).asNumber();
-                Initializer<I> entityInitializer = createInitializer(dataVersion, counter);
+                Initializer<I> entityInitializer = createInitializer(dataVersion, counter, context);
                 Entity<I, D> entity = context.createReceiver(context.getEntityName(), entityInitializer);
                 if (entity == null)
                     throw new NullPointerException("entity is null!");
@@ -181,14 +179,11 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             return latestDataVersionFromPeristence;
         }
 
-        private Initializer<I> createInitializer(final DataVersion dataVersion, final Long counter) {
+        private Initializer<I> createInitializer(final DataVersion dataVersion, final Long counter, final W worker) {
             return new Initializer<I>() {
                         @Override
                         public <C extends SetInitialValues> C initialize(I address) {
-                            return (C) new Entity.EntityConfig() {
-                                @Override public DataVersion getDataVersion() {return dataVersion;}
-                                @Override public long getDataVersionCounter() {return counter;}
-                            };
+                            return (C) initializer.createEntityConfigForInitialization(dataVersion, counter, MessageValueFieldUtil.create(worker.getValues()));
                         }
                     };
         }

@@ -86,7 +86,8 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
     public <C extends Change<I, V>> C change() {
         DataVersionsChange<I, V> ivDataVersionsChange = new DataVersionsChange<>(getIdentity(), nextVersionCounter);
         ivDataVersionsChange.setVersionCounter(versionCounter);
-        root.addTo(ivDataVersionsChange);
+        if (root != null)
+            root.addTo(ivDataVersionsChange);
         return (C) ivDataVersionsChange;
     }
 
@@ -106,27 +107,28 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
         @Override
         public ChangeDataVersion<I, V> commit(Transaction transaction) throws UserException {
-            preformeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::commit);
+            performeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::commit);
             return this;
         }
 
         @Override
         public ChangeDataVersion<I, V> rollback(Transaction transaction) throws UserException {
-            preformeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::rollback);
+            performeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::rollback);
             return this;
         }
 
         @Override
         public ChangeDataVersion<I, V> remove(Transaction transaction) throws UserException {
-            preformeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::remove);
+            performeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::remove);
             return this;
         }
 
         @Override
-        public ChangeDataVersion<I, V> add(Transaction transaction, V version, MergeStrategy mergeStrategy) throws UserException {
+        public ChangeDataVersion<I, V> add(Transaction transaction, Consumer<V> newVersionConsumer, MergeStrategy mergeStrategy) throws UserException {
             DataVersionsChangeNode newNode = new DataVersionsChangeNode();
-            newNode.setVersion(version);
+            newNode.setVersion(newVersion(newVersionConsumer));
             newNode.setMergeStrategy(mergeStrategy);
+            newNode.setTransaction(transaction);
 
             if (root != null) {
                 Optional<DataVersionsChangeNode> lastNodeOption = findNode(DataVersionsChangeNode::hasNextVersion);
@@ -138,21 +140,25 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             return this;
         }
 
+        private V newVersion(Consumer<V> newVersionConsumer) {
+            V newVersion = nextVersionCounter.nextVersion(versionCounter++);
+            newVersionConsumer.accept(newVersion);
+            return newVersion;
+        }
+
         @Override
         public ChangeDataVersion<I, V> newVersion(Transaction transaction, Consumer<V> newVersionConsumer) throws UserException {
-            V newVersion = nextVersionCounter.nextVersion(versionCounter++);
-            preformeActionOnNodeSelectedByTransaction(transaction, node -> node.setVersion(newVersion));
-            newVersionConsumer.accept(newVersion);
+            performeActionOnNodeSelectedByTransaction(transaction, node -> node.setVersion(newVersion(newVersionConsumer)));
             return this;
         }
 
         @Override
         public ChangeDataVersion<I, V> setMergeStrategy(Transaction transaction, MergeStrategy mergeStrategy) throws UserException {
-            preformeActionOnNodeSelectedByTransaction(transaction, node -> node.setMergeStrategy(mergeStrategy));
+            performeActionOnNodeSelectedByTransaction(transaction, node -> node.setMergeStrategy(mergeStrategy));
             return this;
         }
 
-        private void preformeActionOnNodeSelectedByTransaction(Transaction transaction, Consumer<DataVersionsChangeNode> commit) {
+        private void performeActionOnNodeSelectedByTransaction(Transaction transaction, Consumer<DataVersionsChangeNode> commit) {
             Optional<DataVersionsChangeNode> nodeByTransaction = findNode(dataVersionsChangeDataVersionNode -> dataVersionsChangeDataVersionNode.hasTransaction(transaction));
             nodeByTransaction.ifPresent(commit);
             nodeByTransaction.orElseThrow(() -> new SevereError(ErrorClass.DATAVERSION, ErrorKind.TRANSACTION_NOT_FOUND, MessageValue.address(transaction)));
@@ -161,7 +167,8 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         @Override
         public <D extends org.objectagon.core.storage.Data<I, V>> D create(V version) {
             DataVersionImpl<I, V> ivDataVersion = new DataVersionImpl<>(identity, version, versionCounter, nextVersionCounter);
-            root.setRoot(ivDataVersion);
+            if (root!=null)
+                root.setRoot(ivDataVersion);
             return (D) ivDataVersion;
         }
 
@@ -181,8 +188,8 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             @Getter @Setter V version;
             @Getter @Setter MergeStrategy mergeStrategy;
             @Getter @Setter Transaction transaction;
-            @Getter @Setter Optional<DataVersionsChangeNode> prevVersion;
-            @Setter Optional<DataVersionsChangeNode> nextVersion;
+            @Getter @Setter Optional<DataVersionsChangeNode> prevVersion = Optional.empty();
+            @Setter Optional<DataVersionsChangeNode> nextVersion = Optional.empty();
 
             boolean hasTransaction(Transaction transaction) {
                 return Objects.equals(transaction, this.transaction);
@@ -248,7 +255,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             final Predicate<DataVersionsChangeNode> find;
 
             public Optional<DataVersionsChangeNode> findNodeFromRoot(DataVersionsChangeNode root) {
-                Optional<DataVersionsChangeNode> workingWithNode = Optional.of(root);
+                Optional<DataVersionsChangeNode> workingWithNode = Optional.ofNullable(root);
                 while (workingWithNode.isPresent()) {
                     if (find.test(workingWithNode.get())) {
                         return workingWithNode;

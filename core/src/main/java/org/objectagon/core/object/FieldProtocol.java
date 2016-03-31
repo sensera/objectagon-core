@@ -3,6 +3,7 @@ package org.objectagon.core.object;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.storage.Entity;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.msg.message.FieldNameImpl;
 
@@ -57,7 +58,7 @@ public interface FieldProtocol extends Protocol<FieldProtocol.Send, Protocol.Rep
         Task action(FieldValueProtocol.Send send);
     }
 
-    interface ConfigField extends SetInitialValues {
+    interface ConfigField extends Entity.EntityConfig {
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
     }
 

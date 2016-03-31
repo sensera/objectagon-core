@@ -19,6 +19,14 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
 
     private Status status = Status.Stopped;
     private Task currentTask;
+    private Optional<ServiceName> serviceName;
+
+    protected void setServiceName(ServiceName serviceName) { this.serviceName = Optional.ofNullable(serviceName); }
+
+    @Override
+    public ServiceName getServiceName() {
+        return serviceName.get();
+    }
 
     public AbstractService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -90,12 +98,14 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     public void setStartedStatusAndClearCurrentTask() {
         status = Status.Started;
         currentTask = null;
+        serviceName.ifPresent(serviceName -> getReceiverCtrl().registerAliasForAddress(serviceName, getAddress()));
     }
 
     @Override
     public void setStoppedStatusAndClearCurrentTask() {
         status = Status.Stopped;
         currentTask = null;
+        serviceName.ifPresent(serviceName -> getReceiverCtrl().removeAlias(serviceName));
     }
 
     @Override

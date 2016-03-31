@@ -1,5 +1,7 @@
 package org.objectagon.core.domain;
 
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
@@ -39,5 +41,20 @@ public class UserService extends EntityService<Service.ServiceName, StandardIden
     @Override
     protected DataVersion<StandardIdentity, StandardVersion> createInitialDataFromValues(StandardIdentity identity, Message.Values initialParams) {
         return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0l, StandardVersion::new);
+    }
+
+    @Override
+    public Entity.EntityConfig createEntityConfigForInitialization(DataVersion dataVersion, Long counter, MessageValueFieldUtil messageValueFieldUtil) {
+        return new Entity.EntityConfig() {
+            @Override
+            public DataVersion getDataVersion() {
+                return dataVersion;
+            }
+
+            @Override
+            public long getDataVersionCounter() {
+                return counter;
+            }
+        };
     }
 }

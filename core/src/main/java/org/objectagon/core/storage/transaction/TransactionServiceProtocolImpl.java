@@ -42,40 +42,9 @@ public class TransactionServiceProtocolImpl extends AbstractProtocol<Transaction
         }
 
         @Override
-        public Task start() {
-            return null;
+        public Task create() {
+            return task(MessageName.CREATE, send -> send.send(MessageName.CREATE));
         }
-
-        @Override
-        public Task stop() {
-
-            return null;
-        }
-
-        @Override
-        public Task add() {
-
-            return null;
-        }
-
-        @Override
-        public Task remove() {
-
-            return null;
-        }
-
-        @Override
-        public Task commit() {
-
-            return null;
-        }
-
-        @Override
-        public Task rollback() {
-
-            return null;
-        }
-
     }
 
 }

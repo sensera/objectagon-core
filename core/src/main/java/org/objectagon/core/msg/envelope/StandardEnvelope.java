@@ -4,11 +4,9 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Envelope;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.VolatileAddressValue;
-import org.objectagon.core.msg.Envelope;
-
-import static org.objectagon.core.msg.message.VolatileAddressValue.address;
 
 /**
  * Created by christian on 2015-10-07.
@@ -20,6 +18,10 @@ public class StandardEnvelope implements Envelope {
     private final Message.Values headers;
 
     public StandardEnvelope(Address sender, Address target, Message message, Message.Values headers) {
+        if (target == null)
+            throw new SevereError(ErrorClass.ENVELOPE, ErrorKind.TARGET_IS_NULL);
+        if (sender == null)
+            throw new SevereError(ErrorClass.ENVELOPE, ErrorKind.SENDER_IS_NULL);
         this.sender = sender;
         this.target = target;
         this.message = message;

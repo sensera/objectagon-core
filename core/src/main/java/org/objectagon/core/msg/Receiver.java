@@ -1,7 +1,8 @@
 package org.objectagon.core.msg;
 
-import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.service.Service;
 
 /**
@@ -15,7 +16,7 @@ public interface Receiver<A extends Address> {
 
     void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer);
 
-    interface ReceiverCtrl extends Transporter, Server.CreateReceiverByName, Server.Factory {
+    interface ReceiverCtrl extends Transporter, Server.CreateReceiverByName, Server.Factory, Server.AliasCtrl {
         void registerFactory(Name name, Server.Factory factory);
         Server.ServerId getServerId();
     }
@@ -81,7 +82,7 @@ public interface Receiver<A extends Address> {
 
         Composer createForwardComposer(Address target);
 
-        Composer createRelayComposer(Service.ServiceName relayService, Name target);
+        Composer createRelayComposer(Service.ServiceName relayService, Name target) throws SevereError;
 
         Transporter getTransporter();
 
@@ -102,7 +103,7 @@ public interface Receiver<A extends Address> {
         <U extends Protocol.Send> U createSend(Protocol.ProtocolName protocolName, Address target);
 
         <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName);
-
     }
+
 
 }

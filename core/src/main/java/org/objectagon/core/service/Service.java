@@ -15,7 +15,11 @@ import java.util.Optional;
  */
 public interface Service {
 
-    interface ServiceName extends Address, Name {}
+    ServiceName getServiceName();
+
+    interface ServiceName extends Address, Name {
+        String getName();
+    }
 
     enum Status {
         Stopped, Starting, Started, Stopping;

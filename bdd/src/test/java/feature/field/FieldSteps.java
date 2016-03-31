@@ -3,6 +3,7 @@ package feature.field;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
+import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
 import feature.util.TaskWait;
 import feature.util.TestCore;
@@ -19,15 +20,26 @@ public class FieldSteps {
 
     TestCore testCore;
 
-    @Before public void setUp(Scenario scenario) { testCore = TestCore.get(scenario.getName());}
-    @After public void tareDown(Scenario scenario) { /*testCore.stop();*/}
+    @Before
+    public void setUp(Scenario scenario) { testCore = TestCore.get(scenario.getName());}
+    @After
+    public void tareDown(Scenario scenario) { if (testCore!=null) testCore.stop();}
 
     @When("^I add field (.*) to (.*)$")
     public void addFiledWithNameToTypeWithName(String fieldName, String typeName) throws Exception {
         Optional<TestCore.TestUser> developer = testCore.getLatestTestUser();
         Optional<Message.Value> instanceClassIdentity = developer.get().getValue(InstanceClass.INSTANCE_CLASS_IDENTITY);
 
-        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).addField(FieldNameImpl.create(fieldName))).startAndWait(1000l);
+        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).addField(FieldNameImpl.create(fieldName))).startAndWait(1000L);
         developer.get().storeResponseMessage(message);
     }
+
+    @Given("^the type (.*) has a field named (.*)$")
+    public void the_type_has_a_field_named(String typeName, String fieldName) throws Throwable {
+        Optional<TestCore.TestUser> developer = testCore.getLatestTestUser();
+        Optional<Message.Value> instanceClassIdentity = developer.get().getValue(InstanceClass.INSTANCE_CLASS_IDENTITY);
+
+        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).addField(FieldNameImpl.create(fieldName))).startAndWait(1000L);
+    }
+
 }

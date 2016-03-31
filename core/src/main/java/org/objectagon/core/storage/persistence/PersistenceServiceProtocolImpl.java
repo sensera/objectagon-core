@@ -100,5 +100,12 @@ public class PersistenceServiceProtocolImpl extends AbstractProtocol<Persistence
                     MessageName.ALL,
                     send -> send.send(MessageName.ALL, VolatileAddressValue.address(identity)));
         }
+
+        @Override
+        public Task pushTransactionData(TransactionManager.TransactionData transactionData) {
+            return task(
+                    MessageName.PUSH_TRANSACTION_DATA,
+                    send -> send.send(MessageName.PUSH_TRANSACTION_DATA, MessageValue. address(transactionData.getIdentity()), transactionData.getVersion().asValue(), DataMessageValue.dataTransaction(transactionData)));
+        }
     }
 }

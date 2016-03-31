@@ -6,9 +6,11 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.storage.*;
+import org.objectagon.core.storage.entity.util.DataVersionTransactions;
 import org.objectagon.core.storage.persistence.PersistenceService;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.Util;
@@ -161,10 +163,70 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     @Override
     protected void handle(W worker) {
         triggerBuilder(worker)
+                .trigger(EntityProtocol.MessageName.ADD_TO_TRANSACTION, this::addToTransaction)
+                .trigger(EntityProtocol.MessageName.REMOVE_FROM_TRANSACTION, this::removeFromTransaction)
+                .trigger(EntityProtocol.MessageName.DELETE, this::delete)
                 .trigger(EntityProtocol.MessageName.COMMIT, this::commit)
                 .trigger(EntityProtocol.MessageName.ROLLBACK, this::rollback)
+                .trigger(EntityProtocol.MessageName.LOCK, this::lock)
+                .trigger(EntityProtocol.MessageName.UNLOCK, this::unlock)
                 .orElseThrowUnhandled();
     }
+
+    private void addToTransaction(W w) {
+        Transaction transaction = w.getValue(StandardField.ADDRESS).asAddress();
+
+        if (getGetVersionFromTransaction(transaction).isPresent()) {
+            w.replyWithError(ErrorKind.TRANSACTION_ALREADY_PRESENT);
+            return;
+        }
+
+        try {
+            w.start(
+                w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushDataVersion(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
+                        .newVersion(transaction, v1 -> {})
+                        .create(nextDataVersionVersion()))
+            );
+        } catch (UserException e) {
+            w.replyWithError(e);
+        }
+    }
+
+    private void removeFromTransaction(W w) {
+        Transaction transaction = w.getValue(StandardField.ADDRESS).asAddress();
+
+        if (!getGetVersionFromTransaction(transaction).isPresent()) {
+            w.replyWithError(ErrorKind.TRANSACTION_ALREADY_PRESENT);
+            return;
+        }
+
+        getCachedDataByTransaction(transaction).ifPresent(data -> dataCache.remove(data.getVersion()));
+        try {
+            w.start(
+                    w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushDataVersion(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
+                            .remove(transaction)
+                            .create(nextDataVersionVersion()))
+            );
+        } catch (UserException e) {
+            w.replyWithError(e);
+        }
+    }
+
+    private void delete(W w) {
+        //TODO implement me
+        w.replyOk();
+    }
+
+    private void lock(W w) {
+        //TODO implement me
+        w.replyOk();
+    }
+
+    private void unlock(W w) {
+        //TODO implement me
+        w.replyOk();
+    }
+
 
     public RunWorker<W> read(ReadActionConsumer<W,D> consumer) {
         return worker -> new ReadDataAction(worker, consumer).execute();
@@ -201,12 +263,15 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         public ReadDataAction(W worker, ReadActionConsumer<W,D> consumer) {
             this.worker = worker;
             this.consumer = consumer;
+            System.out.println("ReadDataAction.ReadDataAction ++++++++++++++++++++++++++++++");
         }
 
         public void execute() {
+            System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ ");
             Transaction transaction = worker.currentTransaction();
             Optional<D> cachedDataByTransaction = getCachedDataByTransaction(transaction);
             if (cachedDataByTransaction.isPresent()) {
+                System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ present");
                 try {
                     doDataRead(cachedDataByTransaction.get());
                 } catch (UserException e) {
@@ -214,6 +279,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 }
                 return;
             }
+            System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ load");
             final Optional<V> verisionOption = getGetVersionFromTransaction(transaction);
 
             verisionOption.ifPresent((version)-> worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
@@ -222,6 +288,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                     .addSuccessAction((messageName, values) -> doDataRead(Util.getValueByField(values, Data.DATA).getValue()))
                     .start()
             );
+            System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ create");
             verisionOption.orElseGet(()-> {
                 try {
                     doDataRead(createNewData());
@@ -238,8 +305,12 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     }
 
     protected DataVersion<I, V> newDataVersion(Transaction transaction, Consumer<V> receiveNewVersion) throws UserException {
-        return getDataVersion().<DataVersion.ChangeDataVersion<I, V>>change()
-                .newVersion(transaction, receiveNewVersion)
+        DataVersion.ChangeDataVersion<I, V> change = getDataVersion().change();
+        if (!DataVersionTransactions.create(getDataVersion()).transactionExists(transaction)) {
+            change.add(transaction, receiveNewVersion, Data.MergeStrategy.OverWrite);
+        } else
+            change.newVersion(transaction, receiveNewVersion);
+        return change
                 .setMergeStrategy(transaction, Data.MergeStrategy.OverWrite)
                 .create(nextDataVersionVersion());
     }

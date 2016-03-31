@@ -30,7 +30,7 @@ public interface DataVersion<I extends Identity, V extends Version> extends Data
         ChangeDataVersion<I,V> remove(Transaction transaction) throws UserException;
         ChangeDataVersion<I,V> newVersion(Transaction transaction, Consumer<V> version) throws UserException;
         ChangeDataVersion<I,V> setMergeStrategy(Transaction transaction, MergeStrategy mergeStrategy) throws UserException;
-        ChangeDataVersion<I,V> add(Transaction transaction, V version, MergeStrategy mergeStrategy) throws UserException;
+        ChangeDataVersion<I,V> add(Transaction transaction, Consumer<V> newVersionConsumer, MergeStrategy mergeStrategy) throws UserException;
     }
 
     @FunctionalInterface

@@ -16,14 +16,25 @@ import org.objectagon.core.object.relation.RelationService;
 import org.objectagon.core.object.relationclass.RelationClassProtocolImpl;
 import org.objectagon.core.object.relationclass.RelationClassService;
 import org.objectagon.core.service.Service;
+import org.objectagon.core.service.name.NameServiceImpl;
+import org.objectagon.core.service.name.NameServiceProtocol;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.entity.EntityServiceProtocolImpl;
+import org.objectagon.core.task.ProtocolTask;
+import org.objectagon.core.task.SequenceTask;
+import org.objectagon.core.task.Task;
+
+import java.util.Optional;
 
 /**
  * Created by christian on 2016-03-17.
  */
 public class ObjectServices {
+    enum InitTasks implements Task.TaskName {
+        InitObjectServiceTasks;
+    }
+
     public static ObjectServices create(Server server, Service.ServiceName persistancyAddress) { return new ObjectServices(server, persistancyAddress);}
 
     final private Server server;
@@ -119,4 +130,28 @@ public class ObjectServices {
     public Address getRelationClassServiceAddress() {
         return relationClassServiceAddress;
     }
+
+    public Task initialize() {
+        Optional<Address> nameServiceAddress = ((Server.AliasCtrl)server).lookupAddressByAlias(NameServiceImpl.NAME_SERVICE);
+        SequenceTask sequenceTask = new SequenceTask((Receiver.ReceiverCtrl) server, InitTasks.InitObjectServiceTasks);
+        registerName(nameServiceAddress, sequenceTask, this.fieldServiceAddress, FieldService.NAME);
+        registerName(nameServiceAddress, sequenceTask, this.fieldValueServiceAddress, FieldValueService.NAME);
+        registerName(nameServiceAddress, sequenceTask, this.instanceServiceAddress, InstanceService.NAME);
+        registerName(nameServiceAddress, sequenceTask, this.instanceClassServiceAddress, InstanceClassService.NAME);
+        registerName(nameServiceAddress, sequenceTask, this.relationServiceAddress, RelationService.NAME);
+        registerName(nameServiceAddress, sequenceTask, this.relationClassServiceAddress, RelationClassService.NAME);
+        return sequenceTask;
+    }
+
+    private void registerName(Optional<Address> nameServiceAddress, SequenceTask sequenceTask, Address address, Service.ServiceName name) {
+        ProtocolTask<NameServiceProtocol.Send> sendProtocolTask = new ProtocolTask<>(
+                (Receiver.ReceiverCtrl) server,
+                InitTasks.InitObjectServiceTasks,
+                NameServiceProtocol.NAME_SERVICE_PROTOCOL,
+                nameServiceAddress.get(), session -> {
+            return session.registerName(address, name);
+        });
+        sequenceTask.add(sendProtocolTask);
+    }
+
 }

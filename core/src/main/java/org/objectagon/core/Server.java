@@ -3,6 +3,8 @@ package org.objectagon.core;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.task.TaskBuilder;
 
+import java.util.Optional;
+
 /**
  * Created by christian on 2015-10-06.
  */
@@ -39,5 +41,10 @@ public interface Server extends Transporter {
         long currentTimeMillis();
     }
 
+    interface AliasCtrl {
+        void registerAliasForAddress(Name name, Address address);
+        void removeAlias(Name name);
+        Optional<Address> lookupAddressByAlias(Name name);
+    }
 
 }

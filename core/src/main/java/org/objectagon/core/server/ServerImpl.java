@@ -26,6 +26,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
     private Map<Name, Factory> factories = new HashMap<>();
     private Map<Address, Receiver> receivers = new HashMap<>();
     EnvelopeProcessor envelopeProcessor;
+    private ServerAliasCtrlImpl serverAliasCtrl = new ServerAliasCtrlImpl();
 
     @Override public ServerId getServerId() {return serverId;}
 
@@ -75,18 +76,33 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
     }
 
     public void registerReceiver(Address address, Receiver receiver) {
-        Receiver allreadyExists = receivers.put(address, receiver);
-        if (allreadyExists!=null)
+        Receiver alreadyExists = receivers.put(address, receiver);
+        if (alreadyExists!=null)
             throw new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_ALLREADY_EXISTS, VolatileAddressValue.address(address));
     }
 
     Optional<Transporter> processEnvelopeTarget(Address target) {
+        if (target==null)
+            throw new SevereError(ErrorClass.SERVER, ErrorKind.ADDRESS_IS_NULL);
         Receiver receiver = receivers.get(target);
         if (receiver==null) {
+            if (target instanceof Name)
             System.out.println("ServerImpl.processEnvelopeTarget >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
             receivers.keySet().forEach(System.out::println);
             System.out.println("ServerImpl.processEnvelopeTarget <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-            receivers.keySet().forEach(address -> System.out.println("ServerImpl.processEnvelopeTarget " + address.getClass().getSimpleName() + "=" + target.getClass().getSimpleName() + " => " + address.equals(target)));
+            receivers.keySet().forEach(address -> {
+                try {
+                    address.getClass().getSimpleName();
+                    target.getClass().getSimpleName();
+                    address.equals(target);
+                    if (address != null)
+                        System.out.println("ServerImpl.processEnvelopeTarget " + address.getClass().getSimpleName() + "=" + target.getClass().getSimpleName() + " => " + Objects.equals(address,target));
+                    else
+                        System.out.println("Address is null!");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
             System.out.println("ServerImpl.processEnvelopeTarget ****************************************************");
             return Optional.empty();
         }
@@ -143,5 +159,14 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         }
     }
 
-
+    //  Delegation of interface Server.AliasCtrl in ReceiverCtrl
+    @Override public void registerAliasForAddress(Name name, Address address) {
+        serverAliasCtrl.registerAliasForAddress(name, address);
+    }
+    @Override public void removeAlias(Name name) {
+        serverAliasCtrl.removeAlias(name);
+    }
+    @Override public Optional<Address> lookupAddressByAlias(Name name) {
+        return serverAliasCtrl.lookupAddressByAlias(name);
+    }
 }

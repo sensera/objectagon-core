@@ -40,8 +40,10 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
             internalStart();
         } catch (SevereError e) {
             failed(e.getErrorClass(), e.getErrorKind(), e.getParams());
+            e.printStackTrace();
         } catch (UserException e) {
             failed(e.getErrorClass(),e.getErrorKind());
+            e.printStackTrace();
         }
     }
 

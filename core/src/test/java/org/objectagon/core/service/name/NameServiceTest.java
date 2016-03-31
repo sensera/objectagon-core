@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
  */
 public class NameServiceTest extends AbstractProtocolTest {
 
-    private final String testName = "TestName";
+    private final Name testName = StandardName.name("TestName");
 
     NameServiceImpl nameService;
     Address sender;
@@ -39,7 +39,7 @@ public class NameServiceTest extends AbstractProtocolTest {
         super.setup();
         sender = mock(Address.class);
         target = mock(Address.class);
-        name = StandardName.name(testName);
+        name = testName;
         nameServiceProtocol = mock(NameServiceProtocol.class);
         nameService = new NameServiceImpl(receiverCtrl);
         nameService.initialize(mock(Server.ServerId.class), 100, 0, null);

@@ -130,11 +130,15 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
     private static class RelayComposer implements Composer {
         private Address sender;
-        private Service.ServiceName relay;
+        private Address relay;
         private Name target;
         private Message.Values headers;
 
-        public RelayComposer(Address sender, Service.ServiceName relay, Name target, Message.Values headers) {
+        public RelayComposer(Address sender, Address relay, Name target, Message.Values headers) {
+            if (sender == null)
+                throw new SevereError(ErrorClass.RECEIVER, ErrorKind.SENDER_IS_NULL);
+            if (target == null)
+                throw new SevereError(ErrorClass.RECEIVER, ErrorKind.TARGET_IS_NULL);
             this.sender = sender;
             this.relay = relay;
             this.target = target;
@@ -201,7 +205,12 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         @Override
         public Composer createForwardComposer(Address target) { return new ForwardComposer(sender, target, headers); }
 
-        public Composer createRelayComposer(Service.ServiceName relayService, Name target) { return new RelayComposer(sender, relayService, target, headers); }
+        public Composer createRelayComposer(Service.ServiceName relayService, Name target) throws SevereError {
+            return getReceiverCtrl()
+                    .lookupAddressByAlias(relayService)
+                    .map(relayServiceAddress -> new RelayComposer(sender, relayServiceAddress, target, headers))
+                    .orElseThrow(() -> new SevereError(ErrorClass.RECEIVER, ErrorKind.NAME_NOT_FOUND, MessageValue.name(relayService)));
+        }
 
         public Transporter getTransporter() {
             return getReceiverCtrl();

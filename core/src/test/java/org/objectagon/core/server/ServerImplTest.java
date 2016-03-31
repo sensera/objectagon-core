@@ -27,7 +27,7 @@ public class ServerImplTest {
     public void setUp() throws Exception {
         serverId = LocalServerId.local("name");
         server = new ServerImpl(serverId, () -> 100);
-        server.envelopeProcessor = envelope -> envelope.targets(server::processEnvelopeTarget); // Direct envelope processing
+        server.envelopeProcessor =   envelope -> envelope.targets(server::processEnvelopeTarget); // Bypass threaded processing with direct envelope processing
     }
 
     @Test
@@ -38,7 +38,6 @@ public class ServerImplTest {
         when(receiver.getAddress()).thenReturn(mock(Address.class));
 
         server.registerFactory(name, receiverCtrl -> receiver);
-
 
         assertEquals(receiver, server.createReceiver(name, initializer));
 
@@ -107,4 +106,5 @@ public class ServerImplTest {
             throw e;
         }
     }
+
 }

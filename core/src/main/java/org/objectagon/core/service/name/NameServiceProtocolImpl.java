@@ -87,8 +87,8 @@ public class NameServiceProtocolImpl extends AbstractProtocol<NameServiceProtoco
         }
 
         @Override
-        public void forward(Message.MessageName messageName, Iterable<Message.Value> values) {
-            send(MessageName.FORWARD, MessageValue.message(messageName, values));
+        public void forward(Name name, Message.MessageName messageName, Iterable<Message.Value> values) {
+            send(MessageName.FORWARD, MessageValue.name(name), MessageValue.message(messageName, values));
             terminate();
         }
     }

@@ -36,7 +36,7 @@ public interface NameServiceProtocol extends Protocol<NameServiceProtocol.Send, 
     }
 
     interface Locator extends Protocol.Send {
-        void forward(Message.MessageName messageName, Iterable<Message.Value> values);
+        void forward(Name name, Message.MessageName messageName, Iterable<Message.Value> values);
     }
 
 }

@@ -1,9 +1,7 @@
 package org.objectagon.core.storage;
 
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.address.NamedAddress;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.task.Task;
@@ -15,12 +13,10 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
 
     ProtocolName ENTITY_SERVICE_PROTOCOL = new ProtocolNameImpl("ENTITY_SERVICE_PROTOCOL");
 
-    Address NAMED_ENITY_SERVICE_ADDRESS = new NamedAddress(ENTITY_SERVICE_PROTOCOL);
-
     enum MessageName implements Message.MessageName, Task.TaskName {
-        CREATE,
-        GET,
-        DELETE,
+        CREATE_ENTITY,
+        GET_ENTITY,
+        DELETE_ENTITY,
     }
 
     enum FieldName implements Message.Field {

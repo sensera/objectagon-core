@@ -29,6 +29,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
 
     Map<Key,Data> datas = new HashMap<>();
     Map<Key,DataVersion> dataVersions = new HashMap<>();
+    Map<Key,TransactionManager.TransactionData> dataTransactions = new HashMap<>();
 
     @Override
     public void pushData(Identity identity, Version version, Data data) {
@@ -57,6 +58,11 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
                 .forEach(key -> allVersions.accept(datas.get(key)));
     }
 
+    @Override
+    public void putTransactionData(Identity identity, Version version, TransactionManager.TransactionData transactionData) {
+        dataTransactions.put(new Key(identity, version), transactionData);
+    }
+
     public PersistenceService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
@@ -79,6 +85,10 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         );
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.PUSH_DATA_AND_VERSION),
+                (initializer, context) -> new PushDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
+        );
+        reactorBuilder.add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.PUSH_TRANSACTION_DATA),
                 (initializer, context) -> new PushDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
         );
         reactorBuilder.add(
@@ -111,6 +121,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         Version version;
         Optional<Data> data;
         Optional<DataVersion> dataVersion;
+        Optional<TransactionManager.TransactionData> transactionData;
         public PushDataAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
@@ -121,6 +132,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
             version = StandardVersion.create(context.getValue(Version.VERSION));
             data = context.getValue(Data.DATA).getOptionalValue();
             dataVersion = context.getValue(DataVersion.DATA_VERSION).getOptionalValue();
+            transactionData = context.getValue(TransactionManager.DATA_TRANSACTION).getOptionalValue();
             return super.initialize();
         }
 
@@ -128,6 +140,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         protected Optional<Message.Value> internalRun() throws UserException {
             data.ifPresent(data -> initializer.pushData(identity, version, data));
             dataVersion.ifPresent(dataVersion -> initializer.pushDataVersion(identity, version, dataVersion));
+            transactionData.ifPresent(transactionData -> initializer.putTransactionData(identity, version, transactionData));
             return Optional.empty();
         }
     }

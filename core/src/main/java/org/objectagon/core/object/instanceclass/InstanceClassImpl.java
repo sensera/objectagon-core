@@ -1,25 +1,24 @@
 package org.objectagon.core.object.instanceclass;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
 import org.objectagon.core.object.field.FieldService;
 import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.object.instanceclass.data.InstanceClassDataImpl;
+import org.objectagon.core.object.relationclass.RelationClassService;
+import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.Transaction;
-import org.objectagon.core.storage.standard.StandardVersion;
-import org.objectagon.core.Server;
-import org.objectagon.core.msg.message.MessageValue;
-import org.objectagon.core.msg.message.MessageValueFieldUtil;
-import org.objectagon.core.object.relationclass.RelationClassService;
-import org.objectagon.core.service.name.NameServiceImpl;
-import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
+import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 
-
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,30 +74,34 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void getFields(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
-        instanceClassWorker.replyWithParam(MessageValue.values(Field.FIELDS,
+        Message.Value values = MessageValue.values(Field.FIELDS,
                 instanceClassData.getFields().map(MessageValue::address).collect(Collectors.toList())
-        ));
+        );
+        instanceClassWorker.replyWithParam(values);
     }
 
     private void getRelations(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
+        List<Message.Value> collect = instanceClassData.getRelations().map(MessageValue::address).collect(Collectors.toList());
         instanceClassWorker.replyWithParam(MessageValue.values(Relation.RELATIONS,
-                instanceClassData.getFields().map(MessageValue::address).collect(Collectors.toList())
+                collect
         ));
     }
 
     private Optional<Task> createField(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
         Message.Value fieldName = instanceClassWorker.getValue(Field.FIELD_NAME);
-        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE_ADDRESS, FieldService.NAME).create(fieldName));
+        System.out.println("InstanceClassImpl.createField ********************************************** "+fieldName);
+        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, FieldService.NAME).create(fieldName));
     }
 
     private void addField(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+        System.out.println("InstanceClassImpl.addField ****************************************************'");
         Field.FieldIdentity fieldIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(Identity.IDENTITY).asAddress();
         changeInstanceClass.addField(fieldIdentity);
     }
 
     private Optional<Task> createRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
         Message.Value relationName = instanceClassWorker.getValue(RelationClass.RELATION_NAME);
-        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE_ADDRESS, RelationClassService.NAME).create(relationName));
+        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, RelationClassService.NAME).create(relationName));
     }
 
     private void addRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
@@ -108,7 +111,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
 
     private void createInstance(InstanceClassWorker entityWorker) {
         entityWorker.start(
-                entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE_ADDRESS, InstanceService.NAME)
+                entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, InstanceService.NAME)
                         .create(MessageValue.address(InstanceClassIdentity.IDENTITY, getAddress()))
         );
     }

@@ -14,7 +14,7 @@ public class VolatileMessageValue extends MessageValue<Message.MessageName>  {
     }
 
     @Override
-    public Message.MessageName asMessage() {
+    public Message.MessageName asMessageName() {
         return value;
     }
 

@@ -1,10 +1,7 @@
 package org.objectagon.core.storage.persistence;
 
 import org.objectagon.core.msg.receiver.Reactor;
-import org.objectagon.core.storage.Data;
-import org.objectagon.core.storage.DataVersion;
-import org.objectagon.core.storage.Identity;
-import org.objectagon.core.storage.Version;
+import org.objectagon.core.storage.*;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -23,4 +20,5 @@ public interface PersistenceServiceActionInitializer extends Reactor.ActionIniti
 
     void all(Identity identity, Consumer<Data> allVersions);
 
+    void putTransactionData(Identity identity, Version version, TransactionManager.TransactionData transactionData);
 }

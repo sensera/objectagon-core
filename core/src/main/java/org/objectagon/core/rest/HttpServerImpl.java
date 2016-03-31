@@ -65,7 +65,7 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
         NameServiceProtocolImpl.registerAtServer(server);
         NameServiceProtocolImpl nameServiceProtocol = server.createReceiver(NameServiceProtocol.NAME_SERVICE_PROTOCOL, null);
         NameServiceImpl.registerAtServer(server);
-        NameServiceImpl nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE_ADDRESS, null);
+        NameServiceImpl nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE, null);
 
         HttpServerImpl httpServer = new HttpServerImpl(server, nameService.getAddress(), 9900);
         httpServer.start();

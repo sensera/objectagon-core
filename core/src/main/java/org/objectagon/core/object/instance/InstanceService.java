@@ -1,7 +1,11 @@
 package org.objectagon.core.object.instance;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.Instance;
+import org.objectagon.core.object.InstanceClass;
+import org.objectagon.core.object.InstanceProtocol;
+import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.Server;
@@ -30,6 +34,26 @@ public class InstanceService extends EntityService<Service.ServiceName, Instance
     @Override
     protected DataVersion<Instance.InstanceIdentity, StandardVersion> createInitialDataFromValues(Instance.InstanceIdentity identity, Message.Values initialParams) {
         return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0l, StandardVersion::new);
+    }
+
+    @Override
+    public Entity.EntityConfig createEntityConfigForInitialization(DataVersion dataVersion, Long counter, MessageValueFieldUtil messageValueFieldUtil) {
+        return new InstanceProtocol.ConfigInstance(){
+            @Override
+            public InstanceClass.InstanceClassIdentity getInstanceClassIdentity() {
+                return messageValueFieldUtil.getValueByField(InstanceClass.INSTANCE_CLASS_IDENTITY).asAddress();
+            }
+
+            @Override
+            public DataVersion getDataVersion() {
+                return dataVersion;
+            }
+
+            @Override
+            public long getDataVersionCounter() {
+                return counter;
+            }
+        };
     }
 
     @Override

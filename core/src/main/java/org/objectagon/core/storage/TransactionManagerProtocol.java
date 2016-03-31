@@ -1,0 +1,35 @@
+package org.objectagon.core.storage;
+
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.task.Task;
+
+/**
+ * Created by christian on 2016-03-29.
+ */
+public interface TransactionManagerProtocol extends Protocol<TransactionManagerProtocol.Send, Protocol.Reply> {
+
+    ProtocolName TRANSACTION_MANAGER_PROTOCOL = new ProtocolNameImpl("TRANSACTION_MANAGER_PROTOCOL");
+
+    enum MessageName implements Message.MessageName, Task.TaskName {
+        ADD_ENTITY_TO,
+        REMOVE_ENTITY_FROM,
+        REMOVE,
+        COMMIT,
+        ROLLBACK
+    }
+
+    interface Send extends Protocol.Send {
+        Task addEntityTo(Identity identity);
+        Task removeEntityFrom(Identity identity);
+        Task remove();
+        Task commit();
+        Task rollback();
+    }
+
+    interface TransactionManagerConfig extends SetInitialValues {
+        TransactionManager.TransactionData getTransactionData();
+    }
+
+}
