@@ -40,8 +40,8 @@ public class BasicWorkerImpl implements BasicWorker {
     }
 
     @Override
-    public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Initializer<A> initializer) {
-        return workerContext.createReceiver(name, initializer);
+    public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Configurations configurations) {
+        return workerContext.createReceiver(name, configurations);
     }
 
     public void replyOk() {

@@ -1,6 +1,5 @@
 package org.objectagon.core.object.field;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.MessageValue;
@@ -13,6 +12,9 @@ import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.utils.FindNamedConfiguration;
+
+import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
  * Created by christian on 2016-03-04.
@@ -39,9 +41,10 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
     }
 
     @Override
-    protected FieldIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<FieldIdentity> initializer) {
-        FieldProtocol.ConfigField configField = (FieldProtocol.ConfigField) initializer.<FieldProtocol.ConfigField>initialize(getAddress());
-        return new FieldIdentityImpl(configField.getInstanceClassIdentity(), serverId, timestamp, id);
+    protected FieldIdentity createAddress(Configurations... configurations) {
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        FieldProtocol.ConfigField configField = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
+        return finder.createConfiguredAddress((serverId, timestamp, id) -> new FieldIdentityImpl(configField.getInstanceClassIdentity(), serverId, timestamp, id));
     }
 
     public class FieldEntityWorker extends EntityWorkerImpl {

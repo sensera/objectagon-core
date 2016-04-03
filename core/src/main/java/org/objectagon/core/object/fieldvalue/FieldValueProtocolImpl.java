@@ -5,7 +5,6 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.FieldValueProtocol;
 import org.objectagon.core.task.Task;
@@ -20,19 +19,10 @@ public class FieldValueProtocolImpl extends AbstractProtocol<FieldValueProtocol.
     }
 
     public FieldValueProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, FIELD_VALUE_PROTOCOL);
+        createSend = FieldValueProtocolSend::new;
     }
 
-    @Override protected Protocol.ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(FIELD_VALUE_PROTOCOL, serverId);
-    }
-
-    @Override public FieldValueProtocol.Send createSend(Protocol.CreateSendParam createSend) {
-        return new FieldValueProtocolSend(createSend);
-    }
-    @Override public Protocol.Reply createReply(Protocol.CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
-    }
     @Override public Forward createForward(Protocol.CreateSendParam createSend) {
         return new FieldValueProtocolForward(createSend);
     }

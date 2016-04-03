@@ -63,9 +63,9 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
     public static void main(String[] params) throws FailedToStartException, InterruptedException {
         Server server = new ServerImpl(LocalServerId.local("Home"));
         NameServiceProtocolImpl.registerAtServer(server);
-        NameServiceProtocolImpl nameServiceProtocol = server.createReceiver(NameServiceProtocol.NAME_SERVICE_PROTOCOL, null);
+        NameServiceProtocolImpl nameServiceProtocol = server.createReceiver(NameServiceProtocol.NAME_SERVICE_PROTOCOL);
         NameServiceImpl.registerAtServer(server);
-        NameServiceImpl nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE, null);
+        NameServiceImpl nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE);
 
         HttpServerImpl httpServer = new HttpServerImpl(server, nameService.getAddress(), 9900);
         httpServer.start();

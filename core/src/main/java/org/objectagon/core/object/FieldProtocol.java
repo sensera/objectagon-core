@@ -2,10 +2,9 @@ package org.objectagon.core.object;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.protocol.ProtocolNameImpl;
-import org.objectagon.core.storage.Entity;
-import org.objectagon.core.task.Task;
 import org.objectagon.core.msg.message.FieldNameImpl;
+import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2016-03-06.
@@ -58,7 +57,7 @@ public interface FieldProtocol extends Protocol<FieldProtocol.Send, Protocol.Rep
         Task action(FieldValueProtocol.Send send);
     }
 
-    interface ConfigField extends Entity.EntityConfig {
+    interface ConfigField extends NamedConfiguration {
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
     }
 

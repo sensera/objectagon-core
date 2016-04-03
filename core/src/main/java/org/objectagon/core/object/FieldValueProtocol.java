@@ -4,7 +4,6 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
-import org.objectagon.core.storage.Entity;
 import org.objectagon.core.task.Task;
 
 /**
@@ -63,7 +62,7 @@ public interface FieldValueProtocol extends Protocol<FieldValueProtocol.Send, Pr
         Task action(FieldValueProtocol.Send send);
     }
 
-    interface ConfigFieldValue extends Entity.EntityConfig {
+    interface ConfigFieldValue extends NamedConfiguration {
         Field.FieldIdentity getFieldIdentity();
         Instance.InstanceIdentity getInstanceIdentity();
     }

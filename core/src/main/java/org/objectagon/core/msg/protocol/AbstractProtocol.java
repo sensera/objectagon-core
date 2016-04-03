@@ -14,6 +14,7 @@ import org.objectagon.core.msg.message.MinimalMessage;
 import org.objectagon.core.msg.message.OneValueMessage;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.receiver.AbstractReceiver;
+import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.IdCounter;
 
 import java.util.*;
@@ -27,9 +28,29 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
     private IdCounter idCounter = new IdCounter(0);
     private MappedTransporter<AbstractProtocolSend> sessions = new MappedTransporter<>();
     private MappedTransporter<AbstractProtocolSend.SessionTask> sessionTasks = new MappedTransporter<>();
+    private ProtocolName protocolName;
+    protected CreateSend<P> createSend;
 
-    public AbstractProtocol(ReceiverCtrl receiverCtrl) {
+    public AbstractProtocol(ReceiverCtrl receiverCtrl, Protocol.ProtocolName protocolName) {
         super(receiverCtrl);
+        this.protocolName = protocolName;
+    }
+
+    @Override
+    protected ProtocolAddress createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) -> new ProtocolAddressImpl(protocolName, serverId));
+    }
+
+    @Override
+    public P createSend(CreateSendParam createSend) {
+        if (createSend==null)
+            throw new NullPointerException("createSend not initialized!");
+        return this.createSend(createSend);
+    }
+
+    @Override
+    public R createReply(CreateReplyParam createReply) {
+        return (R) new MinimalProtocolReply(createReply);
     }
 
     @Override
@@ -66,8 +87,6 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
         public void reply(Message.MessageName message) {
             transport(composer.create(message));
         }
-
-
     }
 
     protected class MinimalProtocolReply extends AbstractProtocolReply {
@@ -151,7 +170,7 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
 
         protected Task task(Task.TaskName taskName, SendMessageAction sendMessageAction) {
             SessionTask sessionTask = new SessionTask(getTaskCtrl(), taskName, sendMessageAction);
-            sessionTask.initialize(getReceiverCtrl().getServerId(), System.currentTimeMillis(), idCounter.next(), null);
+            sessionTask.configure();
             return sessionTask;
         }
 
@@ -164,8 +183,8 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
             }
 
             @Override
-            public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Initializer<A> initializer) {
-                return getReceiverCtrl().createReceiver(name, initializer);
+            public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations... configurations) {
+                return getReceiverCtrl().createReceiver(name, configurations);
             }
 
             @Override
@@ -210,8 +229,8 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
             }
 
             @Override
-            public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<Protocol.SenderAddress> initializer) {
-                super.initialize(serverId, timestamp, id, initializer);
+            public void configure(Configurations... configurations) {
+                super.configure();
                 this.taskComposer = composer.alternateReceiver(this);
                 sessionTasks.put(getAddress(), this);
             }
@@ -238,8 +257,8 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
             }
 
             @Override
-            protected SenderAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<SenderAddress> initializer) {
-                return AbstractProtocol.this.getAddress().create(timestamp, id);
+            protected SenderAddress createAddress(Configurations... configurations) {
+                return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) -> AbstractProtocol.this.getAddress().create(timestamp, addressId));
             }
 
             @Override

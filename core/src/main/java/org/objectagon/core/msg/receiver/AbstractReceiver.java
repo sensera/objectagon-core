@@ -1,7 +1,6 @@
 package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
 
 /**
@@ -22,10 +21,10 @@ public abstract class AbstractReceiver<A extends Address> implements Receiver<A>
     }
 
     @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer) {
-        address = createAddress(serverId, timestamp, id, initializer);
+    public void configure(Configurations... configurations) {
+        address = createAddress(configurations);
     }
 
-    protected abstract A createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer);
+    protected abstract A createAddress(Configurations... configurations);
 
 }

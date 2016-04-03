@@ -1,6 +1,5 @@
 package org.objectagon.core.object.instanceclass;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
@@ -17,6 +16,7 @@ import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,8 +58,8 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     @Override
-    protected InstanceClassIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<InstanceClassIdentity> initializer) {
-        return new InstanceClassIdentityImpl(serverId, timestamp, id);
+    protected InstanceClassIdentity createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(InstanceClassIdentityImpl::new);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     private void createInstance(InstanceClassWorker entityWorker) {
         entityWorker.start(
                 entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, InstanceService.NAME)
-                        .create(MessageValue.address(InstanceClassIdentity.IDENTITY, getAddress()))
+                        .create(MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress()))
         );
     }
 }

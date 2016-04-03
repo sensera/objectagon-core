@@ -1,6 +1,5 @@
 package org.objectagon.core.object.instance;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
@@ -16,10 +15,12 @@ import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.Optional;
 
 import static org.objectagon.core.object.fieldvalue.FieldValueUtil.findField;
+import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 
 /**
@@ -47,9 +48,17 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     @Override
-    protected Instance.InstanceIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<Instance.InstanceIdentity> initializer) {
-        InstanceProtocol.ConfigInstance configInstance = (InstanceProtocol.ConfigInstance) initializer.<InstanceProtocol.ConfigInstance>initialize(getAddress());
-        return new InstanceIdentityImpl(configInstance.getInstanceClassIdentity(), serverId, timestamp, id);
+    public void configure(Configurations... configurations) {
+        super.configure();
+    }
+
+    @Override
+    protected Instance.InstanceIdentity createAddress(Configurations... configurations) {
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        InstanceProtocol.ConfigInstance configInstance = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
+        return finder.createConfiguredAddress((serverId, timestamp, addressId) ->
+                new InstanceIdentityImpl(configInstance.getInstanceClassIdentity(), serverId, timestamp, addressId)
+        );
     }
 
     @Override

@@ -12,6 +12,7 @@ import org.objectagon.core.service.*;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.data.DataMessageValue;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -68,8 +69,10 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
     }
 
     @Override
-    protected Service.ServiceName createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<Service.ServiceName> initializer) {
-        return StandardServiceNameAddress.name(NAME, serverId, timestamp, id);
+    protected Service.ServiceName createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) ->
+                StandardServiceNameAddress.name(NAME, serverId, timestamp, addressId)
+        );
     }
 
     @Override

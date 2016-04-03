@@ -1,9 +1,13 @@
 package org.objectagon.core.storage.transaction;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.StandardReceiverImpl;
@@ -15,8 +19,12 @@ import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.persistence.PersistenceService;
 import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.Optional;
 import java.util.stream.Stream;
+
+import static org.objectagon.core.storage.TransactionManagerProtocol.TRANSACTION_MANAGER_CONFIG;
 
 /**
  * Created by christian on 2016-03-29.
@@ -36,10 +44,16 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
     }
 
     @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<Transaction> initializer) {
-        super.initialize(serverId, timestamp, id, initializer);
-        TransactionManagerProtocol.TransactionManagerConfig config = initializer.initialize(getAddress());
-        transactionData = config.getTransactionData();
+    public void configure(Configurations... configurations) {
+        super.configure();
+        Optional<TransactionManagerProtocol.TransactionManagerConfig> config = FindNamedConfiguration.finder(configurations).getConfigurationByName(TRANSACTION_MANAGER_CONFIG);
+        config.ifPresent(cfg -> transactionData = cfg.getTransactionData());
+        config.orElseThrow(() -> new SevereError(ErrorClass.TRANSACTION_MANAGER, ErrorKind.MISSING_CONFIGURATION, MessageValue.name(TRANSACTION_MANAGER_CONFIG)));
+    }
+
+    @Override
+    protected Transaction createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardTransaction::new);
     }
 
     @Override
@@ -56,11 +70,6 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
     @Override
     protected TransactionManagerWorker createWorker(WorkerContext workerContext) {
         return new TransactionManagerWorker(workerContext);
-    }
-
-    @Override
-    protected Transaction createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<Transaction> initializer) {
-        return new StandardTransaction(serverId, timestamp, id);
     }
 
     class TransactionManagerWorker extends StandardWorkerImpl {

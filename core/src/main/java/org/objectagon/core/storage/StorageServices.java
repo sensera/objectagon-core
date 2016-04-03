@@ -45,8 +45,8 @@ public class StorageServices {
     }
 
     public StorageServices createReceivers() {
-        persistenceServiceName = server.<Service.ServiceName,PersistenceService>createReceiver(PersistenceService.NAME, null).getAddress();
-        transactionServiceName = server.<Service.ServiceName,TransactionService>createReceiver(TransactionService.NAME, null).getAddress();
+        persistenceServiceName = server.<Service.ServiceName,PersistenceService>createReceiver(PersistenceService.NAME).getAddress();
+        transactionServiceName = server.<Service.ServiceName,TransactionService>createReceiver(TransactionService.NAME).getAddress();
         return this;
     }
 

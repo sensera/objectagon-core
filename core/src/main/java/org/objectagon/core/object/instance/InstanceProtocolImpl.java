@@ -2,8 +2,8 @@ package org.objectagon.core.object.instance;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.Instance;
@@ -18,7 +18,7 @@ import static org.objectagon.core.msg.message.MessageValue.name;
 /**
  * Created by christian on 2015-10-20.
  */
-public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send, InstanceProtocol.Reply> implements InstanceProtocol {
+public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send, Protocol.Reply> implements InstanceProtocol {
 
     public static void registerAtServer(Server server) {
         server.registerFactory(INSTANCE_PROTOCOL, new SingletonFactory<>(InstanceProtocolImpl::new));
@@ -26,23 +26,8 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
 
 
     public InstanceProtocolImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(INSTANCE_PROTOCOL, serverId);
-    }
-
-    @Override
-    public InstanceProtocol.Send createSend(CreateSendParam createSend) {
-        return new InstanceProtocolSend(createSend);
-    }
-
-    @Override
-    public InstanceProtocol.Reply createReply(CreateReplyParam createReply) {
-        return new InstanceProtocolReply(createReply);
+        super(receiverCtrl, INSTANCE_PROTOCOL);
+        createSend = InstanceProtocolSend::new;
     }
 
     @Override
@@ -79,13 +64,6 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
         @Override
         public Task removeRelation(RelationClass.RelationName name, Instance.InstanceIdentity instance) {
             return task(MessageName.REMOVE_RELATION, send -> send.send(MessageName.REMOVE_RELATION, name(RelationClass.RELATION_NAME, name), address(instance)));
-        }
-    }
-
-    class InstanceProtocolReply extends AbstractProtocolReply implements InstanceProtocol.Reply{
-
-        public InstanceProtocolReply(CreateReplyParam replyParam) {
-            super(replyParam);
         }
     }
 

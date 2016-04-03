@@ -1,11 +1,10 @@
 package org.objectagon.core.storage.transaction;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.storage.TransactionServiceProtocol;
-import org.objectagon.core.Server;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.task.Task;
 
 /**
@@ -18,22 +17,8 @@ public class TransactionServiceProtocolImpl extends AbstractProtocol<Transaction
     }
 
     public TransactionServiceProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(TRANSACTION_SERVICE_PROTOCOL, serverId);
-    }
-
-    @Override
-    public TransactionServiceProtocol.Send createSend(CreateSendParam createSend) {
-        return new TransactionServiceProtocolSend(createSend);
-    }
-
-    @Override
-    public Reply createReply(CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
+        super(receiverCtrl, TRANSACTION_SERVICE_PROTOCOL);
+        createSend = TransactionServiceProtocolSend::new;
     }
 
     private class TransactionServiceProtocolSend extends AbstractProtocolSend implements TransactionServiceProtocol.Send {

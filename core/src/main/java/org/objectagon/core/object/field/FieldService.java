@@ -8,12 +8,12 @@ import org.objectagon.core.object.FieldProtocol;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
-import org.objectagon.core.service.StandardServiceNameAddress;
 import org.objectagon.core.storage.DataVersion;
-import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.entity.DataVersionImpl;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardVersion;
+
+import java.util.Optional;
 
 /**
  * Created by christian on 2016-03-06.
@@ -27,7 +27,7 @@ public class FieldService extends EntityService<Service.ServiceName, Field.Field
     }
 
     public FieldService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, NAME);
     }
 
     @Override protected Server.Factory createEntityFactory() {return FieldImpl::new;}
@@ -38,33 +38,13 @@ public class FieldService extends EntityService<Service.ServiceName, Field.Field
     }
 
     @Override
-    public Entity.EntityConfig createEntityConfigForInitialization(DataVersion dataVersion, Long counter, MessageValueFieldUtil messageValueFieldUtil) {
-        return new FieldProtocol.ConfigField(){
-            @Override
-            public InstanceClass.InstanceClassIdentity getInstanceClassIdentity() {
-                return messageValueFieldUtil.getValueByField(InstanceClass.INSTANCE_CLASS_IDENTITY).asAddress();
-            }
-
-            @Override
-            public DataVersion getDataVersion() {
-                return dataVersion;
-            }
-
-            @Override
-            public long getDataVersionCounter() {
-                return counter;
-            }
-        };
+    public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) {
+        return Optional.of((FieldProtocol.ConfigField) () -> messageValueFieldUtil.getValueByField(InstanceClass.INSTANCE_CLASS_IDENTITY).asAddress());
     }
 
     @Override
     protected EntityServiceWorker createWorker(WorkerContext workerContext) {
         return new EntityServiceWorker(workerContext);
-    }
-
-    @Override
-    protected Service.ServiceName createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<Service.ServiceName> initializer) {
-        return StandardServiceNameAddress.name(NAME, serverId, timestamp, id);
     }
 
 }

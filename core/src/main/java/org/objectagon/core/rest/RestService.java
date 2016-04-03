@@ -6,6 +6,7 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 /**
  * Created by christian on 2016-02-11.
@@ -28,8 +29,8 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     }
 
     @Override
-    protected StandardAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<StandardAddress> initializer) {
-        return StandardAddress.standard(serverId, timestamp, id);
+    protected StandardAddress createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
     }
 
     public class RestServiceWorker extends ServiceWorkerImpl {

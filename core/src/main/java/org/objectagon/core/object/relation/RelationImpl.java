@@ -1,6 +1,5 @@
 package org.objectagon.core.object.relation;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.object.Relation;
 import org.objectagon.core.object.RelationProtocol;
@@ -11,6 +10,9 @@ import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorker;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.utils.FindNamedConfiguration;
+
+import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
  * Created by christian on 2016-03-07.
@@ -42,14 +44,16 @@ public class RelationImpl extends EntityImpl<Relation.RelationIdentity, Relation
     }
 
     @Override
-    protected RelationIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<RelationIdentity> initializer) {
-        RelationProtocol.ConfigRelation configRelation = (RelationProtocol.ConfigRelation) initializer.<RelationProtocol.ConfigRelation>initialize(getAddress());
-        return new RelationIdentityImpl(
+    protected RelationIdentity createAddress(Configurations... configurations) {
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        RelationProtocol.ConfigRelation configRelation = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
+        return finder.createConfiguredAddress((serverId, timestamp, id) ->
+                new RelationIdentityImpl(
                 configRelation.getInstanceIdentity(),
                 configRelation.getRelationClassIdentity(),
                 serverId,
                 timestamp,
-                id
+                id)
         );
     }
 }

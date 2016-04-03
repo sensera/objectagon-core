@@ -1,6 +1,5 @@
 package org.objectagon.core.task;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Protocol;
@@ -8,6 +7,7 @@ import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 /**
  * Created by christian on 2015-11-03.
@@ -34,7 +34,7 @@ public class StandardTask<S extends Protocol.Send> extends AbstractTask {
 
     @Override
     protected void internalStart() {
-        Protocol protocol = getReceiverCtrl().createReceiver(protocolName, null);
+        Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
         send = (S) protocol.createSend(() -> composer);
         addSuccessAction((messageName, values) -> send.terminate());
         addFailedAction((errorClass, errorKind, values) -> send.terminate());
@@ -51,7 +51,8 @@ public class StandardTask<S extends Protocol.Send> extends AbstractTask {
     }
 
     @Override
-    protected Address createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer initializer) {
-        return StandardAddress.standard(serverId, timestamp, id);
+    protected Address createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
+
     }
 }

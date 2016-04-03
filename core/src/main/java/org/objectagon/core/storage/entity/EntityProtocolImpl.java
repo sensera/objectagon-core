@@ -5,7 +5,6 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.storage.EntityProtocol;
 import org.objectagon.core.storage.Transaction;
@@ -21,22 +20,8 @@ public class EntityProtocolImpl extends AbstractProtocol<EntityProtocol.Send, Pr
     }
 
     public EntityProtocolImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    public EntityProtocol.Send createSend(CreateSendParam createSend) {
-        return new EntityProtocolSend(createSend);
-    }
-
-    @Override
-    public Reply createReply(CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
-    }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(ENTITY_PROTOCOL, serverId);
+        super(receiverCtrl, ENTITY_PROTOCOL);
+        createSend = EntityProtocolSend::new;
     }
 
     private class EntityProtocolSend extends AbstractProtocolSend implements EntityProtocol.Send {

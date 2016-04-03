@@ -1,6 +1,5 @@
 package org.objectagon.core.task;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -10,6 +9,7 @@ import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.NamedField;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -60,7 +60,8 @@ public class SequenceTask extends AbstractTask {
     }
 
     @Override
-    protected Address createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer initializer) {
-        return StandardAddress.standard(serverId, timestamp, id);
+    protected Address createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
+
     }
 }

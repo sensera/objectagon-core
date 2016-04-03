@@ -1,6 +1,5 @@
 package org.objectagon.core.msg.receiver;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 
@@ -16,8 +15,8 @@ public abstract class StandardReceiverImpl<A extends Address, W extends Standard
     }
 
     @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer) {
-        super.initialize(serverId, timestamp, id, initializer);
+    public void configure(Configurations... configurations) {
+        super.configure();
         reactor = new ReactorImpl<>();
         buildReactor(reactor.getReactorBuilder());
     }

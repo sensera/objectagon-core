@@ -15,6 +15,7 @@ import org.objectagon.core.msg.receiver.ForwardAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.StandardAction;
 import org.objectagon.core.service.*;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,14 +40,16 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     }
 
     @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<ServiceName> initializer) {
-        super.initialize(serverId, timestamp, id, initializer);
+    public void configure(Configurations... configurations) {
+        super.configure();
         getReceiverCtrl().registerAliasForAddress(NAME_SERVICE, getAddress());  // TODO Fix this when implement start/stop server
     }
 
     @Override
-    protected Service.ServiceName createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<Service.ServiceName> initializer) {
-        return StandardServiceNameAddress.name(NAME_SERVICE, serverId, timestamp, id);
+    protected Service.ServiceName createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) ->
+                StandardServiceNameAddress.name(NAME_SERVICE, serverId, timestamp, addressId)
+        );
     }
 
     @Override

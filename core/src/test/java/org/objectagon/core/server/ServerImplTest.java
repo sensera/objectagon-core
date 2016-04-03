@@ -34,23 +34,23 @@ public class ServerImplTest {
     public void testRegisterReceiver() {
         Name name = mock(Name.class);
         Receiver receiver = mock(Receiver.class);
-        Receiver.Initializer initializer = mock(Receiver.Initializer.class);
+        Receiver.Configurations configurations = mock(Receiver.Configurations.class);
         when(receiver.getAddress()).thenReturn(mock(Address.class));
 
         server.registerFactory(name, receiverCtrl -> receiver);
 
-        assertEquals(receiver, server.createReceiver(name, initializer));
+        assertEquals(receiver, server.createReceiver(name, configurations));
 
-        verify(receiver, times(1)).initialize(serverId, 100, 0, initializer);
+        verify(receiver, times(1)).configure();
     }
 
     @Test
     public void testCreateReceiverFail() {
-        Receiver.Initializer initializer = mock(Receiver.Initializer.class);;
+        Receiver.Configurations configurations = mock(Receiver.Configurations.class);;
 
         Name nameNotRegisteredAtServer = mock(Name.class);
         try {
-            server.createReceiver(nameNotRegisteredAtServer, initializer);
+            server.createReceiver(nameNotRegisteredAtServer, configurations);
             fail("Receiver non existent!");
         } catch (SevereError e) {
             if (ErrorClass.SERVER.equals(e.getErrorClass()) &&
@@ -77,7 +77,7 @@ public class ServerImplTest {
     public void testTransportEnvelopeToFactoryCreatedReceiver() {
         Name name = mock(Name.class);
         Address target = mock(Address.class);
-        Receiver.Initializer initializer = mock(Receiver.Initializer.class);;
+        Receiver.Configurations configurations = mock(Receiver.Configurations.class);;
 
         server.registerFactory(name, receiverCtrl -> {
             Receiver receiver = mock(Receiver.class);
@@ -85,7 +85,7 @@ public class ServerImplTest {
             return receiver;
         });
 
-        server.createReceiver(name, initializer);
+        server.createReceiver(name, configurations);
 
         server.transport(new StandardEnvelope(mock(Address.class), target, mock(Message.class), mock(Message.Values.class)));
     }

@@ -11,12 +11,13 @@ import org.objectagon.core.service.*;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.persistence.PersistenceService;
-import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.storage.transaction.data.TransactionDataImpl;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Created by christian on 2015-10-17.
@@ -36,8 +37,8 @@ public class TransactionService extends AbstractService<TransactionService.Trans
     }
 
     @Override
-    protected ServiceName createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<ServiceName> initializer) {
-        return StandardServiceNameAddress.name(NAME, serverId, timestamp, id);
+    protected ServiceName createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) -> StandardServiceNameAddress.name(NAME, serverId, timestamp, addressId));
     }
 
     @Override
@@ -76,11 +77,10 @@ public class TransactionService extends AbstractService<TransactionService.Trans
 
         @Override
         protected Task internalRun(TransactionServiceWorkerImpl actionContext) throws UserException {
-            transactionManager = context.createReceiver(TransactionManagerImpl.NAME, new Initializer<Transaction>() {
+            transactionManager = context.createReceiver(TransactionManagerImpl.NAME, new Configurations() {
                 @Override
-                public <C extends SetInitialValues> C initialize(final Transaction address) {
-                    transactionData = TransactionDataImpl.create(address, StandardVersion.create(0L));
-                    return (C) (TransactionManagerProtocol.TransactionManagerConfig) () -> transactionData;
+                public <C extends NamedConfiguration> Optional<C> getConfigurationByName(Name name) {
+                    return Optional.of( (C)  (TransactionManagerProtocol.TransactionManagerConfig) () -> transactionData);
                 }
             });
             transactionManagers.put(transactionManager.getAddress(), transactionManager);

@@ -49,12 +49,12 @@ public class PersistenceServiceTest extends AbstractProtocolTest {
         personName = mock(Message.Field.class);
         persistenceServiceProtocol = mock(PersistenceServiceProtocol.class);
         persistenceService = new PersistenceService(receiverCtrl);
-        persistenceService.initialize(mock(Server.ServerId.class), 100, 0, null);
+        persistenceService.configure();
         standardProtocol = mock(StandardProtocol.class);
         standardReply = mock(StandardProtocol.StandardReply.class);
 
-        when(receiverCtrl.createReceiver(eq(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL), isNull(Receiver.Initializer.class))).thenReturn(persistenceServiceProtocol);
-        when(receiverCtrl.createReceiver(eq(StandardProtocol.STANDARD_PROTOCOL), isNull(Receiver.Initializer.class))).thenReturn(standardProtocol);
+        when(receiverCtrl.createReceiver(eq(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL), isNull(Receiver.Configurations.class))).thenReturn(persistenceServiceProtocol);
+        when(receiverCtrl.createReceiver(eq(StandardProtocol.STANDARD_PROTOCOL), isNull(Receiver.Configurations.class))).thenReturn(standardProtocol);
         when(standardProtocol.createReply(any(Protocol.CreateReplyParam.class))).thenReturn(standardReply);
 
        // when(data.values()).thenReturn(asList(VolatileTextValue.text(personName, "Pelle")));

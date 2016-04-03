@@ -3,13 +3,12 @@ package org.objectagon.core.object;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
-import org.objectagon.core.storage.Entity;
 import org.objectagon.core.task.Task;
 
 /**
  * Created by christian on 2015-11-01.
  */
-public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, InstanceProtocol.Reply> {
+public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protocol.Reply> {
 
     ProtocolName INSTANCE_PROTOCOL = new ProtocolNameImpl("INSTANCE_PROTOCOL");
 
@@ -46,9 +45,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Instan
         Task removeRelationClass(RelationClass.RelationClassIdentity relationClassIdentity);
     }
 
-    interface Reply extends Protocol.Reply {}
-
-    interface ConfigInstance extends Entity.EntityConfig {
+    interface ConfigInstance extends NamedConfiguration {
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
     }
 }

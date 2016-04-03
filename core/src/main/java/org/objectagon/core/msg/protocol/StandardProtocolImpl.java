@@ -18,22 +18,13 @@ public class StandardProtocolImpl extends AbstractProtocol<StandardProtocol.Stan
     }
 
     public StandardProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    public StandardSend createSend(Protocol.CreateSendParam createSend) {
-        return new StandardSendImpl(createSend);
+        super(receiverCtrl, STANDARD_PROTOCOL);
+        createSend = StandardSendImpl::new;
     }
 
     @Override
     public StandardReply createReply(Protocol.CreateReplyParam createReply) {
         return new StandardReplyImpl(createReply);
-    }
-
-    @Override
-    protected Protocol.ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(StandardProtocol.STANDARD_PROTOCOL, serverId);
     }
 
     protected class StandardSendImpl extends AbstractProtocolSend implements StandardSend {

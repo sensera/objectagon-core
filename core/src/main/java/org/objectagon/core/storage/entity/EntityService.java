@@ -2,44 +2,61 @@ package org.objectagon.core.storage.entity;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
+import org.objectagon.core.service.StandardServiceNameAddress;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.FindNamedConfiguration;
+import org.objectagon.core.utils.LazyInitializedConfigurations;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
+
+import static org.objectagon.core.storage.Entity.ENTITY_CONFIG_NAME;
 
 /**
  * Created by christian on 2015-10-17.
  */
 public abstract class EntityService<A extends Service.ServiceName, I extends Identity, D extends Data, W extends EntityService.EntityServiceWorker> extends AbstractService<W,A> implements EntityServiceActionInitializer {
 
+    public static Name ENTITY_SERVICE_CONFIG_NAME = StandardName.name("ENTITY_SERVICE_CONFIG_NAME");
+    public static Name EXTRA_ADDRESS_CONFIG_NAME = StandardName.name("EXTRA_ADDRESS_CONFIG_NAME");
+
     private EntityName entityName;
     private ServiceName persistencyService;
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
+    private ServiceName name;
 
-    public EntityService(ReceiverCtrl receiverCtrl) {
+    public EntityService(ReceiverCtrl receiverCtrl, ServiceName name) {
         super(receiverCtrl);
+        this.name = name;
     }
 
     @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer) {
-        super.initialize(serverId, timestamp, id, initializer);
-        Object object = initializer.initialize(getAddress());
-        EntityServiceConfig config = (EntityServiceConfig) object;
+    protected A createAddress(Configurations... configurations) {
+        return (A) FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, id) -> StandardServiceNameAddress.name(name, serverId, timestamp, id));
+    }
+
+
+    @Override
+    public void configure(Configurations... configurations) {
+        super.configure();
+        EntityServiceConfig config = FindNamedConfiguration.finder(configurations).getConfigurationByName(ENTITY_SERVICE_CONFIG_NAME);
         entityName = config.getEntityName();
         persistencyService = config.getPersistencyService();
         getReceiverCtrl().registerFactory(entityName, createEntityFactory());
@@ -60,17 +77,13 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
     protected abstract DataVersion<I,StandardVersion> createInitialDataFromValues(I identity, Message.Values initialParams);
 
+
     @Override
     public void addCompletedListener(W serviceWorker) {
 
     }
 
-    public abstract Entity.EntityConfig createEntityConfigForInitialization(DataVersion dataVersion, final Long counter, MessageValueFieldUtil messageValueFieldUtil);
-
-    @Override
-    public Address getPersistencyService() {
-        return persistencyService;
-    }
+    public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) { return Optional.empty(); }
 
     public class EntityServiceWorker extends ServiceWorkerImpl {
         public EntityServiceWorker(WorkerContext workerContext) {
@@ -79,6 +92,8 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         public EntityName getEntityName() {return entityName;}
 
         public DataVersion<I,StandardVersion> getInitializeEntityWithValues(I identity, Message.Values initialParams) {
+            if (identity==null)
+                return null;
             return createInitialDataFromValues(identity, initialParams);
         }
 
@@ -123,9 +138,9 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
         @Override
         protected Task internalRun(W context) throws UserException {
-            Initializer<I> entityInitializer = createInitializer(context, this);
+            Configurations entityConfigurations = createInitializer(context, this);
 
-            Entity<I,D> entity = context.createReceiver(context.getEntityName(), entityInitializer);
+            Entity<I,D> entity = context.createReceiver(context.getEntityName(), entityConfigurations);
             if (entity==null)
                 throw new NullPointerException("entity is null!");
 
@@ -134,16 +149,23 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             return context.persistDataVersion(dataVersion);
         }
 
-        private Initializer<I> createInitializer(W context, final Consumer<DataVersion<I, StandardVersion>> dataVersionConsumer) {
-            return new Initializer<I>() {
-                @Override
-                public <C extends SetInitialValues> C initialize(I address) {
-                    DataVersion dataVersion = context.getInitializeEntityWithValues(address, initialParams);
-                    dataVersionConsumer.accept(dataVersion);
+        private Configurations createInitializer(W context, final Consumer<DataVersion<I, StandardVersion>> dataVersionConsumer) {
+            LazyInitializedConfigurations configurations = LazyInitializedConfigurations.create();
 
-                    return (C) initializer.createEntityConfigForInitialization(dataVersion, 0L, MessageValueFieldUtil.create(context.getValues()));
-                }
-            };
+            MessageValueFieldUtil messageValueFieldUtil = MessageValueFieldUtil.create(context.getValues());
+
+            configurations.add(EXTRA_ADDRESS_CONFIG_NAME, () -> initializer.extraAddressCreateConfiguration(messageValueFieldUtil).get());
+
+            configurations.add(ENTITY_SERVICE_CONFIG_NAME, () -> new Entity.EntityConfig() {
+                    @Override public <I extends Identity, V extends Version> DataVersion<I, V> getDataVersion(I identity) {
+                        DataVersion dataVersion = context.getInitializeEntityWithValues(identity, initialParams);
+                        dataVersionConsumer.accept(dataVersion);
+                        return dataVersion;
+                    }
+                    @Override public long getDataVersionCounter() {return 0;}
+            });
+
+            return configurations;
         }
     }
 
@@ -169,8 +191,8 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
                 MessageValueFieldUtil fieldUtil = MessageValueFieldUtil.create(values);
                 DataVersion dataVersion = fieldUtil.getValueByField(DataVersion.DATA_VERSION).getValue();
                 Long counter = fieldUtil.getValueByField(DataVersion.DATA_VERSION_COUNTER).asNumber();
-                Initializer<I> entityInitializer = createInitializer(dataVersion, counter, context);
-                Entity<I, D> entity = context.createReceiver(context.getEntityName(), entityInitializer);
+                Configurations entityConfigurations = createInitializer(dataVersion, counter, context);
+                Entity<I, D> entity = context.createReceiver(context.getEntityName(), entityConfigurations);
                 if (entity == null)
                     throw new NullPointerException("entity is null!");
                 context.replyWithParam(MessageValue.address(entity.getAddress()));
@@ -179,17 +201,15 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             return latestDataVersionFromPeristence;
         }
 
-        private Initializer<I> createInitializer(final DataVersion dataVersion, final Long counter, final W worker) {
-            return new Initializer<I>() {
-                        @Override
-                        public <C extends SetInitialValues> C initialize(I address) {
-                            return (C) initializer.createEntityConfigForInitialization(dataVersion, counter, MessageValueFieldUtil.create(worker.getValues()));
-                        }
-                    };
+        private Configurations createInitializer(final DataVersion dataVersion, final Long counter, final W worker) {
+            return OneReceiverConfigurations.create(ENTITY_CONFIG_NAME, new Entity.EntityConfig() {
+                @Override public <I extends Identity, V extends Version> DataVersion<I, V> getDataVersion(I identity) {return dataVersion;}
+                @Override public long getDataVersionCounter() {return counter;}
+            });
         }
     }
 
-    public interface EntityServiceConfig extends Receiver.SetInitialValues {
+    public interface EntityServiceConfig extends NamedConfiguration {
         EntityName getEntityName();
         ServiceName getPersistencyService();
     }

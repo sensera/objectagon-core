@@ -9,7 +9,6 @@ import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.task.Task;
 
@@ -25,27 +24,13 @@ public class NameServiceProtocolImpl extends AbstractProtocol<NameServiceProtoco
     }
 
     public NameServiceProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(NAME_SERVICE_PROTOCOL, serverId);
-    }
-
-    @Override
-    public NameServiceProtocol.Send createSend(CreateSendParam createSend) {
-        return new NameServiceProtocolSendImpl(createSend);
+        super(receiverCtrl, NAME_SERVICE_PROTOCOL);
+        createSend = NameServiceProtocolSendImpl::new;
     }
 
     @Override
     public Locator createLocator(CreateSendParam createSend) {
         return new LocatorImpl(createSend);
-    }
-
-    @Override
-    public Reply createReply(CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
     }
 
     protected class NameServiceProtocolSendImpl extends AbstractProtocolSend implements NameServiceProtocol.Send {

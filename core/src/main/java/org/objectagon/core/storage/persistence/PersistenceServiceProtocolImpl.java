@@ -6,7 +6,6 @@ import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.data.DataMessageValue;
@@ -22,30 +21,9 @@ public class PersistenceServiceProtocolImpl extends AbstractProtocol<Persistence
     }
 
     public PersistenceServiceProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, PERSISTENCE_SERVICE_PROTOCOL);
+        createSend = PersistenceServiceProtocolSend::new;
     }
-
-    @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        super.initialize(serverId, timestamp, id, initializer);
-    }
-
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(PERSISTENCE_SERVICE_PROTOCOL, serverId);
-    }
-
-    @Override
-    public PersistenceServiceProtocol.Send createSend(CreateSendParam createSend) {
-        return new PersistenceServiceProtocolSend(createSend);
-    }
-
-    @Override
-    public Reply createReply(CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
-    }
-
 
     private class PersistenceServiceProtocolSend extends AbstractProtocolSend implements PersistenceServiceProtocol.Send {
         public PersistenceServiceProtocolSend(CreateSendParam createSend) {

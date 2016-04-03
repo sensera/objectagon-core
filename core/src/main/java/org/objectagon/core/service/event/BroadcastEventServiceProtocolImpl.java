@@ -4,7 +4,6 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 
 /**
@@ -17,22 +16,8 @@ public class BroadcastEventServiceProtocolImpl extends AbstractProtocol<Broadcas
     }
 
     public BroadcastEventServiceProtocolImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(BROADCAST_EVENT_SERVICE_PROTOCOL, serverId);
-    }
-
-    @Override
-    public BroadcastEventServiceProtocol.Send createSend(CreateSendParam createSend) {
-        return new BroadcastEventServiceProtocolSend(createSend);
-    }
-
-    @Override
-    public Reply createReply(CreateReplyParam createReply) {
-        return new MinimalProtocolReply(createReply);
+        super(receiverCtrl, BROADCAST_EVENT_SERVICE_PROTOCOL);
+        createSend = BroadcastEventServiceProtocolSend::new;
     }
 
     private class BroadcastEventServiceProtocolSend extends AbstractProtocolSend implements BroadcastEventServiceProtocol.Send {

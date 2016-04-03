@@ -1,14 +1,13 @@
 package org.objectagon.core.service.event;
 
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.message.SimpleMessage;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
+import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.storage.EntityServiceProtocol;
 
@@ -24,22 +23,8 @@ public class EventServiceProtocolImpl extends AbstractProtocol<EventServiceProto
     }
 
     public EventServiceProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(EVENT_SERVICE_PROTOCOL, serverId);
-    }
-
-    @Override
-    public EventServiceProtocol.Send createSend(CreateSendParam createSend) {
-        return new EventServiceProtocolSendImpl(createSend);
-    }
-
-    @Override
-    public Reply createReply(CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
+        super(receiverCtrl, EVENT_SERVICE_PROTOCOL);
+        createSend = EventServiceProtocolSendImpl::new;
     }
 
     protected class EventServiceProtocolSendImpl extends AbstractProtocolSend implements EventServiceProtocol.Send {

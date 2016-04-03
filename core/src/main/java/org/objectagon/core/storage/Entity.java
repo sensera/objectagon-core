@@ -1,6 +1,8 @@
 package org.objectagon.core.storage;
 
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.task.Task;
 
 /**
@@ -8,13 +10,15 @@ import org.objectagon.core.task.Task;
  */
 public interface Entity<I extends Identity, D extends Data> extends Receiver<I> {
 
+    Name ENTITY_CONFIG_NAME = StandardName.name("ENTITY_CONFIG_NAME");
+
     enum TaskName implements Task.TaskName {
         COMMIT_DATA_VERSION, ROLLBACK_DATA_VERSION, DELETE_DATA_VERSION_FROM_PERSISTANCE
 
     }
 
-    interface EntityConfig extends SetInitialValues {
-        DataVersion getDataVersion();
+    interface EntityConfig extends NamedConfiguration {
+        <I extends Identity, V extends Version> DataVersion<I,V> getDataVersion(I identity);
         long getDataVersionCounter();
     }
 }

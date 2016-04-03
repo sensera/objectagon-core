@@ -25,8 +25,11 @@ import org.objectagon.core.storage.TransactionServiceProtocol;
 import org.objectagon.core.task.ProtocolTask;
 import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.*;
+
+import static org.objectagon.core.utils.FindNamedConfiguration.finder;
 
 /**
  * Created by christian on 2016-03-17.
@@ -105,12 +108,7 @@ public class TestCore {
 
     public TestUser createTestUser(String name) {
         System.out.println("TestCore.createTestUser "+name);
-        latestTestUser = Optional.of(server.createReceiver(TEST_USER, new Receiver.Initializer<Address>() {
-            @Override
-            public <C extends Receiver.SetInitialValues> C initialize(Address address) {
-                return (C) (TestUserConfig) () -> StandardName.name(name);
-            }
-        }));
+        latestTestUser = Optional.of(server.createReceiver(TEST_USER, OneReceiverConfigurations.create(TEST_USER, (TestUserConfig) () -> TEST_USER)));
         return latestTestUser.get();
     }
 
@@ -146,15 +144,15 @@ public class TestCore {
         }
 
         @Override
-        public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<Address> initializer) {
-            super.initialize(serverId, timestamp, id, initializer);
-            TestUserConfig testUserConfig = initializer.initialize(getAddress());
+        public void configure(Configurations... configurations) {
+            super.configure();
+            TestUserConfig testUserConfig = finder(configurations).getConfigurationByName(TEST_USER);
             name = testUserConfig.getName();
         }
 
         @Override
-        protected Address createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<Address> initializer) {
-            return StandardAddress.standard(serverId, timestamp, id);
+        protected Address createAddress(Configurations... configurations) {
+            return finder(configurations).createConfiguredAddress(StandardAddress::standard);
         }
 
         @Override
@@ -193,7 +191,7 @@ public class TestCore {
         }
     }
 
-    public interface TestUserConfig extends Receiver.SetInitialValues {
+    public interface TestUserConfig extends Receiver.NamedConfiguration {
         Name getName();
     }
 

@@ -1,11 +1,11 @@
 package org.objectagon.core.storage.standard;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorker;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 /**
  * Created by christian on 2015-11-01.
@@ -18,8 +18,9 @@ public class StandardEntity<D extends StandardData> extends EntityImpl<StandardI
     }
 
     @Override
-    protected StandardIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<StandardIdentity> initializer) {
-        return StandardIdentity.standardIdentity(serverId, timestamp, id);
+    protected StandardIdentity createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardIdentity::standardIdentity
+        );
     }
 
     @Override

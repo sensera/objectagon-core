@@ -1,5 +1,6 @@
 package org.objectagon.core.server;
 
+import lombok.Data;
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
@@ -11,6 +12,7 @@ import org.objectagon.core.msg.message.VolatileNameValue;
 import org.objectagon.core.task.StandardTaskBuilder;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.IdCounter;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 import org.objectagon.core.utils.SwitchCase;
 
 import java.util.*;
@@ -63,11 +65,20 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
     }
 
     @Override
-    public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Initializer<A> initializer) {
+    public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Configurations... configurations) {
         Factory factory = getFactoryByName(name).orElseThrow(() -> new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_NOT_FOUND, VolatileNameValue.name(name)));
         R receiver = (R) factory.create(this);
         if (receiver.getAddress()==null) {
-            receiver.initialize(serverId, systemTime.currentTimeMillis(), idCounter.next(), initializer);
+            OneReceiverConfigurations oneReceiverConfigurations = OneReceiverConfigurations.create(Receiver.ADDRESS_CONFIGURATIONS, ReceiverAddressConfigurationParameters.create(serverId, idCounter.next(), systemTime.currentTimeMillis()));
+            if (configurations.length==0) {
+                receiver.configure(oneReceiverConfigurations);
+            } else if (configurations.length==1) {
+                receiver.configure(oneReceiverConfigurations, configurations[0]);
+            } else {
+                List<Receiver.Configurations> receiverConfigurations = Arrays.asList(configurations);
+                receiverConfigurations.add(oneReceiverConfigurations);
+                receiver.configure(receiverConfigurations.stream().toArray(Receiver.Configurations[]::new));
+            }
             if (receiver.getAddress() == null)
                 throw new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_HAS_NO_ADDRESS, VolatileNameValue.name(name));
             registerReceiver(receiver.getAddress(), receiver);
@@ -168,5 +179,12 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
     }
     @Override public Optional<Address> lookupAddressByAlias(Name name) {
         return serverAliasCtrl.lookupAddressByAlias(name);
+    }
+
+    @Data(staticConstructor = "create")
+    private class ReceiverAddressConfigurationParameters implements Receiver.AddressConfigurationParameters {
+        private final ServerId serverId;
+        private final Long id;
+        private final long timeStamp;
     }
 }

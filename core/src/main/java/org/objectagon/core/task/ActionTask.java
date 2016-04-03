@@ -1,9 +1,9 @@
 package org.objectagon.core.task;
 
-import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 /**
  * Created by christian on 2015-11-03.
@@ -27,7 +27,7 @@ public class ActionTask extends AbstractTask {
     }
 
     @Override
-    protected Address createAddress(Server.ServerId serverId, long timestamp, long id, Initializer initializer) {
-        return StandardAddress.standard(serverId, timestamp, id);
+    protected Address createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
     }
 }

@@ -13,6 +13,7 @@ import org.objectagon.core.msg.receiver.StandardAction;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.ServiceWorkerImpl;
 import org.objectagon.core.service.StandardServiceName;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +37,8 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
     }
 
     @Override
-    protected StandardAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<StandardAddress> initializer) {
-        return StandardAddress.standard(serverId, timestamp, id);
+    protected StandardAddress createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
     }
 
     @Override

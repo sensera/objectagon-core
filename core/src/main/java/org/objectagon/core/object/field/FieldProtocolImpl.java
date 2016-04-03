@@ -5,7 +5,6 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.FieldProtocol;
@@ -21,20 +20,8 @@ public class FieldProtocolImpl extends AbstractProtocol<FieldProtocol.Send, Prot
     }
 
     public FieldProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override protected Protocol.ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(FIELD_PROTOCOL, serverId);
-    }
-
-    @Override public FieldProtocol.Send createSend(Protocol.CreateSendParam createSend) {
-        return new FieldProtocolSend(createSend);
-    }
-
-    @Override
-    public Protocol.Reply createReply(Protocol.CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
+        super(receiverCtrl, FIELD_PROTOCOL);
+        createSend = FieldProtocolSend::new;
     }
 
     private class FieldProtocolSend extends AbstractProtocolSend implements FieldProtocol.Send {

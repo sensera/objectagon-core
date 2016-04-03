@@ -1,13 +1,12 @@
 package org.objectagon.core.object.relation;
 
+import org.objectagon.core.Server;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Instance;
-import org.objectagon.core.Server;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.message.MessageValue;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.object.RelationProtocol;
 import org.objectagon.core.task.Task;
 
@@ -21,16 +20,9 @@ public class RelationProtocolImpl extends AbstractProtocol<RelationProtocol.Send
     }
 
     public RelationProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, RELATION_PROTOCOL);
+        createSend = RelationProtocolSend::new;
     }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(RELATION_PROTOCOL, serverId);
-    }
-
-    @Override public RelationProtocol.Send createSend(CreateSendParam createSend) {return new RelationProtocolSend(createSend);}
-    @Override public RelationProtocol.Reply createReply(CreateReplyParam createReply) {return new AbstractProtocolReply(createReply) {};}
 
     private class RelationProtocolSend extends AbstractProtocolSend implements RelationProtocol.Send {
         public RelationProtocolSend(CreateSendParam sendParam) {

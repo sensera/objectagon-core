@@ -1,7 +1,6 @@
 package org.objectagon.core.object.fieldvalue;
 
 import org.objectagon.core.storage.standard.StandardVersion;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.FieldValue;
@@ -10,6 +9,9 @@ import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
+import org.objectagon.core.utils.FindNamedConfiguration;
+
+import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
  * Created by christian on 2016-03-04.
@@ -41,9 +43,11 @@ public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, Fi
     }
 
     @Override
-    protected FieldValueIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<FieldValueIdentity> initializer) {
-        FieldValueProtocol.ConfigFieldValue configFieldValue = (FieldValueProtocol.ConfigFieldValue) initializer.<FieldValueProtocol.ConfigFieldValue>initialize(getAddress());
-        return new FieldValueIdentityImpl(configFieldValue.getInstanceIdentity(), configFieldValue.getFieldIdentity(), serverId, timestamp, id);
+    protected FieldValueIdentity createAddress(Configurations... configurations) {
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        FieldValueProtocol.ConfigFieldValue configFieldValue = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
+        return finder.createConfiguredAddress((serverId, timestamp, id) ->
+                new FieldValueIdentityImpl(configFieldValue.getInstanceIdentity(), configFieldValue.getFieldIdentity(), serverId, timestamp, id));
     }
 
     public class FieldValueWorker extends EntityWorkerImpl {

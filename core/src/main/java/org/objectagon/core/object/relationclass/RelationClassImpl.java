@@ -1,19 +1,21 @@
 package org.objectagon.core.object.relationclass;
 
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.relationclass.data.RelationClassDataImpl;
-import org.objectagon.core.storage.standard.StandardVersion;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.RelationClassProtocol;
 import org.objectagon.core.object.relation.RelationService;
+import org.objectagon.core.object.relationclass.data.RelationClassDataImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorker;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
+import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.utils.FindNamedConfiguration;
+
+import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
  * Created by christian on 2016-03-16.
@@ -45,9 +47,12 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
     }
 
     @Override
-    protected RelationClassIdentity createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<RelationClassIdentity> initializer) {
-        RelationClassProtocol.ConfigRelationClass configInstance = initializer.<RelationClassProtocol.ConfigRelationClass>initialize(getAddress());
-        return new RelationClassIdentityImpl(configInstance.getInstanceClassIdentity(), configInstance.getRelationType(), serverId, timestamp, id);
+    protected RelationClassIdentity createAddress(Configurations... configurations) {
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        RelationClassProtocol.ConfigRelationClass configInstance = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
+        return finder.createConfiguredAddress((serverId, timestamp, addressId) ->
+                new RelationClassIdentityImpl(configInstance.getInstanceClassIdentity(), configInstance.getRelationType(), serverId, timestamp, addressId)
+        );
     }
 
     @Override

@@ -44,7 +44,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
         dataVersion = mock(DataVersion.class);
         personName = mock(Message.Field.class);
         protocol = new PersistenceServiceProtocolImpl(receiverCtrl);
-        protocol.initialize(mock(Server.ServerId.class), 100, 0, null);
+        protocol.configure();
         Protocol.CreateSendParam createSendParam = mock(Protocol.CreateSendParam.class);
 
         when(createSendParam.getComposer()).thenReturn(composer);

@@ -1,10 +1,10 @@
 package org.objectagon.core.domain;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
 /**
  * Created by christian on 2015-11-14.
@@ -21,7 +21,7 @@ public class DomainService extends AbstractService<Service.ServiceWorker, Standa
     }
 
     @Override
-    protected StandardAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<StandardAddress> initializer) {
-        return StandardAddress.standard(serverId, timestamp, id);
+    protected StandardAddress createAddress(Configurations... configurations) {
+        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
     }
 }

@@ -10,7 +10,7 @@ import java.util.Optional;
  */
 public interface Server extends Transporter {
 
-    <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Initializer<A> initializer);
+    <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Configurations... configurations);
 
     void transport(Envelope envelope);
     void registerFactory(Name name, Factory factory);
@@ -28,7 +28,7 @@ public interface Server extends Transporter {
     interface EnvelopeProcessor extends Transporter {}
 
     interface CreateReceiverByName {
-        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Initializer<A> initializer);
+        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Configurations... configurations);
     }
 
     @FunctionalInterface

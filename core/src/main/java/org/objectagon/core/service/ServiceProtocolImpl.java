@@ -1,9 +1,8 @@
 package org.objectagon.core.service;
 
-import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.task.Task;
 
@@ -17,14 +16,8 @@ public class ServiceProtocolImpl extends AbstractProtocol<ServiceProtocol.Send, 
     }
 
     public ServiceProtocolImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Initializer<ProtocolAddress> initializer) {return new ProtocolAddressImpl(SERVICE_PROTOCOL, serverId);}
-
-    @Override
-    public ServiceProtocol.Send createSend(CreateSendParam createSend) {
-        return new ServiceProtocolSendImpl(createSend);
+        super(receiverCtrl, SERVICE_PROTOCOL);
+        createSend = ServiceProtocolSendImpl::new;
     }
 
     @Override

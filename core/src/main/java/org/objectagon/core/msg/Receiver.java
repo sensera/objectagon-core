@@ -2,30 +2,41 @@ package org.objectagon.core.msg;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.service.Service;
+
+import java.util.Optional;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public interface Receiver<A extends Address> {
 
+    Name ADDRESS_CONFIGURATIONS = StandardName.name("ADDRESS_CONFIGURATIONS");
+
     A getAddress();
 
     void receive(Envelope envelope);
 
-    void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<A> initializer);
+    void configure(Configurations... configurations);
 
     interface ReceiverCtrl extends Transporter, Server.CreateReceiverByName, Server.Factory, Server.AliasCtrl {
         void registerFactory(Name name, Server.Factory factory);
         Server.ServerId getServerId();
     }
 
-    interface SetInitialValues {}
+    interface NamedConfiguration {}
 
     @FunctionalInterface
-    interface Initializer<A extends Address> {
-        <C extends SetInitialValues> C initialize(A address);
+    interface Configurations {
+        <C extends NamedConfiguration> Optional<C> getConfigurationByName(Name name);
+    }
+
+    interface AddressConfigurationParameters extends NamedConfiguration {
+        Server.ServerId getServerId();
+        Long getId();
+        Long getTimeStamp();
     }
 
     interface Worker {
@@ -58,7 +69,7 @@ public interface Receiver<A extends Address> {
 
         Iterable<Message.Value> getValues();
 
-        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Initializer<A> initializer);
+        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations configurations);
 
         default StandardProtocol.ErrorMessageProfile createErrorMessageProfile(final StandardProtocol.ErrorClass errorClass, final StandardProtocol.ErrorKind errorKind, final Iterable<Message.Value> values) {
             return createErrorMessageProfile(StandardProtocol.ErrorSeverity.UNKNOWN, errorClass, errorKind, values);
@@ -98,7 +109,7 @@ public interface Receiver<A extends Address> {
 
         Iterable<Message.Value> getValues();
 
-        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Initializer<A> initializer);
+        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations configurations);
 
         <U extends Protocol.Send> U createSend(Protocol.ProtocolName protocolName, Address target);
 

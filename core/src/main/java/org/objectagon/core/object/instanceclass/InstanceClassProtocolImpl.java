@@ -1,20 +1,17 @@
 package org.objectagon.core.object.instanceclass;
 
+import org.objectagon.core.Server;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.Server;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.protocol.ProtocolAddressImpl;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.task.Task;
 
-import static org.objectagon.core.msg.message.MessageValue.address;
-import static org.objectagon.core.msg.message.MessageValue.name;
-import static org.objectagon.core.msg.message.MessageValue.text;
+import static org.objectagon.core.msg.message.MessageValue.*;
 
 /**
  * Created by christian on 2016-02-28.
@@ -26,22 +23,8 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
     }
 
     public InstanceClassProtocolImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
-    }
-
-    @Override
-    protected ProtocolAddress createAddress(Server.ServerId serverId, long timestamp, long id, Receiver.Initializer<ProtocolAddress> initializer) {
-        return new ProtocolAddressImpl(INSTANCE_CLASS_PROTOCOL, serverId);
-    }
-
-    @Override
-    public InstanceClassProtocol.Send createSend(CreateSendParam createSend) {
-        return new InstanceClassProtocolSend(createSend);
-    }
-
-    @Override
-    public InstanceClassProtocol.Reply createReply(CreateReplyParam createReply) {
-        return new AbstractProtocolReply(createReply) {};
+        super(receiverCtrl, INSTANCE_CLASS_PROTOCOL);
+        createSend = InstanceClassProtocolSend::new;
     }
 
     private class InstanceClassProtocolSend extends AbstractProtocolSend implements InstanceClassProtocol.Send {

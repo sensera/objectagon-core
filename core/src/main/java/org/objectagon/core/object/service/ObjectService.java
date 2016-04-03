@@ -2,11 +2,9 @@ package org.objectagon.core.object.service;
 
 
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.DataVersion;
-import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.entity.DataVersionImpl;
 import org.objectagon.core.storage.entity.EntityService;
@@ -17,8 +15,8 @@ import org.objectagon.core.storage.standard.StandardVersion;
  */
 public abstract class ObjectService<A extends Service.ServiceName, I extends Identity, D extends Data<I,StandardVersion>> extends EntityService<A, I, D, EntityService.EntityServiceWorker> {
 
-    public ObjectService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+    public ObjectService(ReceiverCtrl receiverCtrl, ServiceName name) {
+        super(receiverCtrl, name);
     }
 
     @Override
@@ -26,18 +24,4 @@ public abstract class ObjectService<A extends Service.ServiceName, I extends Ide
         return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0, StandardVersion::create);
     }
 
-    @Override
-    public Entity.EntityConfig createEntityConfigForInitialization(DataVersion dataVersion, Long counter, MessageValueFieldUtil messageValueFieldUtil) {
-        return new Entity.EntityConfig() {
-            @Override
-            public DataVersion getDataVersion() {
-                return dataVersion;
-            }
-
-            @Override
-            public long getDataVersionCounter() {
-                return counter;
-            }
-        };
-    }
 }

@@ -2,7 +2,6 @@ package org.objectagon.core.service.name;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.envelope.StandardEnvelope;
 import org.objectagon.core.msg.field.StandardField;
@@ -42,12 +41,12 @@ public class NameServiceTest extends AbstractProtocolTest {
         name = testName;
         nameServiceProtocol = mock(NameServiceProtocol.class);
         nameService = new NameServiceImpl(receiverCtrl);
-        nameService.initialize(mock(Server.ServerId.class), 100, 0, null);
+        nameService.configure();
         standardProtocol = mock(StandardProtocol.class);
         standardReply = mock(StandardProtocol.StandardReply.class);
 
-        when(receiverCtrl.createReceiver(eq(NameServiceProtocol.NAME_SERVICE_PROTOCOL), isNull(Receiver.Initializer.class))).thenReturn(nameServiceProtocol);
-        when(receiverCtrl.createReceiver(eq(StandardProtocol.STANDARD_PROTOCOL), isNull(Receiver.Initializer.class))).thenReturn(standardProtocol);
+        when(receiverCtrl.createReceiver(eq(NameServiceProtocol.NAME_SERVICE_PROTOCOL), isNull(Receiver.Configurations.class))).thenReturn(nameServiceProtocol);
+        when(receiverCtrl.createReceiver(eq(StandardProtocol.STANDARD_PROTOCOL), isNull(Receiver.Configurations.class))).thenReturn(standardProtocol);
         when(standardProtocol.createReply(any(Protocol.CreateReplyParam.class))).thenReturn(standardReply);
     }
 

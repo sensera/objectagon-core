@@ -2,7 +2,6 @@ package core.service.name;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
@@ -34,7 +33,7 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
         address = mock(Address.class);
         senderAddress = mock(Address.class);
         protocol = new NameServiceProtocolImpl(receiverCtrl);
-        protocol.initialize(mock(Server.ServerId.class), 100, 0, null);
+        protocol.configure();
         Protocol.CreateSendParam createSendParam = mock(Protocol.CreateSendParam.class);
 
         when(createSendParam.getComposer()).thenReturn(composer);

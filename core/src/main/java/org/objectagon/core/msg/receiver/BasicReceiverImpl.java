@@ -244,19 +244,19 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         }
 
         @Override
-        public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Initializer<A> initializer) {
-            return getReceiverCtrl().createReceiver(name, initializer);
+        public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations configurations) {
+            return getReceiverCtrl().createReceiver(name, configurations);
         }
 
         @Override
         public <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName) {
-            Protocol protocol = getReceiverCtrl().createReceiver(protocolName, null);
+            Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
             return (U) protocol.createReply(() -> createReplyToSenderComposer());
         }
 
         @Override
         public <U extends Protocol.Send> U createSend(Protocol.ProtocolName protocolName, Address target) {
-            Protocol protocol = getReceiverCtrl().createReceiver(protocolName, null);
+            Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
             return (U) protocol.createSend(() -> createTargetComposer(target));
         }
     }

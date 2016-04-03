@@ -1,6 +1,5 @@
 package org.objectagon.core.storage.entity;
 
-import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -13,6 +12,7 @@ import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.entity.util.DataVersionTransactions;
 import org.objectagon.core.storage.persistence.PersistenceService;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.Util;
 
 import java.util.HashMap;
@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+
 
 /**
  * Created by christian on 2015-10-17.
@@ -39,10 +40,10 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     }
 
     @Override
-    public void initialize(Server.ServerId serverId, long timestamp, long id, Initializer<I> initializer) {
-        super.initialize(serverId, timestamp, id, initializer);
-        EntityConfig entityConfig = initializer.initialize(getAddress());
-        dataVersion = entityConfig.getDataVersion();
+    public void configure(Configurations... configurations) {
+        super.configure();
+        EntityConfig entityConfig = FindNamedConfiguration.finder(configurations).getConfigurationByName(Entity.ENTITY_CONFIG_NAME);
+        dataVersion = entityConfig.getDataVersion(getAddress());
         dataVersionCounter = entityConfig.getDataVersionCounter();
     }
 

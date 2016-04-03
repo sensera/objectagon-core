@@ -1,7 +1,9 @@
 package org.objectagon.core.storage;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.task.Task;
 
@@ -11,6 +13,7 @@ import org.objectagon.core.task.Task;
 public interface TransactionManagerProtocol extends Protocol<TransactionManagerProtocol.Send, Protocol.Reply> {
 
     ProtocolName TRANSACTION_MANAGER_PROTOCOL = new ProtocolNameImpl("TRANSACTION_MANAGER_PROTOCOL");
+    Name TRANSACTION_MANAGER_CONFIG = StandardName.name("TRANSACTION_MANAGER_CONFIG");
 
     enum MessageName implements Message.MessageName, Task.TaskName {
         ADD_ENTITY_TO,
@@ -28,7 +31,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         Task rollback();
     }
 
-    interface TransactionManagerConfig extends SetInitialValues {
+    interface TransactionManagerConfig extends NamedConfiguration {
         TransactionManager.TransactionData getTransactionData();
     }
 

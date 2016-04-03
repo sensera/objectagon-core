@@ -24,6 +24,7 @@ import org.objectagon.core.storage.entity.EntityServiceProtocolImpl;
 import org.objectagon.core.task.ProtocolTask;
 import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.Optional;
 
@@ -86,7 +87,7 @@ public class ObjectServices {
         return this;
     }
 
-    private Receiver.Initializer<Service.ServiceName> getInitializer(EntityName entityName) {
+    private Receiver.Configurations getInitializer(EntityName entityName) {
         EntityService.EntityServiceConfig entityServiceConfig = new EntityService.EntityServiceConfig() {
             @Override
             public EntityName getEntityName() {
@@ -98,9 +99,7 @@ public class ObjectServices {
                 return persistencyServiceName;
             }
         };
-        return new Receiver.Initializer<Service.ServiceName>() {
-            @Override public <C extends Receiver.SetInitialValues> C initialize(Service.ServiceName address) {return (C) entityServiceConfig;}
-        };
+        return OneReceiverConfigurations.create(EntityService.ENTITY_SERVICE_CONFIG_NAME, entityServiceConfig);
     }
 
     public Server getServer() {
