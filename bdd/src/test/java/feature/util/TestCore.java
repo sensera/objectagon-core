@@ -77,8 +77,8 @@ public class TestCore {
         NameServiceProtocolImpl.registerAtServer(server);
         EventServiceImpl.registerAtServer(server);
         EventServiceProtocolImpl.registerAtServer(server);
-        server.createReceiver(NameServiceImpl.NAME_SERVICE, null);
-        server.createReceiver(EventServiceImpl.EVENT_SERVICE_ADDRESS, null);
+        server.createReceiver(NameServiceImpl.NAME_SERVICE);
+        server.createReceiver(EventServiceImpl.EVENT_SERVICE_ADDRESS);
 
         StandardProtocolImpl.registerAtServer(server);
 
@@ -167,22 +167,22 @@ public class TestCore {
         }
 
         public EntityServiceProtocol.Send createFieldEntityServiceProtocol() {
-            EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL, null);
+            EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL);
             return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getFieldServiceAddress(), headers()));
         }
 
         public EntityServiceProtocol.Send createInstanceClassEntityServiceProtocol() {
-            EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL, null);
+            EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL);
             return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getInstanceClassServiceAddress(), headers()));
         }
 
         public InstanceClassProtocol.Send createInstanceClassProtocolSend(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
-            InstanceClassProtocol instanceClassProtocol = server.createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL, null);
+            InstanceClassProtocol instanceClassProtocol = server.createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL);
             return instanceClassProtocol.createSend(() -> StandardComposer.create(this, instanceClassIdentity, headers()));
         }
 
         public FieldProtocol.Send createFieldProtocolSend(Field.FieldIdentity fieldIdentity) {
-            FieldProtocol fieldProtocol = server.createReceiver(FieldProtocol.FIELD_PROTOCOL, null);
+            FieldProtocol fieldProtocol = server.createReceiver(FieldProtocol.FIELD_PROTOCOL);
             return fieldProtocol.createSend(() -> StandardComposer.create(this, fieldIdentity, headers()));
         }
 

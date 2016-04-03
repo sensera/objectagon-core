@@ -1,6 +1,5 @@
 package org.objectagon.core.server;
 
-import lombok.Data;
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
@@ -181,10 +180,10 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         return serverAliasCtrl.lookupAddressByAlias(name);
     }
 
-    @Data(staticConstructor = "create")
-    private class ReceiverAddressConfigurationParameters implements Receiver.AddressConfigurationParameters {
+    @lombok.Data(staticConstructor = "create")
+    private static class ReceiverAddressConfigurationParameters implements Receiver.AddressConfigurationParameters {
         private final ServerId serverId;
         private final Long id;
-        private final long timeStamp;
+        private final Long timeStamp;
     }
 }
