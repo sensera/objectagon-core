@@ -1,4 +1,4 @@
-package feature.instance;
+package feature.steps;
 
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
@@ -27,7 +27,7 @@ public class InstanceSteps {
         Optional<TestCore.TestUser> developer = testCore.getLatestTestUser();
         Optional<Message.Value> instanceClassIdentity = developer.get().getValue(InstanceClass.INSTANCE_CLASS_IDENTITY);
 
-        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).createInstance()).startAndWait(1000L);
+        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).createInstance()).startAndWait(50000L);
         developer.get().storeResponseMessage(message);
     }
 

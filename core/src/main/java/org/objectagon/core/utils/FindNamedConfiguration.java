@@ -2,12 +2,15 @@ package org.objectagon.core.utils;
 
 import lombok.Data;
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.MessageValue;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Created by christian on 2016-04-03.
@@ -17,8 +20,12 @@ public class FindNamedConfiguration {
     private final Receiver.Configurations[] configurations;
 
     public <C extends Receiver.NamedConfiguration> C getConfigurationByName(Name name) {
-        Optional<Receiver.NamedConfiguration> opt = Stream.of(configurations).map(configurations -> configurations.getConfigurationByName(name)).findAny().get();
-        return (C) opt.get();
+        for (Receiver.Configurations configurations : this.configurations) {
+            Optional<C> configurationByName = configurations.getConfigurationByName(name);
+            if (configurationByName.isPresent())
+                return configurationByName.get();
+        }
+        throw new SevereError(ErrorClass.RECEIVER, ErrorKind.MISSING_CONFIGURATION, MessageValue.name(name));
     }
 
     public <A extends Address> A createConfiguredAddress(CreateAddress<A> createAddress) {

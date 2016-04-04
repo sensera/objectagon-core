@@ -11,6 +11,7 @@ import org.objectagon.core.service.*;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.persistence.PersistenceService;
+import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.storage.transaction.data.TransactionDataImpl;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
@@ -30,7 +31,7 @@ public class TransactionService extends AbstractService<TransactionService.Trans
         server.registerFactory(NAME, TransactionService::new);
     }
 
-    Map<Transaction,TransactionManager> transactionManagers = new HashMap<>();
+    private Map<Transaction,TransactionManager> transactionManagers = new HashMap<>();
 
     public TransactionService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -76,11 +77,18 @@ public class TransactionService extends AbstractService<TransactionService.Trans
         }
 
         @Override
+        public boolean initialize() throws UserException {
+            return super.initialize();
+        }
+
+        @Override
         protected Task internalRun(TransactionServiceWorkerImpl actionContext) throws UserException {
             transactionManager = context.createReceiver(TransactionManagerImpl.NAME, new Configurations() {
                 @Override
                 public <C extends NamedConfiguration> Optional<C> getConfigurationByName(Name name) {
-                    return Optional.of( (C)  (TransactionManagerProtocol.TransactionManagerConfig) () -> transactionData);
+                    return Optional.of( (C)  (TransactionManagerProtocol.TransactionManagerConfig) (Transaction transaction) -> {
+                        return transactionData = TransactionDataImpl.create(transaction, StandardVersion.create(0L));
+                    });
                 }
             });
             transactionManagers.put(transactionManager.getAddress(), transactionManager);
@@ -88,4 +96,5 @@ public class TransactionService extends AbstractService<TransactionService.Trans
             return context.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushTransactionData(transactionData);
         }
     }
+
 }

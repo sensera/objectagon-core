@@ -16,7 +16,7 @@ public abstract class StandardReceiverImpl<A extends Address, W extends Standard
 
     @Override
     public void configure(Configurations... configurations) {
-        super.configure();
+        super.configure(configurations);
         reactor = new ReactorImpl<>();
         buildReactor(reactor.getReactorBuilder());
     }

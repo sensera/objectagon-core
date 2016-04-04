@@ -110,6 +110,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void createInstance(InstanceClassWorker entityWorker) {
+        System.out.println("InstanceClassImpl.createInstance ****************************************");
         entityWorker.start(
                 entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, InstanceService.NAME)
                         .create(MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress()))

@@ -49,7 +49,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
     @Override
     public void configure(Configurations... configurations) {
-        super.configure();
+        super.configure(configurations);
     }
 
     @Override

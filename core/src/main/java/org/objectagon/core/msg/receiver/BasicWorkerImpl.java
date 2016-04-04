@@ -77,11 +77,15 @@ public class BasicWorkerImpl implements BasicWorker {
 
     @Override
     public void replyWithParam(Message.MessageName message, Iterable<Message.Value> values) {
-        List<Message.Value> newValues = new LinkedList<>();
-        newValues.add(VolatileMessageValue.messageName(StandardProtocol.FieldName.PARAM, message));
-        values.forEach(newValues::add);
-        createStandardProtocolReply().replyWithParam(newValues);
-        setHandled();
+        try {
+            List<Message.Value> newValues = new LinkedList<>();
+            newValues.add(VolatileMessageValue.messageName(StandardProtocol.FieldName.PARAM, message));
+            values.forEach(newValues::add);
+            createStandardProtocolReply().replyWithParam(newValues);
+            setHandled();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

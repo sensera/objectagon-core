@@ -16,6 +16,7 @@ import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.receiver.AbstractReceiver;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.IdCounter;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.*;
 
@@ -43,9 +44,9 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
 
     @Override
     public P createSend(CreateSendParam createSend) {
-        if (createSend==null)
+        if (this.createSend==null)
             throw new NullPointerException("createSend not initialized!");
-        return this.createSend(createSend);
+        return this.createSend.createSend(createSend);
     }
 
     @Override
@@ -170,7 +171,14 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
 
         protected Task task(Task.TaskName taskName, SendMessageAction sendMessageAction) {
             SessionTask sessionTask = new SessionTask(getTaskCtrl(), taskName, sendMessageAction);
-            sessionTask.configure();
+            sessionTask.configure(
+                OneReceiverConfigurations.create(
+                        Receiver.ADDRESS_CONFIGURATIONS,
+                        ReceiverAddressConfigurationParameters.create(
+                                getReceiverCtrl().getServerId(),
+                                System.currentTimeMillis(),
+                                idCounter.next()))
+            );
             return sessionTask;
         }
 
@@ -230,7 +238,7 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
 
             @Override
             public void configure(Configurations... configurations) {
-                super.configure();
+                super.configure(configurations);
                 this.taskComposer = composer.alternateReceiver(this);
                 sessionTasks.put(getAddress(), this);
             }
@@ -293,6 +301,14 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
             mapped.remove(address);
         }
     }
+
+    @lombok.Data(staticConstructor = "create")
+    private static class ReceiverAddressConfigurationParameters implements Receiver.AddressConfigurationParameters {
+        private final Server.ServerId serverId;
+        private final Long id;
+        private final Long timeStamp;
+    }
+
 
 }
 

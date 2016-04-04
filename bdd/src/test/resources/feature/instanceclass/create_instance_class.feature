@@ -4,6 +4,6 @@ Feature: Create type
   Background:
     Given there is an active transaction
 
-  Scenario: Create a Type called Car
-    When I create a type called: Car
+  Scenario: Create a Type called Item
+    When I create a type called: Item
     Then the response is ok

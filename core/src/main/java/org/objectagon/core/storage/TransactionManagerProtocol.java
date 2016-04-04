@@ -32,7 +32,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
     }
 
     interface TransactionManagerConfig extends NamedConfiguration {
-        TransactionManager.TransactionData getTransactionData();
+        TransactionManager.TransactionData getTransactionData(Transaction transaction);
     }
 
 }

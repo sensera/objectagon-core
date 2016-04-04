@@ -48,7 +48,7 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
 
         @Override
         public Task createInstance() {
-            return task(MessageName.CREATE_INSTANCE, send -> send(MessageName.CREATE_INSTANCE));
+            return task(MessageName.CREATE_INSTANCE, send -> send.send(MessageName.CREATE_INSTANCE));
         }
     }
 }

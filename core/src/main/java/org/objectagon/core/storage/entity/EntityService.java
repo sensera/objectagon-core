@@ -55,7 +55,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
     @Override
     public void configure(Configurations... configurations) {
-        super.configure();
+        super.configure(configurations);
         EntityServiceConfig config = FindNamedConfiguration.finder(configurations).getConfigurationByName(ENTITY_SERVICE_CONFIG_NAME);
         entityName = config.getEntityName();
         persistencyService = config.getPersistencyService();
@@ -156,7 +156,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
             configurations.add(EXTRA_ADDRESS_CONFIG_NAME, () -> initializer.extraAddressCreateConfiguration(messageValueFieldUtil).get());
 
-            configurations.add(ENTITY_SERVICE_CONFIG_NAME, () -> new Entity.EntityConfig() {
+            configurations.add(Entity.ENTITY_CONFIG_NAME, () -> new Entity.EntityConfig() {
                     @Override public <I extends Identity, V extends Version> DataVersion<I, V> getDataVersion(I identity) {
                         DataVersion dataVersion = context.getInitializeEntityWithValues(identity, initialParams);
                         dataVersionConsumer.accept(dataVersion);

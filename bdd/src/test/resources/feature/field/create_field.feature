@@ -3,8 +3,8 @@ Feature: Create field
 
   Background:
     Given there is an active transaction
-    And there is a type called Car
+    And there is a type called Item
 
   Scenario: Create field
-    When I add field Color to Car
+    When I add field ItemNumber to Item
     Then the response is ok

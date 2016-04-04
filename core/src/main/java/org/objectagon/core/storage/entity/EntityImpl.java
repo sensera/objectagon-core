@@ -41,7 +41,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     @Override
     public void configure(Configurations... configurations) {
-        super.configure();
+        super.configure(configurations);
         EntityConfig entityConfig = FindNamedConfiguration.finder(configurations).getConfigurationByName(Entity.ENTITY_CONFIG_NAME);
         dataVersion = entityConfig.getDataVersion(getAddress());
         dataVersionCounter = entityConfig.getDataVersionCounter();

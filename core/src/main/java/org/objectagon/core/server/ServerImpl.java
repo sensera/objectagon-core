@@ -121,7 +121,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
 
     @Override
     public void transport(Envelope envelope) {
-        System.out.println("ServerImpl.transport "+envelope);
+        //System.out.println("ServerImpl.transport "+envelope);
         envelopeProcessor.transport(envelope);
     }
 

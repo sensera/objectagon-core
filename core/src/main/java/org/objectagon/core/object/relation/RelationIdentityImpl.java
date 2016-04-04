@@ -12,6 +12,7 @@ import org.objectagon.core.object.Relation;
  */
 @Value
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class RelationIdentityImpl extends StandardAddress implements Relation.RelationIdentity{
     final RelationClass.RelationClassIdentity relationClassIdentity;
     final Instance.InstanceIdentity instanceIdentity;

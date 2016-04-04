@@ -145,7 +145,7 @@ public class TestCore {
 
         @Override
         public void configure(Configurations... configurations) {
-            super.configure();
+            super.configure(configurations);
             TestUserConfig testUserConfig = finder(configurations).getConfigurationByName(TEST_USER);
             name = testUserConfig.getName();
         }
@@ -157,7 +157,9 @@ public class TestCore {
 
         @Override
         public void receive(Envelope envelope) {
-
+            envelope.unwrap((sender, msg) ->
+                System.out.println("TestUser.receive "+msg+" from "+sender)
+            );
         }
 
         private Message.Values headers() {

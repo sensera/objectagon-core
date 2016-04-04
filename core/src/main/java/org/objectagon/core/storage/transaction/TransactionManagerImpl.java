@@ -1,13 +1,9 @@
 package org.objectagon.core.storage.transaction;
 
 import org.objectagon.core.Server;
-import org.objectagon.core.exception.ErrorClass;
-import org.objectagon.core.exception.ErrorKind;
-import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.StandardReceiverImpl;
@@ -21,7 +17,6 @@ import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.objectagon.core.storage.TransactionManagerProtocol.TRANSACTION_MANAGER_CONFIG;
@@ -45,10 +40,9 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
     @Override
     public void configure(Configurations... configurations) {
-        super.configure();
-        Optional<TransactionManagerProtocol.TransactionManagerConfig> config = FindNamedConfiguration.finder(configurations).getConfigurationByName(TRANSACTION_MANAGER_CONFIG);
-        config.ifPresent(cfg -> transactionData = cfg.getTransactionData());
-        config.orElseThrow(() -> new SevereError(ErrorClass.TRANSACTION_MANAGER, ErrorKind.MISSING_CONFIGURATION, MessageValue.name(TRANSACTION_MANAGER_CONFIG)));
+        super.configure(configurations);
+        TransactionManagerProtocol.TransactionManagerConfig config = FindNamedConfiguration.finder(configurations).getConfigurationByName(TRANSACTION_MANAGER_CONFIG);
+        transactionData = config.getTransactionData(getAddress());
     }
 
     @Override

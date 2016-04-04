@@ -41,7 +41,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
 
     @Override
     public void configure(Configurations... configurations) {
-        super.configure();
+        super.configure(configurations);
         getReceiverCtrl().registerAliasForAddress(NAME_SERVICE, getAddress());  // TODO Fix this when implement start/stop server
     }
 

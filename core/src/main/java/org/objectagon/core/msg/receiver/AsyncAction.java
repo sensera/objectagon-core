@@ -38,6 +38,7 @@ public abstract class AsyncAction<I extends Reactor.ActionInitializer, C extends
                     .addFailedAction(failedAction)
                     .start();
         } catch (UserException e) {
+            e.printStackTrace();
             context.replyWithError(e);
         }
     }

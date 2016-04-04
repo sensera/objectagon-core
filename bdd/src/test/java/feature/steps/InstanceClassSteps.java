@@ -1,4 +1,4 @@
-package feature.instanceclass;
+package feature.steps;
 
 import cucumber.api.Scenario;
 import cucumber.api.java.After;

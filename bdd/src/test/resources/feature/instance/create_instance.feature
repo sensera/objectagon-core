@@ -3,9 +3,9 @@ Feature: Create instance
 
   Background:
     Given there is an active transaction
-    And there is a type called Car
-    And the type Car has a field named Color
+    And there is a type called Item
+    And the type Item has a field named ItemName
 
-  Scenario: Create a instance from type Car
-    When I create an instance from type: Car
+  Scenario: Create a instance from type Item
+    When I create an instance from type: Item
     Then the response is ok
