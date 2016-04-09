@@ -2,6 +2,7 @@ package org.objectagon.core.object;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.object.field.FieldProtocolImpl;
 import org.objectagon.core.object.field.FieldService;
@@ -32,8 +33,12 @@ import java.util.Optional;
  * Created by christian on 2016-03-17.
  */
 public class ObjectServices {
-    enum InitTasks implements Task.TaskName {
+    public enum InitTasks implements Task.TaskName {
         InitObjectServiceTasks;
+    }
+
+    public enum MessageName implements Message.MessageName {
+        NameChangedEvent,
     }
 
     public static ObjectServices create(Server server, Service.ServiceName persistancyAddress) { return new ObjectServices(server, persistancyAddress);}

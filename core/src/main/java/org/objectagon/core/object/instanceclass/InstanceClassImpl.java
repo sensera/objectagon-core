@@ -8,9 +8,12 @@ import org.objectagon.core.object.field.FieldService;
 import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.object.instanceclass.data.InstanceClassDataImpl;
 import org.objectagon.core.object.relationclass.RelationClassService;
+import org.objectagon.core.service.Service;
+import org.objectagon.core.service.event.EventServiceImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Identity;
+import org.objectagon.core.storage.StorageServices;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
@@ -27,8 +30,16 @@ import java.util.stream.Collectors;
  */
 public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIdentity, InstanceClass.InstanceClassData, StandardVersion, InstanceClassImpl.InstanceClassWorker> implements InstanceClass {
 
+    Service.ServiceName eventService;
+
     public InstanceClassImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, InstanceClass.DATA_TYPE);
+    }
+
+    @Override
+    public void configure(Configurations... configurations) {
+        super.configure(configurations);
+        getReceiverCtrl().lookupAddressByAlias(EventServiceImpl.EVENT_SERVICE_NAME).ifPresent(address -> eventService = (Service.ServiceName) address);
     }
 
     @Override
@@ -43,12 +54,24 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
 
     @Override
     protected InstanceClassWorker createWorker(WorkerContext workerContext) {
-        return new InstanceClassWorker(workerContext);
+        return new InstanceClassWorker(workerContext, eventService);
     }
 
     public class InstanceClassWorker extends EntityWorkerImpl {
-        public InstanceClassWorker(WorkerContext workerContext) {
+        private Service.ServiceName eventService;
+
+        public InstanceClassWorker(WorkerContext workerContext, Service.ServiceName eventService) {
             super(workerContext);
+            if (eventService==null) throw new NullPointerException("eventService is null!");
+            this.eventService = eventService;
+        }
+
+        public void broadCastNameChange(InstanceClassIdentity identity, InstanceClassName instanceClassName) {
+            createEventServiceProtocolSend(eventService).broadcast(
+                    StorageServices.SEARCH_NAME_EVENT,
+                    ObjectServices.MessageName.NameChangedEvent,
+                    MessageValue.address(identity),
+                    MessageValue.name(instanceClassName));
         }
     }
 
@@ -69,8 +92,20 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                 .trigger(InstanceClassProtocol.MessageName.GET_RELATIONS, read(this::getRelations))
                 .trigger(InstanceClassProtocol.MessageName.ADD_FIELD, write(this::<ChangeInstanceClass>addField, this::createField))
                 .trigger(InstanceClassProtocol.MessageName.ADD_RELATION, write(this::<ChangeInstanceClass>addRelationClass, this::createRelationClass))
+                .trigger(InstanceClassProtocol.MessageName.GET_NAME, read(this::getName))
+                .trigger(InstanceClassProtocol.MessageName.SET_NAME, write(this::<ChangeInstanceClass>setName))
                 .trigger(InstanceClassProtocol.MessageName.CREATE_INSTANCE, this::createInstance)
                 .orElse(w -> super.handle(w));
+    }
+
+    private void getName(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
+        instanceClassWorker.replyWithParam(MessageValue.name(InstanceClass.INSTANCE_CLASS_NAME, instanceClassData.getName()));
+    }
+
+    private void setName(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+        InstanceClassName instanceClassName = instanceClassWorker.getValue(InstanceClass.INSTANCE_CLASS_NAME).asName();
+        changeInstanceClass.setName(instanceClassName);
+        instanceClassWorker.broadCastNameChange(getAddress(), instanceClassName);
     }
 
     private void getFields(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {

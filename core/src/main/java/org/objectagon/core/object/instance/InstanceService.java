@@ -26,7 +26,7 @@ public class InstanceService extends EntityService<Service.ServiceName, Instance
     }
 
     public InstanceService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl, NAME);
+        super(receiverCtrl, NAME, Instance.DATA_TYPE);
     }
 
     @Override protected Server.Factory createEntityFactory() { return InstanceImpl::new; }

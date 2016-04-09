@@ -22,7 +22,7 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
 public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, StandardVersion, FieldImpl.FieldEntityWorker> implements Field {
 
     public FieldImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, Field.DATA_TYPE);
     }
 
     @Override

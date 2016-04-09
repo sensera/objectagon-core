@@ -3,6 +3,7 @@ package org.objectagon.core.object;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.storage.Entity;
+import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.storage.Data;
@@ -17,12 +18,16 @@ public interface FieldValue extends Entity<FieldValue.FieldValueIdentity, FieldV
 
     Message.Field VALUE = NamedField.address("VALUE");
 
+    Data.Type DATA_TYPE = DataType.create("FIELD_VALUE");
+
     interface FieldValueIdentity extends Identity {
         Instance.InstanceIdentity getInstanceIdentity();
         Field.FieldIdentity getFieldIdentity();
     }
 
     interface FieldValueData extends Data<FieldValue.FieldValueIdentity, StandardVersion> {
+        default Type getDataType() {return DATA_TYPE;}
+
         Instance.InstanceIdentity getInstanceIdentity();
         Field.FieldIdentity getFieldIdentity();
         Message.Value getValue();

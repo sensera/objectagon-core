@@ -1,5 +1,6 @@
 package org.objectagon.core.object;
 
+import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -23,6 +24,8 @@ public interface Field extends Entity<Field.FieldIdentity,Field.FieldData> {
     Message.Field FIELD_TYPE = NamedField.name("FIELD_TYPE");
     Message.Field FIELDS = NamedField.values("FIELDS");
 
+    Data.Type DATA_TYPE = DataType.create("FIELD");
+
     interface FieldName extends Name {}
 
     interface FieldType extends Name {}
@@ -32,6 +35,7 @@ public interface Field extends Entity<Field.FieldIdentity,Field.FieldData> {
     }
 
     interface FieldData extends Data<FieldIdentity, StandardVersion> {
+        default Data.Type getDataType() {return DATA_TYPE;}
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
         FieldName getName();
         FieldType getType();

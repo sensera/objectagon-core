@@ -7,6 +7,7 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.task.StandardTaskBuilder;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 
@@ -43,7 +44,7 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
 
     @Override
     public TaskBuilder getTaskBuilder() {
-        throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
+        return getWorkerContext().getTaskBuilder();
     }
 
     protected  <U extends Protocol.Session> U createReplySession(Protocol.ProtocolName protocolName) {

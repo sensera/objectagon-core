@@ -11,49 +11,42 @@ import java.util.*;
  */
 public class StandardData extends AbstractData<StandardIdentity,StandardVersion> {
 
-    public static StandardData.Build create(StandardIdentity identity, StandardVersion version) { return new Build(identity, version);}
-    public static StandardData.Build upgrade(StandardData original) { return new Build(original);}
+    public static StandardData create(StandardIdentity identity, StandardVersion version, Type dataType) { return new StandardData(identity, version, dataType, new ArrayList());}
 
     private List<Message.Value> values = new LinkedList<>();
+    private Type dataType;
 
-    private StandardData(StandardIdentity identity, StandardVersion version, Iterable<Message.Value> values) {
+    private StandardData(StandardIdentity identity, StandardVersion version, Type dataType, Iterable<Message.Value> values) {
         super(identity, version);
+        this.dataType = dataType;
         values.forEach(this.values::add);
     }
 
-    @Override
-    public <C extends Data.Change<StandardIdentity, StandardVersion>> C change() {
-        return null;
-    }
+    @Override public Type getDataType() {return dataType;}
+    public List<Message.Value> getValues() {return values;}
+    @Override public <C extends Data.Change<StandardIdentity, StandardVersion>> C change() {return (C) new Change(this);}
 
-    public static class Build {
+    public static class Change implements Data.Change<StandardIdentity, StandardVersion> {
+        private StandardData original;
         private Map<Message.Field,Message.Value> values = new HashMap<>();
-        private StandardIdentity identity;
-        private StandardVersion version;
 
-        public Build(StandardData original) {
-            this.identity = original.getIdentity();
-            this.version = original.getVersion();
+        public Change(StandardData original) {
+            this.original = original;
+            this.original.getValues().forEach(value -> values.put(value.getField(), value));
         }
 
-        public Build(StandardIdentity identity, StandardVersion version) {
-            this.identity = identity;
-            this.version = version;
-        }
-
-        public Build setValues(Message.Values original) {
-            original.values().forEach(value -> values.put(value.getField(), value));
-            return this;
-        }
-
-        public Build setValue(Message.Value value) {
+        public Change setValue(Message.Value value) {
             values.put(value.getField(), value);
             return this;
         }
 
-        public StandardData create() {
-            return new StandardData(identity, version, values.values());
+        @Override
+        public <D extends Data<StandardIdentity, StandardVersion>> D create(StandardVersion version) {
+            return (D) new StandardData(
+                    original.getIdentity(),
+                    original.getVersion(),
+                    original.getDataType(),
+                    values.values());
         }
-
     }
 }

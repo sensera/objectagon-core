@@ -1,6 +1,8 @@
 package org.objectagon.core.storage.entity;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -15,6 +17,7 @@ import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceWorkerImpl;
 import org.objectagon.core.service.StandardServiceNameAddress;
 import org.objectagon.core.storage.*;
+import org.objectagon.core.storage.search.SearchService;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
@@ -38,13 +41,16 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
     private EntityName entityName;
     private ServiceName persistencyService;
+    private ServiceName searchService;
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
     private ServiceName name;
+    private Data.Type dataType;
 
-    public EntityService(ReceiverCtrl receiverCtrl, ServiceName name) {
+    public EntityService(ReceiverCtrl receiverCtrl, ServiceName name, Data.Type dataType) {
         super(receiverCtrl);
         this.name = name;
+        this.dataType = dataType;
     }
 
     @Override
@@ -59,6 +65,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         EntityServiceConfig config = FindNamedConfiguration.finder(configurations).getConfigurationByName(ENTITY_SERVICE_CONFIG_NAME);
         entityName = config.getEntityName();
         persistencyService = config.getPersistencyService();
+        getReceiverCtrl().lookupAddressByAlias(SearchService.NAME).ifPresent(address -> searchService = (ServiceName) address);
         getReceiverCtrl().registerFactory(entityName, createEntityFactory());
     }
 
@@ -73,6 +80,10 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.GET_ENTITY),
                 (initializer, context) -> new GetEntityAction<W, I, D>((EntityService.this), (W) context));
+        reactorBuilder.add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(EntityServiceProtocol.MessageName.FIND_ENTITY),
+                (initializer, context) -> new FindEntityAction<W, I, D>((EntityService.this), (W) context));
+
     }
 
     protected abstract DataVersion<I,StandardVersion> createInitialDataFromValues(I identity, Message.Values initialParams);
@@ -81,6 +92,10 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
     @Override
     public void addCompletedListener(W serviceWorker) {
 
+    }
+
+    protected void forAllIdentities(Consumer<I> consumer) {
+        identityEntityMap.keySet().stream().forEach(consumer);
     }
 
     public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) { return Optional.empty(); }
@@ -107,12 +122,24 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
         public Task persistDataVersion(DataVersion dataVersion) {
             PersistenceServiceProtocol.Send send = createTargetSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, persistencyService);
-            return send.pushDataVersion(dataVersion);
+            return send.pushData(dataVersion);
         }
 
         public Task getLatestDataVersionFromPeristence(I identity) {
             PersistenceServiceProtocol.Send send = createTargetSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, persistencyService);
-            return send.getLatestDataVersion(identity);
+            return send.getLatestData(dataType, identity);
+        }
+
+        public Task loadAllData() {
+            return this.<PersistenceServiceProtocol.Send>createTargetSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, persistencyService).all(dataType);
+        }
+
+        public Task nameSearch(Name name) {
+            return this.<SearchServiceProtocol.Send>createTargetSession(SearchServiceProtocol.SEARCH_SERVICE_PROTOCOL, searchService).nameSearch(name);
+        }
+
+        public Optional<Task> find(Name name) {
+            return Optional.empty();
         }
     }
 
@@ -206,6 +233,32 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
                 @Override public <I extends Identity, V extends Version> DataVersion<I, V> getDataVersion(I identity) {return dataVersion;}
                 @Override public long getDataVersionCounter() {return counter;}
             });
+        }
+    }
+
+    private static class FindEntityAction<W extends EntityService.EntityServiceWorker, I extends Identity, D extends Data> extends AsyncAction<EntityServiceActionInitializer, W> {
+
+        Name name;
+
+        public FindEntityAction(EntityServiceActionInitializer initializer, W context) {
+            super(initializer, context);
+        }
+
+        @Override
+        public boolean initialize() throws UserException {
+            name = context.getValue(StandardField.NAME).asName();
+            return super.initialize();
+        }
+
+        @Override
+        protected Task internalRun(W context) throws UserException {
+            Optional<Task> findTask = context.find(name);
+            setSuccessAction((messageName1, values) -> {
+                Message.Values searchResultValues = MessageValueFieldUtil.create(values).getValueByField(StandardField.VALUES).asValues();
+                Identity identity = searchResultValues.values().iterator().next().asAddress();
+                context.replyWithParam(MessageValue.address(identity));
+            });
+            return findTask.orElseThrow(() -> new UserException(ErrorClass.ENTITY, ErrorKind.NOT_IMPLEMENTED));
         }
     }
 

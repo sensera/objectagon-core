@@ -30,13 +30,15 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     private long dataVersionCounter = 0;
     private DataVersion<I,V> dataVersion;
     private Map<V,D> dataCache = new HashMap<>();
+    private Data.Type dataType;
 
     public DataVersion<I, V> getDataVersion() {
         return dataVersion;
     }
 
-    public EntityImpl(ReceiverCtrl receiverCtrl) {
+    public EntityImpl(ReceiverCtrl receiverCtrl, Data.Type dataType) {
         super(receiverCtrl);
+        this.dataType = dataType;
     }
 
     @Override
@@ -50,6 +52,8 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     protected abstract V internalCreateNewVersionForDataVersion(long counterNumber);
 
     protected abstract D createNewData();
+
+    protected Data.Type getDataType() { return dataType; }
 
     protected V nextDataVersionVersion() { return internalCreateNewVersionForDataVersion(dataVersionCounter++);}
 
@@ -110,7 +114,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 D oldData = getCachedDataByVersion(version).get(); //TODO Load when not cached
                 D newData = upgrade(oldData, newDataVersion, transaction);
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushDataAndVersion(newData, newDataVersion)
+                        .pushData(newData, newDataVersion)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
@@ -118,7 +122,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             }
             case OverWrite: {
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushDataVersion(newDataVersion)
+                        .pushData(newDataVersion)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
@@ -143,7 +147,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 D oldData = getCachedDataByVersion(version).get(); //TODO Load when not cached
                 D newData = upgrade(oldData, newDataVersion, transaction);
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushDataAndVersion(newData, newDataVersion)
+                        .pushData(newData, newDataVersion)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
@@ -151,7 +155,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             }
             case OverWrite: {
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushDataVersion(newDataVersion)
+                        .pushData(newDataVersion)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
@@ -184,7 +188,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
         try {
             w.start(
-                w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushDataVersion(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
+                w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
                         .newVersion(transaction, v1 -> {})
                         .create(nextDataVersionVersion()))
             );
@@ -204,7 +208,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         getCachedDataByTransaction(transaction).ifPresent(data -> dataCache.remove(data.getVersion()));
         try {
             w.start(
-                    w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushDataVersion(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
+                    w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
                             .remove(transaction)
                             .create(nextDataVersionVersion()))
             );
@@ -284,7 +288,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             final Optional<V> verisionOption = getGetVersionFromTransaction(transaction);
 
             verisionOption.ifPresent((version)-> worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                    .getData(getAddress(), version)
+                    .getData(getDataType(), getAddress(), version)
                     .addFailedAction(worker::failed)
                     .addSuccessAction((messageName, values) -> doDataRead(Util.getValueByField(values, Data.DATA).getValue()))
                     .start()
@@ -318,7 +322,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     protected void pushToPersistence(W worker, D newData, DataVersion<I,V> newDataVersion) {
         worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                .pushDataAndVersion(newData, newDataVersion)
+                .pushData(newData, newDataVersion)
                 .addFailedAction(worker::failed)
                 .addSuccessAction(worker::success)
                 .start();

@@ -20,7 +20,7 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
 public class RelationImpl extends EntityImpl<Relation.RelationIdentity, Relation.RelationData, StandardVersion, EntityWorker> implements Relation {
 
     public RelationImpl(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, Relation.DATA_TYPE);
     }
 
     @Override

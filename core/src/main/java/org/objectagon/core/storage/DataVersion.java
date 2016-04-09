@@ -3,6 +3,7 @@ package org.objectagon.core.storage;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.NamedField;
+import org.objectagon.core.storage.data.DataType;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -16,6 +17,10 @@ public interface DataVersion<I extends Identity, V extends Version> extends Data
     Message.Field DATA_VERSION_COUNTER = NamedField.number("DataVersionCounter");
 
     Optional<TransactionVersionNode<V>> rootNode();
+
+    Type DATA_TYPE = DataType.create("DATA_VERSION");
+
+    default Type getDataType() {return DataVersion.DATA_TYPE;}
 
     interface TransactionVersionNode<V extends Version> {
         V getVersion();

@@ -19,7 +19,7 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
 public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, FieldValue.FieldValueData, StandardVersion, FieldValueImpl.FieldValueWorker> implements FieldValue {
 
     public FieldValueImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, FieldValue.DATA_TYPE);
     }
 
     @Override

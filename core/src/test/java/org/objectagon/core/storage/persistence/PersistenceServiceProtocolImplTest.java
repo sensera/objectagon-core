@@ -62,7 +62,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
         startTaskAndVerifySentEvelope(
                 send.all(identity),
                 message -> {
-                    assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.ALL);
+                    assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.ALL_BY_ID);
                     assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), identity);
                 });
     }
@@ -80,34 +80,11 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
-    public void pushDataVersion()  {
-        startTaskAndVerifySentEvelope(
-                send.pushDataVersion(dataVersion),
-                message -> {
-                    assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.PUSH_DATA_VERSION);
-                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), identity);
-                    assertEquals(message.getValue(Version.VERSION).asNumber(), new Long(10l));
-                    assertEquals(message.getValue(StandardField.VALUES).asValues().values(), DataMessageValue.data(data).asValues().values());
-                });
-    }
-
-    @Test
     public void getData() {
         startTaskAndVerifySentEvelope(
-                send.getData(identity, version),
+                send.getData(mock(Data.Type.class), identity, version),
                 (message) -> {
                     assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.GET_DATA);
-                    assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), identity);
-                    assertEquals(message.getValue(Version.VERSION).asNumber(), new Long(10l));
-                });
-    }
-
-    @Test
-    public void getDataVersion() {
-        startTaskAndVerifySentEvelope(
-                send.getDataVersion(identity, version),
-                (message) -> {
-                    assertEquals(message.getName(), PersistenceServiceProtocol.MessageName.GET_DATA_VERSION);
                     assertEquals(message.getValue(StandardField.ADDRESS).asAddress(), identity);
                     assertEquals(message.getValue(Version.VERSION).asNumber(), new Long(10l));
                 });

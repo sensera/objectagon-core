@@ -31,12 +31,12 @@ public class BasicWorkerImpl implements BasicWorker {
     }
 
     protected StandardProtocol.StandardSend createStandardProtocolSend(Address target) {
-        StandardProtocol standardProtocol = this.workerContext.createReceiver(StandardProtocol.STANDARD_PROTOCOL, null);
+        StandardProtocol standardProtocol = this.workerContext.createReceiver(StandardProtocol.STANDARD_PROTOCOL);
         return standardProtocol.createSend(() -> workerContext.createTargetComposer(target)); //getWorkerContext().createReplyToSenderComposer());
     }
 
     protected StandardProtocol.StandardReply createStandardProtocolReply() {
-        return this.workerContext.<Protocol.ProtocolAddress, StandardProtocol>createReceiver(StandardProtocol.STANDARD_PROTOCOL, null).createReply(workerContext::createReplyToSenderComposer);
+        return this.workerContext.<Protocol.ProtocolAddress, StandardProtocol>createReceiver(StandardProtocol.STANDARD_PROTOCOL).createReply(workerContext::createReplyToSenderComposer);
     }
 
     @Override

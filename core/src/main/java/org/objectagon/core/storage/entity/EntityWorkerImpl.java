@@ -8,6 +8,7 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.service.Service;
+import org.objectagon.core.service.event.EventServiceProtocol;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.PersistenceServiceProtocol;
@@ -44,9 +45,16 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
 
     public PersistenceServiceProtocol.Send createPersistenceServiceProtocolSend(Name target) {
         return getWorkerContext()
-                .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, null)
+                .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL)
                 .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
     }
 
+    public EventServiceProtocol.Send createEventServiceProtocolSend(Service.ServiceName serviceAddress) {
+        if (serviceAddress==null) throw new NullPointerException("ServiceAddress is null!");
+        return getWorkerContext()
+                .<Protocol.ProtocolAddress,EventServiceProtocol>createReceiver(
+                        EventServiceProtocol.EVENT_SERVICE_PROTOCOL)
+                .createSend(() -> getWorkerContext().createForwardComposer(serviceAddress));
+    }
 
 }

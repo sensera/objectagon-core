@@ -19,7 +19,7 @@ public class UserService extends EntityService<Service.ServiceName, StandardIden
     public static ServiceName NAME = StandardServiceName.name("USER_SERVICE");
 
     public UserService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl, NAME);
+        super(receiverCtrl, NAME, User.DATA_TYPE);
     }
 
     @Override

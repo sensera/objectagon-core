@@ -14,6 +14,8 @@ import org.objectagon.core.msg.receiver.AbstractReceiver;
 import org.objectagon.core.object.*;
 import org.objectagon.core.server.LocalServerId;
 import org.objectagon.core.server.ServerImpl;
+import org.objectagon.core.service.ServiceProtocol;
+import org.objectagon.core.service.ServiceProtocolImpl;
 import org.objectagon.core.service.event.EventServiceImpl;
 import org.objectagon.core.service.event.EventServiceProtocolImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
@@ -40,7 +42,9 @@ public class TestCore {
 
     enum InitTasks implements Task.TaskName {
         InitTestCoreTasks,
-        CreateTransaction;
+        CreateTransaction,
+        StartNameService,
+        StartEventService,
     }
 
     private static Map<String,TestCore> cores = new HashMap<>();
@@ -64,6 +68,9 @@ public class TestCore {
     Server.ServerId serverId;
     Server server;
 
+    Address nameService;
+    Address eventService;
+
     StorageServices storageServices;
     ObjectServices objectServices;
     Optional<TestUser> latestTestUser = Optional.empty();
@@ -73,12 +80,13 @@ public class TestCore {
         this.serverId = LocalServerId.local(serverId);
         this.server = new ServerImpl(this.serverId);
 
+        ServiceProtocolImpl.registerAtServer(server);
         NameServiceImpl.registerAtServer(server);
         NameServiceProtocolImpl.registerAtServer(server);
         EventServiceImpl.registerAtServer(server);
         EventServiceProtocolImpl.registerAtServer(server);
-        server.createReceiver(NameServiceImpl.NAME_SERVICE);
-        server.createReceiver(EventServiceImpl.EVENT_SERVICE_ADDRESS);
+        nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE).getAddress();
+        eventService = server.createReceiver(EventServiceImpl.EVENT_SERVICE_NAME).getAddress();
 
         StandardProtocolImpl.registerAtServer(server);
 
@@ -95,6 +103,18 @@ public class TestCore {
 
     private Task initialize() {
         SequenceTask sequenceTask = new SequenceTask((Receiver.ReceiverCtrl) server, InitTasks.InitTestCoreTasks);
+        sequenceTask.addSend(
+                InitTasks.StartNameService,
+                ServiceProtocol.SERVICE_PROTOCOL,
+                nameService,
+                ServiceProtocol.Send::startService
+        );
+        sequenceTask.addSend(
+                InitTasks.StartEventService,
+                ServiceProtocol.SERVICE_PROTOCOL,
+                eventService,
+                ServiceProtocol.Send::startService
+        );
         sequenceTask.add(storageServices.initialize());
         sequenceTask.add(objectServices.initialize());
         return sequenceTask;

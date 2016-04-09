@@ -5,12 +5,14 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class SequenceTask extends AbstractTask {
 
     private List<Task> sequence = new LinkedList<>();
     private int atSequence = 0;
+    private List<Message.Value> values = new ArrayList<>();
 
     public SequenceTask(Receiver.ReceiverCtrl taskCtrl, TaskName name) {
         super(taskCtrl, name);
@@ -39,15 +42,27 @@ public class SequenceTask extends AbstractTask {
         }
     }
 
-    public void add(Task task) {
+    public SequenceTask add(Task task) {
         sequence.add(task);
         task.addSuccessAction(this::startNextTask);
         task.addFailedAction(this::failed);
+        return this;
+    }
+
+    public <S extends Protocol.Send>SequenceTask addSend(TaskName taskName, Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
+        add(new ProtocolTask(
+                getReceiverCtrl(),
+                taskName,
+                protocolName,
+                target,
+                sendMessageAction
+        ));
+        return this;
     }
 
     private void startNextTask(Message.MessageName messageName, Iterable<Message.Value> values) {
         if (sequence.size()==atSequence) {
-            success(Task.MessageName.COMPLETED, Message.NO_VALUES);
+            success(Task.MessageName.COMPLETED, values);
             return;
         }
         Task task = activeTask();
@@ -59,9 +74,12 @@ public class SequenceTask extends AbstractTask {
 
     }
 
+
+
     @Override
     protected Address createAddress(Configurations... configurations) {
         return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
-
     }
+
+    public void add(Message.Value value) { values.add(value); }
 }

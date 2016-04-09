@@ -2,6 +2,9 @@ package org.objectagon.core.msg.message;
 
 import org.objectagon.core.msg.Message;
 
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 /**
  * Created by christian on 2016-03-06.
  */
@@ -20,6 +23,10 @@ public class MessageValueFieldUtil {
             if (value.getField().equals(field))
                 return value;
         return UnknownValue.create(field);
+    }
+
+    public Stream<Message.Value> stream() {
+        return StreamSupport.stream(values.spliterator(), false);
     }
 
 }

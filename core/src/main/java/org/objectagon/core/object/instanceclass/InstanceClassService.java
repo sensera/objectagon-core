@@ -2,6 +2,7 @@ package org.objectagon.core.object.instanceclass;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
@@ -9,6 +10,9 @@ import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.entity.DataVersionImpl;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.task.Task;
+
+import java.util.Optional;
 
 /**
  * Created by christian on 2016-02-28.
@@ -22,7 +26,7 @@ public class InstanceClassService extends EntityService<Service.ServiceName, Ins
     }
 
     public InstanceClassService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl, NAME);
+        super(receiverCtrl, NAME, InstanceClass.DATA_TYPE);
     }
 
     @Override protected Server.Factory createEntityFactory() {return InstanceClassImpl::new;}
@@ -30,6 +34,17 @@ public class InstanceClassService extends EntityService<Service.ServiceName, Ins
         return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0l, StandardVersion::new);
     }
 
-    @Override protected EntityServiceWorker createWorker(WorkerContext workerContext) {return new EntityServiceWorker(workerContext);}
+    @Override protected EntityServiceWorker createWorker(WorkerContext workerContext) {return new InstanceClassServiceWorker(workerContext);}
+
+    private class InstanceClassServiceWorker extends EntityServiceWorker {
+        public InstanceClassServiceWorker(WorkerContext workerContext) {
+            super(workerContext);
+        }
+
+        public Optional<Task> find(Name name) {
+            return Optional.of(nameSearch(name));
+        }
+    }
+
 
 }

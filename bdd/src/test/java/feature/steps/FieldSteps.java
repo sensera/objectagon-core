@@ -5,13 +5,13 @@ import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
-import feature.util.TaskWait;
+import feature.util.InstanceClassManager;
 import feature.util.TestCore;
-import org.objectagon.core.msg.Message;
 import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.field.FieldNameImpl;
 
-import java.util.Optional;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by christian on 2016-03-16.
@@ -27,19 +27,18 @@ public class FieldSteps {
 
     @When("^I add field (.*) to (.*)$")
     public void addFiledWithNameToTypeWithName(String fieldName, String typeName) throws Exception {
-        Optional<TestCore.TestUser> developer = testCore.getLatestTestUser();
-        Optional<Message.Value> instanceClassIdentity = developer.get().getValue(InstanceClass.INSTANCE_CLASS_IDENTITY);
-
-        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).addField(FieldNameImpl.create(fieldName))).startAndWait(1000L);
-        developer.get().storeResponseMessage(message);
+        InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
+        InstanceClass.InstanceClassIdentity instanceClassWithName = mgr.findInstanceClassWithName(typeName);
+        assertThat(instanceClassWithName != null, is(equalTo(true)));
+        mgr.addFieldToInstanceClass(instanceClassWithName, fieldName);
     }
 
     @Given("^the type (.*) has a field named (.*)$")
     public void the_type_has_a_field_named(String typeName, String fieldName) throws Throwable {
-        Optional<TestCore.TestUser> developer = testCore.getLatestTestUser();
-        Optional<Message.Value> instanceClassIdentity = developer.get().getValue(InstanceClass.INSTANCE_CLASS_IDENTITY);
-
-        Message message = TaskWait.create(developer.get().createInstanceClassProtocolSend(instanceClassIdentity.get().asAddress()).addField(FieldNameImpl.create(fieldName))).startAndWait(1000L);
+        InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
+        InstanceClass.InstanceClassIdentity instanceClassWithName = mgr.findInstanceClassWithName(typeName);
+        assertThat(instanceClassWithName != null, is(equalTo(true)));
+        mgr.addFieldToInstanceClass(instanceClassWithName, fieldName);
     }
 
 }

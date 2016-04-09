@@ -14,22 +14,18 @@ public interface PersistenceServiceProtocol extends Protocol<PersistenceServiceP
 
     enum MessageName implements Message.MessageName, Task.TaskName {
         PUSH_DATA,
-        PUSH_DATA_VERSION,
-        PUSH_DATA_AND_VERSION,
         GET_DATA,
-        GET_DATA_VERSION,
-        ALL, PUSH_TRANSACTION_DATA,
+        GET_LATEST_DATA,
+        ALL_BY_ID,
+        ALL_BY_TYPE,
     }
 
     interface Send extends Protocol.Send {
-        Task pushData(Data data);
-        Task pushDataVersion(DataVersion dataVersion);
-        Task pushDataAndVersion(Data data, DataVersion dataVersion);
-        Task getData(Identity identity, Version version);
-        Task getDataVersion(Identity identity, Version version);
-        Task getLatestDataVersion(Identity identity);
+        Task pushData(Data... data);
+        Task getData(Data.Type dataType, Identity identity, Version version);
+        Task getLatestData(Data.Type dataType, Identity identity);
         Task all(Identity identity);
-        Task pushTransactionData(TransactionManager.TransactionData transactionData);
+        Task all(Data.Type dataType);
     }
 
 }

@@ -5,6 +5,7 @@ import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.Identity;
+import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
 
@@ -17,12 +18,15 @@ public interface Relation extends Entity<Relation.RelationIdentity, Relation.Rel
 
     Message.Field RELATIONS = NamedField.values("RELATIONS");
 
+    Data.Type DATA_TYPE = DataType.create("RELATION");
+
     interface RelationIdentity extends Identity {
         RelationClass.RelationClassIdentity getRelationClassIdentity();
         Instance.InstanceIdentity getInstanceIdentity();
     }
 
     interface RelationData extends Data<RelationIdentity, StandardVersion> {
+        default Type getDataType() {return DATA_TYPE;}
         RelationClass.RelationClassIdentity getRelationClassIdentity();
         Instance.InstanceIdentity getInstanceIdentity();
     }

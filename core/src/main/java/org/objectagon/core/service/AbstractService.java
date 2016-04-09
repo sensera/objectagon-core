@@ -19,7 +19,7 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
 
     private Status status = Status.Stopped;
     private Task currentTask;
-    private Optional<ServiceName> serviceName;
+    private Optional<ServiceName> serviceName = Optional.empty();
 
     protected void setServiceName(ServiceName serviceName) { this.serviceName = Optional.ofNullable(serviceName); }
 

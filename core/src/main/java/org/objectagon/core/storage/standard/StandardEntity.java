@@ -1,5 +1,6 @@
 package org.objectagon.core.storage.standard;
 
+import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
@@ -12,9 +13,8 @@ import org.objectagon.core.utils.FindNamedConfiguration;
  */
 public class StandardEntity<D extends StandardData> extends EntityImpl<StandardIdentity, D, StandardVersion, EntityWorker> {
 
-
-    public StandardEntity(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+    public StandardEntity(ReceiverCtrl receiverCtrl, Data.Type dataType) {
+        super(receiverCtrl, dataType);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class StandardEntity<D extends StandardData> extends EntityImpl<StandardI
 
     @Override
     protected D createNewData() {
-        return (D) StandardData.create(getAddress(), StandardVersion.create(0L)).create();
+        return (D) StandardData.create(getAddress(), StandardVersion.create(0L), getDataType());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.objectagon.core.storage;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.FieldNameImpl;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
@@ -17,6 +18,7 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
         CREATE_ENTITY,
         GET_ENTITY,
         DELETE_ENTITY,
+        FIND_ENTITY,
     }
 
     enum FieldName implements Message.Field {
@@ -43,6 +45,7 @@ public interface EntityServiceProtocol extends Protocol<EntityServiceProtocol.Se
         Task create(Message.Value... initialValues);
         Task get(Identity identity);
         Task delete(Identity identity);
+        Task find(Name name);
     }
 
 }

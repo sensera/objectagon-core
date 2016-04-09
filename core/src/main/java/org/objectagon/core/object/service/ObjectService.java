@@ -15,8 +15,8 @@ import org.objectagon.core.storage.standard.StandardVersion;
  */
 public abstract class ObjectService<A extends Service.ServiceName, I extends Identity, D extends Data<I,StandardVersion>> extends EntityService<A, I, D, EntityService.EntityServiceWorker> {
 
-    public ObjectService(ReceiverCtrl receiverCtrl, ServiceName name) {
-        super(receiverCtrl, name);
+    public ObjectService(ReceiverCtrl receiverCtrl, ServiceName name, Data.Type dataType) {
+        super(receiverCtrl, name, dataType);
     }
 
     @Override

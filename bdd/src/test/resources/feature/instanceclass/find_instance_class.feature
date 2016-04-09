@@ -3,7 +3,8 @@ Feature: Create type
 
   Background:
     Given there is an active transaction
+    And there is a type called Item
 
-  Scenario: Create a Type
-    When I create a type called: Item
+  Scenario: I want to find and item with a specific name
+    When I search for an type called: Item
     Then the response is ok

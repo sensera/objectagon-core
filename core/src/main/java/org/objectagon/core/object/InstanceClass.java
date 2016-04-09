@@ -1,12 +1,15 @@
 package org.objectagon.core.object;
 
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.Identity;
+import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
+import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.task.Task;
 
 import java.util.stream.Stream;
 
@@ -18,14 +21,22 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
     EntityName ENTITY_NAME = EntityName.create("INSTACE_CLASS");
 
     Message.Field INSTANCE_CLASS_IDENTITY = NamedField.address("INSTANCE_CLASS_IDENTITY");
+    Message.Field INSTANCE_CLASS_NAME = NamedField.address("INSTANCE_CLASS_NAME");
 
-    interface InstanceClassIdentity extends Identity {
+    Data.Type DATA_TYPE = DataType.create("INSTANCE_CLASS");
 
+    enum NameTask implements Task.TaskName {
+        NAME_SEARCH
     }
 
+    interface InstanceClassIdentity extends Identity {}
+    interface InstanceClassName extends Name {}
+
     interface InstanceClassData extends Data<InstanceClass.InstanceClassIdentity, StandardVersion> {
+        default Type getDataType() {return DATA_TYPE;}
         Stream<Field.FieldIdentity> getFields();
         Stream<RelationClass.RelationClassIdentity> getRelations();
+        InstanceClassName getName();
     }
 
     interface ChangeInstanceClass extends Data.Change<InstanceClass.InstanceClassIdentity,StandardVersion> {
@@ -33,6 +44,7 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
         ChangeInstanceClass addRelation(RelationClass.RelationClassIdentity relationClassIdentity);
         ChangeInstanceClass removeField(Field.FieldIdentity fieldIdentity);
         ChangeInstanceClass removeRelation(RelationClass.RelationClassIdentity relationClassIdentity);
+        ChangeInstanceClass setName(InstanceClassName instanceClassName);
     }
 
 }

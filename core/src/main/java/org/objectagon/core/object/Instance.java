@@ -1,12 +1,13 @@
 package org.objectagon.core.object;
 
-import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.storage.Data;
+import org.objectagon.core.storage.Entity;
 import org.objectagon.core.storage.Identity;
+import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
+import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 
 import java.util.stream.Stream;
@@ -14,11 +15,13 @@ import java.util.stream.Stream;
 /**
  * Created by christian on 2015-10-18.
  */
-public interface Instance extends Receiver<Instance.InstanceIdentity> {
+public interface Instance extends Entity<Instance.InstanceIdentity, Instance.InstanceData> {
 
     EntityName ENTITY_NAME = EntityName.create("INSTANCE");
 
     Message.Field INSTANCE_IDENTITY = NamedField.address("INSTANCE_IDENTITY");
+
+    Data.Type DATA_TYPE = DataType.create("INSTANCE");
 
     enum TaskName implements Message.MessageName, Task.TaskName {
         SET_VALUE,
@@ -30,6 +33,8 @@ public interface Instance extends Receiver<Instance.InstanceIdentity> {
     }
 
     interface InstanceData extends Data<InstanceIdentity,StandardVersion> {
+        default Type getDataType() {return DATA_TYPE;}
+
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
 
         Stream<FieldValue.FieldValueIdentity> getFieldValues();

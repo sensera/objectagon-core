@@ -2,6 +2,7 @@ package org.objectagon.core.storage.entity;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.MessageValue;
@@ -43,6 +44,11 @@ public class EntityServiceProtocolImpl extends AbstractProtocol<EntityServicePro
         @Override
         public Task delete(Identity identity) {
             return task(MessageName.DELETE_ENTITY, send -> send.send(MessageName.DELETE_ENTITY, MessageValue.address(identity)));
+        }
+
+        @Override
+        public Task find(Name name) {
+            return task(MessageName.FIND_ENTITY, send -> send.send(MessageName.FIND_ENTITY, MessageValue.name(name)));
         }
     }
 }

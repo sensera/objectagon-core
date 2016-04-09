@@ -50,5 +50,15 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
         public Task createInstance() {
             return task(MessageName.CREATE_INSTANCE, send -> send.send(MessageName.CREATE_INSTANCE));
         }
+
+        @Override
+        public Task getName() {
+            return task(MessageName.GET_NAME, send -> send.send(MessageName.GET_NAME));
+        }
+
+        @Override
+        public Task setName(InstanceClass.InstanceClassName name) {
+            return task(MessageName.SET_NAME, send -> send.send(MessageName.SET_NAME, name(InstanceClass.INSTANCE_CLASS_NAME, name)));
+        }
     }
 }

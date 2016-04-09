@@ -32,11 +32,11 @@ public class ServiceProtocolImpl extends AbstractProtocol<ServiceProtocol.Send, 
         }
 
         public Task startService() {
-            return task(MessageName.START_SERVICE, send -> send(MessageName.START_SERVICE));
+            return task(MessageName.START_SERVICE, send -> send.send(MessageName.START_SERVICE));
         }
 
         public Task stopService() {
-            return task(MessageName.STOP_SERVICE, send -> send(MessageName.STOP_SERVICE));
+            return task(MessageName.STOP_SERVICE, send -> send.send(MessageName.STOP_SERVICE));
         }
 
     }

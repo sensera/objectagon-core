@@ -26,6 +26,8 @@ public class SevereError extends RuntimeException implements StandardProtocol.Er
 
     public SevereError(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Message.Value...params) {
         this(errorClass, errorKind, Arrays.asList(params));
+        if (errorKind.equals(ErrorKind.UNKNOWN_MESSAGE))
+            printStackTrace();
     }
 
     public SevereError(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> params) {
@@ -33,7 +35,7 @@ public class SevereError extends RuntimeException implements StandardProtocol.Er
         this.errorClass = errorClass;
         this.errorKind = errorKind;
         this.params = params;
-        if (errorKind.equals(ErrorKind.INCONSISTENCY))
+        if (errorKind.equals(ErrorKind.INCONSISTENCY) || errorKind.equals(ErrorKind.UNKNOWN_MESSAGE))
             printStackTrace();
     }
 

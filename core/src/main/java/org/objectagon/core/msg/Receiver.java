@@ -5,6 +5,7 @@ import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.service.Service;
+import org.objectagon.core.task.TaskBuilder;
 
 import java.util.Optional;
 
@@ -109,11 +110,13 @@ public interface Receiver<A extends Address> {
 
         Iterable<Message.Value> getValues();
 
-        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations configurations);
+        <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations... configurations);
 
         <U extends Protocol.Send> U createSend(Protocol.ProtocolName protocolName, Address target);
 
         <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName);
+
+        TaskBuilder getTaskBuilder();
     }
 
 

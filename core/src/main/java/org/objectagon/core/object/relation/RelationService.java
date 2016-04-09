@@ -24,7 +24,7 @@ public class RelationService extends ObjectService<Service.ServiceName, Relation
     }
 
     public RelationService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl, NAME);
+        super(receiverCtrl, NAME, Relation.DATA_TYPE);
     }
 
     @Override protected Server.Factory createEntityFactory() {

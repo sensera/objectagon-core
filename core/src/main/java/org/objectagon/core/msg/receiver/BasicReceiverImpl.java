@@ -12,6 +12,8 @@ import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.name.NameServiceProtocol;
+import org.objectagon.core.task.StandardTaskBuilder;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.Util;
 
 /**
@@ -95,6 +97,10 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         private Message.Values headers;
 
         public ForwardComposer(Address sender, Address target, Message.Values headers) {
+            if (target == null)
+                throw new SevereError(ErrorClass.COMPOSER, ErrorKind.TARGET_IS_NULL);
+            if (sender == null)
+                throw new SevereError(ErrorClass.COMPOSER, ErrorKind.SENDER_IS_NULL);
             this.sender = sender;
             this.target = target;
             this.headers = headers;
@@ -244,7 +250,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         }
 
         @Override
-        public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations configurations) {
+        public <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Configurations... configurations) {
             return getReceiverCtrl().createReceiver(name, configurations);
         }
 
@@ -252,6 +258,11 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         public <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName) {
             Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
             return (U) protocol.createReply(() -> createReplyToSenderComposer());
+        }
+
+        @Override
+        public TaskBuilder getTaskBuilder() {
+            return new StandardTaskBuilder(getReceiverCtrl());
         }
 
         @Override

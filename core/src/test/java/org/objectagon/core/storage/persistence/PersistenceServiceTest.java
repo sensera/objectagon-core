@@ -115,7 +115,7 @@ public class PersistenceServiceTest extends AbstractProtocolTest {
     public void all() {
         persistenceService.stored.put(new PersistenceService.Key(identity, version), data::values);
 
-        SimpleMessage message = SimpleMessage.simple(PersistenceServiceProtocol.MessageName.ALL)
+        SimpleMessage message = SimpleMessage.simple(PersistenceServiceProtocol.MessageName.ALL_BY_ID)
                 .setValue(VolatileAddressValue.address(StandardField.ADDRESS, identity));
         StandardEnvelope envelope = new StandardEnvelope(sender, target, message);
         persistenceService.receive(envelope);

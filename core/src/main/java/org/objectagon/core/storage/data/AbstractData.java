@@ -23,6 +23,4 @@ public abstract class AbstractData<I extends Identity, V extends Version> implem
         this.identity = identity;
         this.version = version;
     }
-
-
 }

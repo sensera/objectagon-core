@@ -32,7 +32,7 @@ public class UserException extends Exception implements StandardProtocol.ErrorMe
         this.errorClass = errorClass;
         this.errorKind = errorKind;
         this.params.addAll(Arrays.asList(params));
-        if (errorKind.equals(ErrorKind.INCONSISTENCY))
+        if (errorKind.equals(ErrorKind.INCONSISTENCY) || errorKind.equals(ErrorKind.UNKNOWN_MESSAGE))
             printStackTrace();
         else
             this.params.add(MessageValue.text(STACKTRACE, stackTraceToString()));
@@ -43,7 +43,7 @@ public class UserException extends Exception implements StandardProtocol.ErrorMe
         this.errorKind = errorKind;
         this.params = new LinkedList<>();
         params.forEach(this.params::add);
-        if (errorKind.equals(ErrorKind.INCONSISTENCY))
+        if (errorKind.equals(ErrorKind.INCONSISTENCY) || errorKind.equals(ErrorKind.UNKNOWN_MESSAGE))
             printStackTrace();
         else
             this.params.add(MessageValue.text(STACKTRACE, stackTraceToString()));

@@ -3,6 +3,8 @@ package org.objectagon.core.domain;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.NamedField;
+import org.objectagon.core.storage.Data;
+import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardEntity;
 import org.objectagon.core.storage.standard.StandardVersion;
@@ -15,11 +17,13 @@ public class User extends StandardEntity<StandardData> {
 
     public static EntityName USER_ENTITY_NAME = EntityName.create("User");
 
+    public static Data.Type DATA_TYPE = DataType.create("USER");
+
     public static Message.Field USER_NAME = NamedField.text("userName");
     public static Message.Field PASSWORD = NamedField.password("password");
 
     public User(Receiver.ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, DATA_TYPE);
     }
 
     @Override

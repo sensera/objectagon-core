@@ -100,7 +100,7 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
             TransactionManager.TransactionDataChange change = transactionData.change();
             change.add(identity);
             TransactionManager.TransactionData newTransactionData = change.create(transactionData.getVersion().nextVersion());
-            return actionContext.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushTransactionData(newTransactionData);
+            return actionContext.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(newTransactionData);
         }
     }
 

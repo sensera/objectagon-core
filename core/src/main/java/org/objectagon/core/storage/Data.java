@@ -1,12 +1,16 @@
 package org.objectagon.core.storage;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.message.NamedField;
 
 /**
  * Created by christian on 2015-10-15.
  */
 public interface Data<I extends Identity, V extends Version>  {
+
+    interface Type extends Name {}
+
     enum MergeStrategy {
         None,
         OverWrite,
@@ -18,6 +22,8 @@ public interface Data<I extends Identity, V extends Version>  {
     I getIdentity();
 
     V getVersion();
+
+    Type getDataType();
 
     <C extends Change<I, V>> C change();
 

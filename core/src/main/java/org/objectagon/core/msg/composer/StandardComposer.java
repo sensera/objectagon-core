@@ -24,6 +24,8 @@ public class StandardComposer implements Composer {
     }
 
     public StandardComposer(Receiver receiver, Address target, Message.Values headers) {
+        if (target == null)
+            throw new SevereError(ErrorClass.COMPOSER, ErrorKind.TARGET_IS_NULL);
         this.receiver = receiver;
         this.target = target;
         this.headers = headers;

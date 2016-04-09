@@ -18,6 +18,7 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
     private InstanceClass.InstanceClassData instanceClassData;
     private List<Consumer<List<Field.FieldIdentity>>> fieldChanges = new ArrayList<>();
     private List<Consumer<List<RelationClass.RelationClassIdentity>>> relationClassChanges = new ArrayList<>();
+    private Optional<InstanceClass.InstanceClassName> name = Optional.empty();
 
     public ChangeInstanceClassImpl(InstanceClass.InstanceClassData instanceClassData) {
         this.instanceClassData = instanceClassData;
@@ -48,12 +49,19 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
     }
 
     @Override
+    public InstanceClass.ChangeInstanceClass setName(InstanceClass.InstanceClassName name) {
+        this.name = Optional.of(name);
+        return this;
+    }
+
+    @Override
     public <D extends Data<InstanceClass.InstanceClassIdentity, StandardVersion>> D create(StandardVersion version) {
         List<Field.FieldIdentity> newFields = instanceClassData.getFields().collect(Collectors.toList());
         fieldChanges.stream().forEach(listConsumer -> listConsumer.accept(newFields));
         List<RelationClass.RelationClassIdentity> newRelations = instanceClassData.getRelations().collect(Collectors.toList());
         relationClassChanges.stream().forEach(listConsumer -> listConsumer.accept(newRelations));
         InstanceClassDataImpl res = new InstanceClassDataImpl(
+                name.orElse(instanceClassData.getName()),
                 newFields.stream(),
                 newRelations.stream(),
                 instanceClassData.getIdentity(),

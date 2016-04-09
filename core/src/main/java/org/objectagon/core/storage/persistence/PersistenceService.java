@@ -16,6 +16,8 @@ import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by christian on 2015-10-18.
@@ -28,18 +30,14 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         server.registerFactory(NAME, PersistenceService::new);
     }
 
+    Map<Identity,Data> latestVersion = new HashMap<>();
     Map<Key,Data> datas = new HashMap<>();
     Map<Key,DataVersion> dataVersions = new HashMap<>();
     Map<Key,TransactionManager.TransactionData> dataTransactions = new HashMap<>();
 
     @Override
-    public void pushData(Identity identity, Version version, Data data) {
-        datas.put(new Key(identity, version), data);
-    }
-
-    @Override
-    public void pushDataVersion(Identity identity, Version version, DataVersion dataVersion) {
-        dataVersions.put(new Key(identity, version), dataVersion);
+    public void pushData(Data data) {
+        datas.put(new Key(data), data);
     }
 
     @Override
@@ -55,8 +53,16 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
     @Override
     public void all(Identity identity, Consumer<Data> allVersions) {
         datas.keySet().stream()
-                .filter(key -> key.identity.equals(identity))
-                .forEach(key -> allVersions.accept(datas.get(key)));
+                .filter(identity::equals)
+                .map(datas::get)
+                .forEach(allVersions);
+    }
+
+    @Override
+    public void all(Data.Type type, Consumer<Data> result) {
+        datas.values().stream()
+                .filter(data -> data.getDataType().equals(type))
+                .forEach(result);
     }
 
     @Override
@@ -83,28 +89,20 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
                 (initializer, context) -> new PushDataAction((PersistenceServiceActionInitializer) initializer, (PersistenceServiceWorkerImpl) context)
         );
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.PUSH_DATA_VERSION),
-                (initializer, context) -> new PushDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
-        );
-        reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.PUSH_DATA_AND_VERSION),
-                (initializer, context) -> new PushDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
-        );
-        reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.PUSH_TRANSACTION_DATA),
-                (initializer, context) -> new PushDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
-        );
-        reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.GET_DATA),
                 (initializer, context) -> new GetDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
         );
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.GET_DATA_VERSION),
-                (initializer, context) -> new GetDataVersionAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
+                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.GET_LATEST_DATA),
+                (initializer, context) -> new GetDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
         );
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.ALL),
-                (initializer, context) -> new AllDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
+                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.ALL_BY_ID),
+                (initializer, context) -> new AllByIdDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
+        );
+        reactorBuilder.add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(PersistenceServiceProtocol.MessageName.ALL_BY_TYPE),
+                (initializer, context) -> new AllByTypeDataAction( (PersistenceServiceActionInitializer) initializer,  (PersistenceServiceWorkerImpl) context)
         );
     }
 
@@ -120,35 +118,29 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
     }
 
     private static class PushDataAction extends StandardAction<PersistenceServiceActionInitializer, PersistenceServiceWorkerImpl> {
-        Identity identity;
-        Version version;
-        Optional<Data> data;
-        Optional<DataVersion> dataVersion;
-        Optional<TransactionManager.TransactionData> transactionData;
+        Iterable<Data> data;
         public PushDataAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
         @Override
         public boolean initialize() throws UserException {
-            identity = context.getValue(StandardField.ADDRESS).asAddress();
-            version = StandardVersion.create(context.getValue(Version.VERSION));
-            data = context.getValue(Data.DATA).getOptionalValue();
-            dataVersion = context.getValue(DataVersion.DATA_VERSION).getOptionalValue();
-            transactionData = context.getValue(TransactionManager.DATA_TRANSACTION).getOptionalValue();
+            Message.Values values = context.getValue(StandardField.VALUES).asValues();
+            data = StreamSupport.stream(values.values().spliterator(), false)
+                    .map(value -> value.<Data>getOptionalValue().get())
+                    .collect(Collectors.toList());
             return super.initialize();
         }
 
         @Override
         protected Optional<Message.Value> internalRun() throws UserException {
-            data.ifPresent(data -> initializer.pushData(identity, version, data));
-            dataVersion.ifPresent(dataVersion -> initializer.pushDataVersion(identity, version, dataVersion));
-            transactionData.ifPresent(transactionData -> initializer.putTransactionData(identity, version, transactionData));
+            data.forEach(data -> initializer.pushData(data));
             return Optional.empty();
         }
     }
 
     private static class GetDataAction extends StandardAction<PersistenceServiceActionInitializer, PersistenceServiceWorkerImpl> {
+        Data.Type dataType;
         Identity identity;
         Version version;
         public GetDataAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
@@ -157,42 +149,22 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
 
         @Override
         public boolean initialize() throws UserException {
+            dataType = context.getValue(Data.DATA).<Data.Type>getOptionalValue().get();
             identity = context.getValue(StandardField.ADDRESS).asAddress();
-            version = StandardVersion.create(context.getValue(Version.VERSION));
+            version = StandardVersion.create(context.getValue(Version.VERSION)); //TODO Optional
             return super.initialize();
         }
 
         @Override
         protected Optional<Message.Value> internalRun() throws UserException {
-            Optional<Data> data = initializer.getData(identity, version);
+            Optional<Data> data = initializer.getData(identity, version); //TODO check if version is optional present. Do get without version
             return data.flatMap(data1 -> Optional.of(DataMessageValue.data(data1)));
         }
     }
 
-    private static class GetDataVersionAction extends StandardAction<PersistenceServiceActionInitializer, PersistenceServiceWorkerImpl> {
+    private static class AllByIdDataAction extends StandardAction<PersistenceServiceActionInitializer, PersistenceServiceWorkerImpl> {
         Identity identity;
-        Version version;
-        public GetDataVersionAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
-            super(serviceActionCommands, serviceWorker);
-        }
-
-        @Override
-        public boolean initialize() throws UserException {
-            identity = context.getValue(StandardField.ADDRESS).asAddress();
-            version = StandardVersion.create(context.getValue(Version.VERSION));
-            return super.initialize();
-        }
-
-        @Override
-        protected Optional<Message.Value> internalRun() throws UserException {
-            Optional<DataVersion> data = initializer.getDataVersion(identity, version);
-            return data.flatMap(data1 -> Optional.of(DataMessageValue.data(data1)));
-        }
-    }
-
-    private static class AllDataAction extends StandardAction<PersistenceServiceActionInitializer, PersistenceServiceWorkerImpl> {
-        Identity identity;
-        public AllDataAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
+        public AllByIdDataAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
             super(serviceActionCommands, serviceWorker);
         }
 
@@ -214,6 +186,30 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         }
     }
 
+    private static class AllByTypeDataAction extends StandardAction<PersistenceServiceActionInitializer, PersistenceServiceWorkerImpl> {
+        Data.Type dataType;
+        public AllByTypeDataAction(PersistenceServiceActionInitializer serviceActionCommands, PersistenceServiceWorkerImpl serviceWorker) {
+            super(serviceActionCommands, serviceWorker);
+        }
+
+        @Override
+        public boolean initialize() throws UserException {
+            dataType = context.getValue(StandardField.NAME).asName();
+            return super.initialize();
+        }
+
+        @Override
+        protected Optional<Message.Value> internalRun() throws UserException {
+            List<Message.Value> collectedVersionValues = new LinkedList<>();
+            initializer.all(dataType, (data) -> {
+                List<Message.Value> versionAndValues = new LinkedList<>();
+                versionAndValues.add(DataMessageValue.data(data));
+                collectedVersionValues.add(MessageValue.values(versionAndValues));
+            });
+            return Optional.of(MessageValue.values(collectedVersionValues));
+        }
+    }
+
     static class Key {
         Identity identity;
         Version version;
@@ -221,6 +217,10 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
         public Key(Identity identity, Version version) {
             this.identity = identity;
             this.version = version;
+        }
+
+        public Key(Data data) {
+            this(data.getIdentity(), data.getVersion());
         }
 
         @Override

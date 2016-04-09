@@ -29,7 +29,7 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
 public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.InstanceData,StandardVersion,InstanceImpl.InstanceWorker> implements Instance {
 
     public InstanceImpl(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl);
+        super(receiverCtrl, Instance.DATA_TYPE);
     }
 
     @Override

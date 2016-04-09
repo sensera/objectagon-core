@@ -63,7 +63,7 @@ public class TransactionService extends AbstractService<TransactionService.Trans
 
         public PersistenceServiceProtocol.Send createPersistenceServiceProtocolSend(Name target) {
             return getWorkerContext()
-                    .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, null)
+                    .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL)
                     .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
         }
     }
@@ -93,7 +93,7 @@ public class TransactionService extends AbstractService<TransactionService.Trans
             });
             transactionManagers.put(transactionManager.getAddress(), transactionManager);
             setSuccessAction((messageName, values) -> context.replyWithParam(MessageValue.address(transactionManager.getAddress())));
-            return context.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushTransactionData(transactionData);
+            return context.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(transactionData);
         }
     }
 

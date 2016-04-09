@@ -28,7 +28,7 @@ public class FieldValueService extends EntityService<Service.ServiceName, FieldV
     }
 
     public FieldValueService(ReceiverCtrl receiverCtrl) {
-        super(receiverCtrl, NAME);
+        super(receiverCtrl, NAME, FieldValue.DATA_TYPE);
     }
 
     @Override protected Server.Factory createEntityFactory() {return FieldValueImpl::new;}

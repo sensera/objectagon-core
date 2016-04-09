@@ -9,10 +9,7 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.message.MessageValue;
-import org.objectagon.core.storage.DataVersion;
-import org.objectagon.core.storage.Identity;
-import org.objectagon.core.storage.Transaction;
-import org.objectagon.core.storage.Version;
+import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.data.AbstractData;
 
 import java.util.Objects;
@@ -34,6 +31,8 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
     @Override public Optional<TransactionVersionNode<V>> rootNode() {
         return Optional.ofNullable(root);
     }
+
+
 
     public DataVersionImpl(I identity, V version, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
         super(identity, version);

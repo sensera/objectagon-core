@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface EntityServiceActionInitializer extends Reactor.ActionInitializer {
 
     Optional<Receiver.NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil);
+
 }
