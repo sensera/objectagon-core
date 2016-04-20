@@ -1,12 +1,14 @@
 package org.objectagon.core.object.field.data;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
 import lombok.Getter;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -45,5 +47,15 @@ public class FieldDataImpl extends AbstractData<Field.FieldIdentity, StandardVer
     @Override
     public <C extends Change<Field.FieldIdentity, StandardVersion>> C change() {
         return (C) new FieldDataChangeImpl(this);
+    }
+
+    @Override
+    public Iterable<Message.Value> values() {
+        //TODO Fix
+        return Arrays.asList(
+                MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, instanceClassIdentity),
+                MessageValue.name(Field.FIELD_NAME, name),
+                MessageValue.name(Field.FIELD_TYPE, type)
+        );
     }
 }

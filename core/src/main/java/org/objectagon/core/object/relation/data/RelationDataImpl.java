@@ -1,11 +1,13 @@
 package org.objectagon.core.object.relation.data;
 
-import org.objectagon.core.object.Instance;
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.object.*;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
-import org.objectagon.core.object.Relation;
-import org.objectagon.core.object.RelationClass;
+
+import java.util.Arrays;
 
 /**
  * Created by christian on 2016-03-16.
@@ -49,4 +51,13 @@ public class RelationDataImpl extends AbstractData<Relation.RelationIdentity, St
         return (C) new RelationDataChangeImpl(this);
     }
 
+    @Override
+    public Iterable<Message.Value> values() {
+        //TODO Fix
+        return Arrays.asList(
+                MessageValue.address(RelationClass.RELATION_CLASS_IDENTITY, relationClassIdentity),
+                MessageValue.address(Instance.INSTANCE_IDENTITY, instanceIdentity)
+        );
+
+    }
 }

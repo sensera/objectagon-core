@@ -28,6 +28,15 @@ public class FindNamedConfiguration {
         throw new SevereError(ErrorClass.RECEIVER, ErrorKind.MISSING_CONFIGURATION, MessageValue.name(name));
     }
 
+    public <C extends Receiver.NamedConfiguration> Optional<C> getConfigurationByNameOptional(Name name) {
+        for (Receiver.Configurations configurations : this.configurations) {
+            Optional<C> configurationByName = configurations.getConfigurationByName(name);
+            if (configurationByName.isPresent())
+                return configurationByName;
+        }
+        return Optional.empty();
+    }
+
     public <A extends Address> A createConfiguredAddress(CreateAddress<A> createAddress) {
         Receiver.AddressConfigurationParameters addressConfigurationParameters = getConfigurationByName(Receiver.ADDRESS_CONFIGURATIONS);
         return createAddress.create(addressConfigurationParameters.getServerId(), addressConfigurationParameters.getTimeStamp(), addressConfigurationParameters.getId());

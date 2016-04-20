@@ -7,7 +7,7 @@ import org.objectagon.core.msg.message.NamedField;
 /**
  * Created by christian on 2015-10-15.
  */
-public interface Data<I extends Identity, V extends Version>  {
+public interface Data<I extends Identity, V extends Version> extends Message.Values {
 
     interface Type extends Name {}
 

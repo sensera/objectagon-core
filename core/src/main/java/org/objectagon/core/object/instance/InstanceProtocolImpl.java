@@ -3,16 +3,13 @@ package org.objectagon.core.object.instance;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceProtocol;
-import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.*;
 import org.objectagon.core.task.Task;
 
 import static org.objectagon.core.msg.message.MessageValue.address;
-import static org.objectagon.core.msg.message.MessageValue.name;
 
 
 /**
@@ -42,28 +39,28 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
         }
 
         @Override
-        public Task getValue(Field.FieldName name) {
-            return task(MessageName.GET_VALUE, send -> send.send(MessageName.GET_VALUE, name(Field.FIELD_NAME, name)));
+        public Task getValue(Field.FieldIdentity fieldIdentity) {
+            return task(MessageName.GET_VALUE, send -> send.send(MessageName.GET_VALUE, address(Field.FIELD_IDENTITY, fieldIdentity)));
         }
 
         @Override
-        public Task setValue(Field.FieldName name, Message.Value value) {
-            return task(MessageName.SET_VALUE, send -> send.send(MessageName.SET_VALUE, name(Field.FIELD_NAME, name), value));
+        public Task setValue(Field.FieldIdentity fieldIdentity, Message.Value value) {
+            return task(MessageName.SET_VALUE, send -> send.send(MessageName.SET_VALUE, address(Field.FIELD_IDENTITY, fieldIdentity), MessageValue.values(FieldValue.VALUE, value)));
         }
 
         @Override
-        public Task getRelation(RelationClass.RelationName name) {
-            return task(MessageName.GET_RELATION, send -> send.send(MessageName.GET_RELATION, name(RelationClass.RELATION_NAME, name)));
+        public Task getRelation(RelationClass.RelationClassIdentity relationClassIdentity) {
+            return task(MessageName.GET_RELATION, send -> send.send(MessageName.GET_RELATION, address(RelationClass.RELATION_CLASS_IDENTITY, relationClassIdentity)));
         }
 
         @Override
-        public Task addRelation(RelationClass.RelationName name, Instance.InstanceIdentity instance) {
-            return task(MessageName.ADD_RELATION, send -> send.send(MessageName.ADD_RELATION, name(RelationClass.RELATION_NAME, name), address(instance)));
+        public Task addRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance) {
+            return task(MessageName.ADD_RELATION, send -> send.send(MessageName.ADD_RELATION, address(RelationClass.RELATION_CLASS_IDENTITY, relationClassIdentity), address(instance)));
         }
 
         @Override
-        public Task removeRelation(RelationClass.RelationName name, Instance.InstanceIdentity instance) {
-            return task(MessageName.REMOVE_RELATION, send -> send.send(MessageName.REMOVE_RELATION, name(RelationClass.RELATION_NAME, name), address(instance)));
+        public Task removeRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance) {
+            return task(MessageName.REMOVE_RELATION, send -> send.send(MessageName.REMOVE_RELATION, address(RelationClass.RELATION_CLASS_IDENTITY, relationClassIdentity), address(instance)));
         }
     }
 

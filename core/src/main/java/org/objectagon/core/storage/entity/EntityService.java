@@ -3,6 +3,7 @@ package org.objectagon.core.storage.entity;
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -41,7 +42,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
     private EntityName entityName;
     private ServiceName persistencyService;
-    private ServiceName searchService;
+    private Optional<ServiceName> searchService = Optional.empty();
 
     private Map<I, Entity<I,D>> identityEntityMap = new HashMap<I, Entity<I,D>>();
     private ServiceName name;
@@ -58,6 +59,13 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         return (A) FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, id) -> StandardServiceNameAddress.name(name, serverId, timestamp, id));
     }
 
+    private ServiceName getSearchService() {
+        return searchService.orElseGet(() -> {
+            ServiceName value = (ServiceName) getReceiverCtrl().lookupAddressByAlias(SearchService.NAME).orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.name(SearchService.NAME)));
+            searchService = Optional.of(value);
+            return value;
+        });
+    }
 
     @Override
     public void configure(Configurations... configurations) {
@@ -65,7 +73,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         EntityServiceConfig config = FindNamedConfiguration.finder(configurations).getConfigurationByName(ENTITY_SERVICE_CONFIG_NAME);
         entityName = config.getEntityName();
         persistencyService = config.getPersistencyService();
-        getReceiverCtrl().lookupAddressByAlias(SearchService.NAME).ifPresent(address -> searchService = (ServiceName) address);
+
         getReceiverCtrl().registerFactory(entityName, createEntityFactory());
     }
 
@@ -135,7 +143,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         }
 
         public Task nameSearch(Name name) {
-            return this.<SearchServiceProtocol.Send>createTargetSession(SearchServiceProtocol.SEARCH_SERVICE_PROTOCOL, searchService).nameSearch(name);
+            return this.<SearchServiceProtocol.Send>createTargetSession(SearchServiceProtocol.SEARCH_SERVICE_PROTOCOL, getSearchService()).nameSearch(name);
         }
 
         public Optional<Task> find(Name name) {
@@ -179,7 +187,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         private Configurations createInitializer(W context, final Consumer<DataVersion<I, StandardVersion>> dataVersionConsumer) {
             LazyInitializedConfigurations configurations = LazyInitializedConfigurations.create();
 
-            MessageValueFieldUtil messageValueFieldUtil = MessageValueFieldUtil.create(context.getValues());
+            MessageValueFieldUtil messageValueFieldUtil = MessageValueFieldUtil.create(context.getValue(StandardField.VALUES).asValues());
 
             configurations.add(EXTRA_ADDRESS_CONFIG_NAME, () -> initializer.extraAddressCreateConfiguration(messageValueFieldUtil).get());
 
@@ -190,6 +198,11 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
                         return dataVersion;
                     }
                     @Override public long getDataVersionCounter() {return 0;}
+
+                @Override
+                public Message.Values initialParams() {
+                    return initialParams;
+                }
             });
 
             return configurations;
@@ -232,6 +245,11 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             return OneReceiverConfigurations.create(ENTITY_CONFIG_NAME, new Entity.EntityConfig() {
                 @Override public <I extends Identity, V extends Version> DataVersion<I, V> getDataVersion(I identity) {return dataVersion;}
                 @Override public long getDataVersionCounter() {return counter;}
+
+                @Override
+                public Message.Values initialParams() {
+                    return MessageValue.values().asValues();
+                }
             });
         }
     }

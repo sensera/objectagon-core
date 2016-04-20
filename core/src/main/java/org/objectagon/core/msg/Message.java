@@ -1,10 +1,11 @@
 package org.objectagon.core.msg;
 
-import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueMessage;
+import org.objectagon.core.msg.message.UnknownValue;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -35,6 +36,7 @@ public interface Message {
         MessageValueMessage asMessage();
         <N extends Name> N asName();
         Values asValues();
+        default boolean isUnknown() { return this instanceof UnknownValue; }
 
         void writeTo(Writer writer);
     }

@@ -1,7 +1,11 @@
 package org.objectagon.core.object.instance;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.InstanceClass;
@@ -38,7 +42,10 @@ public class InstanceService extends EntityService<Service.ServiceName, Instance
 
     @Override
     public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) {
-        return Optional.of((InstanceProtocol.ConfigInstance) () -> messageValueFieldUtil.getValueByField(InstanceClass.INSTANCE_CLASS_IDENTITY).asAddress());
+        return Optional.of((InstanceProtocol.ConfigInstance) () -> messageValueFieldUtil.getValueByFieldOption(InstanceClass.INSTANCE_CLASS_IDENTITY)
+                .orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.text(InstanceClass.INSTANCE_CLASS_IDENTITY,"UNKNOWN")))
+                .asAddress()
+        );
     }
 
     @Override

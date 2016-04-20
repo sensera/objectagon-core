@@ -1,12 +1,13 @@
 package org.objectagon.core.object.fieldvalue;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.FieldValue;
-import org.objectagon.core.object.FieldValueProtocol;
-import org.objectagon.core.object.Instance;
+import org.objectagon.core.object.*;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
 import org.objectagon.core.storage.DataVersion;
@@ -42,11 +43,15 @@ public class FieldValueService extends EntityService<Service.ServiceName, FieldV
     public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) {
         return Optional.of(new FieldValueProtocol.ConfigFieldValue(){
             @Override public Field.FieldIdentity getFieldIdentity() {
-                return messageValueFieldUtil.getValueByField(Field.FIELD_IDENTITY).asAddress();
+                return messageValueFieldUtil.getValueByFieldOption(Field.FIELD_IDENTITY)
+                        .orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.text(Field.FIELD_IDENTITY,"UNKNOWN")))
+                        .asAddress();
             }
 
             @Override public Instance.InstanceIdentity getInstanceIdentity() {
-                return messageValueFieldUtil.getValueByField(Instance.INSTANCE_IDENTITY).asAddress();
+                return messageValueFieldUtil.getValueByFieldOption(Instance.INSTANCE_IDENTITY)
+                        .orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.text(Instance.INSTANCE_IDENTITY,"UNKNOWN")))
+                        .asAddress();
             }
         });
     }

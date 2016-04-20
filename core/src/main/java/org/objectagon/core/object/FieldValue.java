@@ -2,12 +2,12 @@ package org.objectagon.core.object;
 
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.NamedField;
+import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.Entity;
+import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
-import org.objectagon.core.storage.Data;
-import org.objectagon.core.storage.Identity;
 
 /**
  * Created by christian on 2015-10-18.
@@ -16,6 +16,7 @@ public interface FieldValue extends Entity<FieldValue.FieldValueIdentity, FieldV
 
     EntityName ENTITY_NAME = EntityName.create("FIELD_VALUE");
 
+    Message.Field FIELD_VALUE_IDENTITY = NamedField.address("FIELD_VALUE_IDENTITY");
     Message.Field VALUE = NamedField.address("VALUE");
 
     Data.Type DATA_TYPE = DataType.create("FIELD_VALUE");

@@ -55,8 +55,17 @@ public class AddressList<A extends Address> implements Address {
         return new AddressList<>(fieldValues.collect(toList()));
     }
 
+    public int size() {
+        return addressList.size();
+    }
+
     @FunctionalInterface
     public interface SelectAddress<A extends Address> {
         boolean equals(A address);
+    }
+
+    @Override
+    public String toString() {
+        return "AddressList["+addressList+"]";
     }
 }

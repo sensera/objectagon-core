@@ -1,6 +1,8 @@
 package org.objectagon.core.storage.standard;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.data.AbstractData;
 
@@ -48,5 +50,13 @@ public class StandardData extends AbstractData<StandardIdentity,StandardVersion>
                     original.getDataType(),
                     values.values());
         }
+    }
+
+    @Override
+    public Iterable<Message.Value> values() {
+        //TODO Fix
+        return Arrays.asList(
+                MessageValue.name(StandardField.NAME, dataType)
+        );
     }
 }

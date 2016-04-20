@@ -15,6 +15,7 @@ public interface SearchServiceProtocol extends Protocol<SearchServiceProtocol.Se
 
     enum MessageName implements Message.MessageName, Task.TaskName {
         NAME_SEARCH,
+        NAME_CHANGED_EVENT
     }
 
     interface Send extends Protocol.Send {

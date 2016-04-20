@@ -21,5 +21,4 @@ public class StandardAddress implements Address {
     public static StandardAddress fromConfig(Receiver.AddressConfigurationParameters addressConfigurationParameters) {
         return new StandardAddress(addressConfigurationParameters.getServerId(), addressConfigurationParameters.getTimeStamp(), addressConfigurationParameters.getId());
     }
-
 }

@@ -4,8 +4,10 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
+import org.objectagon.core.object.FieldValue;
 import org.objectagon.core.object.FieldValueProtocol;
 import org.objectagon.core.task.Task;
 
@@ -37,7 +39,7 @@ public class FieldValueProtocolImpl extends AbstractProtocol<FieldValueProtocol.
         }
 
         @Override public Task setValue(Message.Value value) {
-            return task(MessageName.SET_VALUE, send -> send.send(MessageName.SET_VALUE, value));
+            return task(MessageName.SET_VALUE, send -> send.send(MessageName.SET_VALUE, MessageValue.values(FieldValue.VALUE, value)));
         }
     }
 
@@ -51,7 +53,7 @@ public class FieldValueProtocolImpl extends AbstractProtocol<FieldValueProtocol.
         }
 
         @Override public void setValue(Message.Value value) {
-            transport(composer.create(MessageName.SET_VALUE, value));
+            transport(composer.create(MessageName.SET_VALUE, MessageValue.values(FieldValue.VALUE, value)));
         }
     }
 }

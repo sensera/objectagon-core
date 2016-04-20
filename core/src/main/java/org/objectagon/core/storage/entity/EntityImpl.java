@@ -7,6 +7,7 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.entity.util.DataVersionTransactions;
@@ -71,6 +72,13 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         return new NodeFinder(transaction)
                 .startFinder(dataVersion.rootNode())
                 .map(DataVersion.TransactionVersionNode::getVersion);
+    }
+
+    private void updateDataAndVersion(D newData, DataVersion<I, V> newDataVersion) {
+        System.out.println("EntityImpl.updateDataAndVersion "+newData);
+        System.out.println("EntityImpl.updateDataAndVersion "+dataVersion);
+        this.dataVersion = newDataVersion;
+        this.dataCache.put(newData.getVersion(), newData);
     }
 
     private class NodeFinder {
@@ -268,15 +276,12 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         public ReadDataAction(W worker, ReadActionConsumer<W,D> consumer) {
             this.worker = worker;
             this.consumer = consumer;
-            System.out.println("ReadDataAction.ReadDataAction ++++++++++++++++++++++++++++++");
         }
 
         public void execute() {
-            System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ ");
             Transaction transaction = worker.currentTransaction();
             Optional<D> cachedDataByTransaction = getCachedDataByTransaction(transaction);
             if (cachedDataByTransaction.isPresent()) {
-                System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ present");
                 try {
                     doDataRead(cachedDataByTransaction.get());
                 } catch (UserException e) {
@@ -284,7 +289,6 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 }
                 return;
             }
-            System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ load");
             final Optional<V> verisionOption = getGetVersionFromTransaction(transaction);
 
             verisionOption.ifPresent((version)-> worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
@@ -293,7 +297,6 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                     .addSuccessAction((messageName, values) -> doDataRead(Util.getValueByField(values, Data.DATA).getValue()))
                     .start()
             );
-            System.out.println("ReadDataAction.execute ++++++++++++++++++++++++++++ create");
             verisionOption.orElseGet(()-> {
                 try {
                     doDataRead(createNewData());
@@ -320,11 +323,14 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .create(nextDataVersionVersion());
     }
 
-    protected void pushToPersistence(W worker, D newData, DataVersion<I,V> newDataVersion) {
+    protected void pushToPersistence(W worker, D newData, DataVersion<I, V> newDataVersion, Message.Values preparedValues) {
         worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
                 .pushData(newData, newDataVersion)
                 .addFailedAction(worker::failed)
-                .addSuccessAction(worker::success)
+                .addSuccessAction((messageName, values) -> {
+                    updateDataAndVersion(newData, newDataVersion);
+                    worker.success(StandardProtocol.MessageName.OK_MESSAGE, preparedValues!=null ? preparedValues.values():values);
+                })
                 .start();
     }
 
@@ -365,15 +371,18 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         public WriteDataAction(WriteActionConsumer<W,D,C> change, Message.Values preparedValues) { this.change = change; this.preparedValues = preparedValues; }
 
         public WriteDataAction<C> changeData(WriteActionConsumer<W,D,C> change) throws UserException {
+            System.out.println("WriteDataAction.changeData START");
             newDataVersion = newDataVersion(transaction, version -> this.newVersion = version);
             C changeData = (C) oldData.<C>change();
             change.doDataWrite(worker, oldData, changeData, preparedValues);
             newData = changeData.create(newVersion);
+            System.out.println("WriteDataAction.changeData END");
             return this;
         }
 
         public WriteDataAction<C> pushToPersistence() {
-            EntityImpl.this.pushToPersistence(worker, newData, newDataVersion);
+            System.out.println("WriteDataAction.pushToPersistence "+newData.getVersion());
+            EntityImpl.this.pushToPersistence(worker, newData, newDataVersion, preparedValues);
             return this;
         }
 

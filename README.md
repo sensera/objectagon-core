@@ -1,7 +1,9 @@
 objectagon
 ==========
 
-5GL Aware System Builder
+4GL/5GL Aware System Builder
+
+Continuous migration
 
 Design, Development, Test & Production all integrated and simultaneous.
 Continuous Integration and Development.

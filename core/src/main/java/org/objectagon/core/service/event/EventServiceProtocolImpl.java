@@ -5,13 +5,14 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.msg.message.SimpleMessage;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.storage.EntityServiceProtocol;
+import org.objectagon.core.task.Task;
 
-import static java.util.Arrays.asList;
+import static org.objectagon.core.msg.message.MessageValue.address;
+import static org.objectagon.core.msg.message.MessageValue.name;
 
 /**
  * Created by christian on 2015-10-13.
@@ -33,26 +34,20 @@ public class EventServiceProtocolImpl extends AbstractProtocol<EventServiceProto
             super(sendParam);
         }
 
-        public void startListenTo(Address address, Name name) {
-            transport(composer.create(
-                    SimpleMessage.simple(MessageName.START_LISTEN_TO)
-                            .setValue(StandardField.ADDRESS, address)
-                            .setValue(StandardField.NAME, name)));
+        public Task startListenTo(Address address, Name name) {
+            return task(MessageName.START_LISTEN_TO, send -> send.send(MessageName.START_LISTEN_TO, address(address), name(name)));
         }
 
-        public void stopListenTo(Address address, Name name) {
-            transport(composer.create(
-                    SimpleMessage.simple(MessageName.STOP_LISTEN_TO)
-                            .setValue(StandardField.ADDRESS, address)
-                            .setValue(StandardField.NAME, name)));
+        public Task stopListenTo(Address address, Name name) {
+            return task(MessageName.STOP_LISTEN_TO, send -> send.send(MessageName.STOP_LISTEN_TO, address(address), name(name)));
         }
 
         @Override
         public void broadcast(Name name, Message.MessageName message, Message.Value... values) {
-            transport(composer.create(
-                    SimpleMessage.simple(MessageName.BROADCAST)
-                            .setValue(StandardField.NAME, name)
-                            .setValue(StandardField.MESSAGE, message, asList(values))));
+            send(MessageName.BROADCAST,
+                    MessageValue.name(name),
+                    MessageValue.message(message, values)
+            );
         }
     }
 

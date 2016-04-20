@@ -5,11 +5,11 @@ package org.objectagon.core.msg;
  */
 public interface Name {
 
-    interface Named {
-        Name getName();
+    interface Named<N extends Name> {
+        N getName();
     }
 
-    interface GetName<T> {
-        Named getNameFrom(T target);
+    interface GetName<T, N extends Name> {
+        Named<N> getNameFrom(T target);
     }
 }

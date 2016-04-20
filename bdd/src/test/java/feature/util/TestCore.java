@@ -16,6 +16,7 @@ import org.objectagon.core.server.LocalServerId;
 import org.objectagon.core.server.ServerImpl;
 import org.objectagon.core.service.ServiceProtocol;
 import org.objectagon.core.service.ServiceProtocolImpl;
+import org.objectagon.core.service.event.BroadcastEventServiceProtocolImpl;
 import org.objectagon.core.service.event.EventServiceImpl;
 import org.objectagon.core.service.event.EventServiceProtocolImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
@@ -24,9 +25,7 @@ import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.StorageServices;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.TransactionServiceProtocol;
-import org.objectagon.core.task.ProtocolTask;
-import org.objectagon.core.task.SequenceTask;
-import org.objectagon.core.task.Task;
+import org.objectagon.core.task.*;
 import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.*;
@@ -56,7 +55,7 @@ public class TestCore {
             testCore = new TestCore(name);
             Task initialized = testCore.initialize();
             try {
-                TaskWait.create(initialized).startAndWait(1000L);
+                TaskWait.create(initialized).startAndWait(10000000000L);
             } catch (UserException e) {
                 throw new RuntimeException("Timout!", e);
             }
@@ -80,11 +79,14 @@ public class TestCore {
         this.serverId = LocalServerId.local(serverId);
         this.server = new ServerImpl(this.serverId);
 
+        StandardTaskBuilder.registerAt(server);
+
         ServiceProtocolImpl.registerAtServer(server);
         NameServiceImpl.registerAtServer(server);
         NameServiceProtocolImpl.registerAtServer(server);
         EventServiceImpl.registerAtServer(server);
         EventServiceProtocolImpl.registerAtServer(server);
+        BroadcastEventServiceProtocolImpl.registerAtServer(server);
         nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE).getAddress();
         eventService = server.createReceiver(EventServiceImpl.EVENT_SERVICE_NAME).getAddress();
 
@@ -102,23 +104,38 @@ public class TestCore {
     }
 
     private Task initialize() {
-        SequenceTask sequenceTask = new SequenceTask((Receiver.ReceiverCtrl) server, InitTasks.InitTestCoreTasks);
-        sequenceTask.addSend(
-                InitTasks.StartNameService,
+        TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
+
+        TaskBuilder.SequenceBuilder sequence = taskBuilder.sequence(InitTasks.InitTestCoreTasks);
+
+        sequence.protocol(
                 ServiceProtocol.SERVICE_PROTOCOL,
                 nameService,
                 ServiceProtocol.Send::startService
         );
-        sequenceTask.addSend(
-                InitTasks.StartEventService,
+        sequence.protocol(
                 ServiceProtocol.SERVICE_PROTOCOL,
                 eventService,
                 ServiceProtocol.Send::startService
         );
-        sequenceTask.add(storageServices.initialize());
-        sequenceTask.add(objectServices.initialize());
-        return sequenceTask;
+        storageServices.initialize(sequence);
+        objectServices.initialize(sequence);
+        return sequence.create();
     }
+
+    private Map<String, Address> nameAddress = new HashMap<>();
+
+    public void storeNamedAddress(String name, Address address) {
+        nameAddress.put(name, address);
+    }
+
+    public <A extends Address> A getNamedAddress(String name) {
+        Address address = nameAddress.get(name);
+        if (address == null)
+            throw new RuntimeException("Name("+name+") not found!");
+        return (A) address;
+    }
+
 
     private static Name TEST_USER = StandardName.name("TEST_USER");
 
@@ -133,12 +150,11 @@ public class TestCore {
     }
 
     public void createTransaction() throws UserException {
+        TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
+        TaskBuilder.Builder<Task> builder = taskBuilder.protocol(TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL,
+                storageServices.getTransactionServiceName(), TransactionServiceProtocol.Send::create);
         Message message = TaskWait.create(
-                new ProtocolTask<>(
-                        (Receiver.ReceiverCtrl) server,
-                        InitTasks.CreateTransaction,
-                        TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL,
-                        storageServices.getTransactionServiceName(), TransactionServiceProtocol.Send::create)
+                builder.create()
         ).startAndWait(1000L);
         transaction = Optional.of(message.getValue(StandardField.ADDRESS).asAddress());
     }
@@ -206,6 +222,11 @@ public class TestCore {
         public FieldProtocol.Send createFieldProtocolSend(Field.FieldIdentity fieldIdentity) {
             FieldProtocol fieldProtocol = server.createReceiver(FieldProtocol.FIELD_PROTOCOL);
             return fieldProtocol.createSend(() -> StandardComposer.create(this, fieldIdentity, headers()));
+        }
+
+        public InstanceProtocol.Send createInstanceProtocolSend(Instance.InstanceIdentity instanceIdentity) {
+            InstanceProtocol instanceProtocol = server.createReceiver(InstanceProtocol.INSTANCE_PROTOCOL);
+            return instanceProtocol.createSend(() -> StandardComposer.create(this, instanceIdentity, headers()));
         }
 
         public void verifyResponseMessage(ResponseMessageName responseMessageName) {

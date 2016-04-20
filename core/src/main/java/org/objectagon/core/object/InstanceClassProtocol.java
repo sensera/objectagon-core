@@ -26,8 +26,8 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
     }
 
     interface Send extends Protocol.Send {
-        Task addField(Field.FieldName name);
-        Task addRelation(RelationClass.RelationName name, RelationClass.RelationType type, InstanceClass.InstanceClassIdentity relatedClass);
+        Task addField();
+        Task addRelation(RelationClass.RelationType type, InstanceClass.InstanceClassIdentity relatedClass);
         Task createInstance();
         Task getName();
         Task setName(InstanceClass.InstanceClassName instanceClassName);

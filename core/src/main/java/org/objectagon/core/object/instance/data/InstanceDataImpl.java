@@ -1,13 +1,13 @@
 package org.objectagon.core.object.instance.data;
 
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.address.AddressList;
-import org.objectagon.core.object.FieldValue;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.Relation;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.object.*;
 import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
 
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
@@ -41,6 +41,8 @@ public class InstanceDataImpl extends AbstractData<Instance.InstanceIdentity, St
             AddressList<FieldValue.FieldValueIdentity> values,
             AddressList<Relation.RelationIdentity> relations) {
         super(identity, version);
+        if (instanceClassIdentity==null)
+            throw new NullPointerException("instanceClassIdentity is null");
         this.instanceClassIdentity = instanceClassIdentity;
         this.values = values;
         this.relations = relations;
@@ -49,5 +51,22 @@ public class InstanceDataImpl extends AbstractData<Instance.InstanceIdentity, St
     @Override
     public <C extends Change<Instance.InstanceIdentity, StandardVersion>> C change() {
         return (C) new InstanceDataChangeImpl(this);
+    }
+
+    @Override
+    public Iterable<Message.Value> values() {
+        //TODO Fix
+        return Arrays.asList(
+                MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, instanceClassIdentity)
+        );
+    }
+
+    @Override
+    public String toString() {
+        return "InstanceDataImpl{" +
+                "instanceClassIdentity=" + instanceClassIdentity +
+                ", values=" + values +
+                ", relations=" + relations +
+                '}';
     }
 }

@@ -5,6 +5,8 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
 import org.objectagon.core.object.instance.data.InstanceDataImpl;
@@ -65,8 +67,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     protected void handle(InstanceWorker worker) {
         triggerBuilder(worker)
                 .trigger(InstanceProtocol.MessageName.GET_VALUE, read(this::getValue))
-                .trigger(InstanceProtocol.MessageName.SET_VALUE, read(this::setValue))
-
+                .trigger(InstanceProtocol.MessageName.SET_VALUE, write(this::setValue, this::createValue))
                 .trigger(InstanceProtocol.MessageName.ADD_FIELD, write(this::addField))
                 .trigger(InstanceProtocol.MessageName.REMOVE_FIELD, write(this::removeField, this::dropFieldValues))
                 .orElse(w -> super.handle(w));
@@ -92,15 +93,46 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     private void getValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
-        FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(instanceWorker, instanceData);
-        instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
-                .getValue();
+        System.out.println("InstanceImpl.getValue <"+instanceWorker.currentTransaction()+">");
+        try {
+            FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(
+                    instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress(),
+                    instanceData);
+            instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
+                    .getValue();
+        } catch (UserException e) {
+            if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
+                System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
+                instanceWorker.createFieldProtocolForward(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress()).getDefaultValue();
+            } else
+                throw e;
+        }
     }
 
-    private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
-        FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(instanceWorker, instanceData);
-        instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
-                .setValue(instanceWorker.getValue(FieldValue.VALUE));
+    private Optional<Task> createValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData) {
+        Message.Value value = instanceWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
+        System.out.println("InstanceImpl.createValue "+value+" <"+instanceWorker.currentTransaction()+">");
+        try {
+            FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(
+                    instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress(),
+                    instanceData);
+            instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
+                    .setValue(value);
+            instanceWorker.replyOk();
+        } catch (UserException e) {
+            if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
+                return Optional.of(instanceWorker.createFieldProtocolSend(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress())
+                        .createFieldValue(getAddress(), value));
+            } else
+                instanceWorker.replyWithError(e);
+        }
+        return Optional.empty();
+    }
+
+    private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
+        FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
+        System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
+        change.addField(fieldValueIdentity);
     }
 
     @Override
@@ -116,17 +148,30 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
         public FieldValueProtocol.Forward createFieldValueProtocolForward(FieldValue.FieldValueIdentity fieldValueIdentity) {
             return getWorkerContext()
-                    .<Protocol.ProtocolAddress, FieldValueProtocol>createReceiver(FieldValueProtocol.FIELD_VALUE_PROTOCOL, null)
+                    .<Protocol.ProtocolAddress, FieldValueProtocol>createReceiver(FieldValueProtocol.FIELD_VALUE_PROTOCOL)
                     .createForward(() -> getWorkerContext().createForwardComposer(fieldValueIdentity));
+        }
+
+        public FieldProtocol.Forward createFieldProtocolForward(Field.FieldIdentity fieldIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress, FieldProtocol>createReceiver(FieldProtocol.FIELD_PROTOCOL)
+                    .createForward(() -> getWorkerContext().createForwardComposer(fieldIdentity));
+        }
+
+        public FieldProtocol.Send createFieldProtocolSend(Field.FieldIdentity fieldIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress, FieldProtocol>createReceiver(FieldProtocol.FIELD_PROTOCOL)
+                    .createSend(() -> getWorkerContext().createTargetComposer(fieldIdentity));
         }
     }
 
-    private static FieldValue.FieldValueIdentity getFieldValueIdentity(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
-        Field.FieldIdentity fieldIdentity = instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress();
+    private static FieldValue.FieldValueIdentity getFieldValueIdentity(Field.FieldIdentity fieldIdentity, Instance.InstanceData instanceData) throws UserException {
+        if (fieldIdentity==null)
+            throw new NullPointerException("fieldIdentity is null!");
         return instanceData.getFieldValues()
                 .filter(findField(fieldIdentity))
                 .findAny()
-                .orElseThrow(() -> new UserException(ErrorClass.INSTANCE, ErrorKind.FIELD_NOT_FOUND));
+                .orElseThrow(() -> new UserException(ErrorClass.INSTANCE, ErrorKind.FIELD_NOT_FOUND, MessageValue.address(Field.FIELD_IDENTITY, fieldIdentity)));
     }
 
 }

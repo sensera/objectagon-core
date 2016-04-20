@@ -7,9 +7,7 @@ import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.field.FieldNameImpl;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
-import org.objectagon.core.storage.Identity;
 import org.objectagon.core.task.Task;
 
 import java.util.stream.Stream;
@@ -23,7 +21,7 @@ public class InstanceClassManager {
     private final TestCore.TestUser developer;
 
     private Message taskWait(Task task, AquireValue... aquireValues) throws UserException {
-        Message message = TaskWait.create(task).startAndWait(1000L);
+        Message message = TaskWait.create(task).startAndWait(10000000000L);
         developer.storeResponseMessage(message);
         Stream.of(aquireValues).forEach(aquireValue -> aquireValue.message(message));
         return message;
@@ -48,18 +46,16 @@ public class InstanceClassManager {
                 developer.createInstanceClassEntityServiceProtocol().find(InstanceClassNameImpl.create(typeName)),
                 message -> developer.setValue(InstanceClass.INSTANCE_CLASS_IDENTITY, message.getValue(StandardField.ADDRESS))
         );
-        return MessageValueFieldUtil.create(msg.getValues()).getValueByField(Identity.IDENTITY).asAddress();
+        //return MessageValueFieldUtil.create(msg.getValues()).getValueByField(Identity.IDENTITY).asAddress();
+        return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
     }
 
-    public InstanceClass.InstanceClassIdentity getInstanceClassIdentity() {
-        return developer.getValue(InstanceClass.INSTANCE_CLASS_IDENTITY).get().asAddress();
-    }
-
-    public void addFieldToInstanceClass(InstanceClass.InstanceClassIdentity instanceClassIdentity, String fieldName) throws UserException {
-        taskWait(
-                developer.createInstanceClassProtocolSend(instanceClassIdentity).addField(FieldNameImpl.create(fieldName)),
+    public Field.FieldIdentity addFieldToInstanceClass(InstanceClass.InstanceClassIdentity instanceClassIdentity) throws UserException {
+        Message msg = taskWait(
+                developer.createInstanceClassProtocolSend(instanceClassIdentity).addField(),
                 message -> developer.setValue(Field.FIELD_IDENTITY, message.getValue(StandardField.ADDRESS))
         );
+        return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
     }
 
     @FunctionalInterface

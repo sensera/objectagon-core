@@ -1,7 +1,7 @@
 package org.objectagon.core.task;
 
-import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Protocol;
 
 import java.util.Optional;
@@ -11,6 +11,8 @@ import java.util.Optional;
  */
 public interface TaskBuilder {
 
+    <S extends Protocol.Send> Builder<ProtocolTask<S>> protocol(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction);
+    <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction);
     <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
     <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<S> sendMessageAction);
     Builder<ActionTask> action(Task.TaskName taskName, Action action);
@@ -32,6 +34,8 @@ public interface TaskBuilder {
     }
 
     interface SequenceBuilder extends Builder<SequenceTask> {
+        <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction);
+        <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Composer.ResolveTarget target, ProtocolTask.SendMessageAction<S> sendMessageAction);
         <S extends Protocol.Send> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
         Builder<ActionTask> action(Task.TaskName taskName, Action action);
     }
@@ -40,5 +44,7 @@ public interface TaskBuilder {
         void run();
     }
 
-
+    interface TaskBuilderAddress extends Address {
+        Task.TaskAddress create(Task.TaskName taskName, long taskSequenceId);
+    }
 }

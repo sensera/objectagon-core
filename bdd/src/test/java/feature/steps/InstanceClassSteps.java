@@ -25,9 +25,7 @@ public class InstanceClassSteps {
 
     @Given("^there is a type called (.*)$")
     public void prepareTypeWithName(String typeName) throws UserException {
-        InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
-        InstanceClass.InstanceClassIdentity instanceClassIdentity = mgr.createInstanceClass();
-        mgr.setInstanceClassName(instanceClassIdentity, typeName);
+        createTypeWithName(typeName);
     }
 
     @Given("^I create a type called: (.*)$")
@@ -35,12 +33,14 @@ public class InstanceClassSteps {
         InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
         InstanceClass.InstanceClassIdentity instanceClassIdentity = mgr.createInstanceClass();
         mgr.setInstanceClassName(instanceClassIdentity, typeName);
+        testCore.storeNamedAddress(typeName, instanceClassIdentity);
     }
 
     @Given("^I search for an type called: (.*)$")
     public void findTypeWithName(String typeName) throws UserException {
         InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
         InstanceClass.InstanceClassIdentity instanceClassWithName = mgr.findInstanceClassWithName(typeName);
+        testCore.storeNamedAddress(typeName, instanceClassWithName);
         assertThat(instanceClassWithName != null, is(equalTo(true)));
     }
 

@@ -8,10 +8,12 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.data.AbstractData;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -46,6 +48,21 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
                 mergeStrategy,
                 transaction,
                 nextVersion.map(TransactionVersionNodeImpl::new));
+    }
+
+    @Override
+    public Iterable<Message.Value> values() {
+        //TODO fix values
+        return Arrays.asList(MessageValue.number(DATA_VERSION_COUNTER, versionCounter));
+    }
+
+    @Override
+    public String toString() {
+        return "DataVersionImpl{" +
+                "versionCounter=" + versionCounter +
+                ", nextVersionCounter=" + nextVersionCounter +
+                ", root=" + root +
+                '}';
     }
 
     @AllArgsConstructor

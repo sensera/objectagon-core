@@ -10,11 +10,9 @@ import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
+import org.objectagon.core.utils.FindNamedConfiguration;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by christian on 2015-10-11.
@@ -25,16 +23,27 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
     private TaskName name;
     private List<SuccessAction> successActions = new LinkedList<>();
     private List<FailedAction> failedActions = new LinkedList<>();
+    protected boolean trace = false;
 
     public TaskName getName() {return name;}
+
+    @Override
+    public void trace() {
+        System.out.println(getClass().getSimpleName()+".trace START TRACE "+name+" -------------------------------------------------------");
+        this.trace = true;
+    }
 
     public AbstractTask(Receiver.ReceiverCtrl taskCtrl, TaskName name) {
         super(taskCtrl);
         this.name = name;
     }
 
+    protected void printStartMessage() {
+        if (trace) System.out.println(getClass().getSimpleName()+".start "+name);
+    }
+
     public final void start() {
-        System.out.println("AbstractTask.start "+name);
+        printStartMessage();
         status = Status.Started;
         try {
             internalStart();
@@ -48,7 +57,7 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
     }
 
     protected void success(Message.MessageName messageName, Iterable<Message.Value> values) {
-        System.out.println("AbstractTask.success "+name+" "+messageName);
+        if (trace) System.out.println(getClass().getSimpleName()+".success "+name+" "+messageName);
         status = Status.Completed;
         intSuccess(messageName, values);
         successActions.stream().forEach(successAction -> {
@@ -60,12 +69,21 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
         });
     }
 
+    @Override
+    protected A createAddress(Configurations... configurations) {
+        StandardTaskBuilder.TaskAddressConfigurationParameters taskAddressConfigurationParameters = FindNamedConfiguration.finder(configurations)
+                .getConfigurationByName(Receiver.ADDRESS_CONFIGURATIONS);
+        return (A) taskAddressConfigurationParameters.getTaskBuilderAddress().create(
+                taskAddressConfigurationParameters.getName(),
+                taskAddressConfigurationParameters.getTaskSequenceId());
+    }
+
     protected void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Message.Value... values) {
         failed(errorClass, errorKind, values != null ? Arrays.asList(values) : Collections.EMPTY_LIST);
     }
 
     protected void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
-        System.out.println("AbstractTask.failed "+name+" "+errorClass+" "+errorKind);
+        if (trace) System.out.println(getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind);
         status = Status.Completed;
         intFailed(errorClass, errorKind, values);
         failedActions.stream().forEach(failedAction -> failedAction.failed(errorClass, errorKind, values));

@@ -8,13 +8,13 @@ import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.message.VolatileNameValue;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.task.StandardTaskBuilder;
 import org.objectagon.core.task.TaskBuilder;
-import org.objectagon.core.utils.IdCounter;
-import org.objectagon.core.utils.OneReceiverConfigurations;
-import org.objectagon.core.utils.SwitchCase;
+import org.objectagon.core.utils.*;
 
 import java.util.*;
+import java.util.Formatter;
 
 /**
  * Created by christian on 2015-11-16.
@@ -28,6 +28,8 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
     private Map<Address, Receiver> receivers = new HashMap<>();
     EnvelopeProcessor envelopeProcessor;
     private ServerAliasCtrlImpl serverAliasCtrl = new ServerAliasCtrlImpl();
+    private org.objectagon.core.utils.Formatter.Format format = org.objectagon.core.utils.FormatterImpl.standard();
+    private Formatter textFormatter = new Formatter();
 
     @Override public ServerId getServerId() {return serverId;}
 
@@ -55,7 +57,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
 
     @Override
     public TaskBuilder getTaskBuilder() {
-        return new StandardTaskBuilder(this);
+        return createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
     }
 
     @Override
@@ -81,6 +83,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
             if (receiver.getAddress() == null)
                 throw new SevereError(ErrorClass.SERVER, ErrorKind.RECEIVER_HAS_NO_ADDRESS, VolatileNameValue.name(name));
             registerReceiver(receiver.getAddress(), receiver);
+            //System.out.println("ServerImpl.createReceiver "+receiver.getAddress());
         }
         return receiver;
     }
@@ -97,23 +100,29 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         Receiver receiver = receivers.get(target);
         if (receiver==null) {
             if (target instanceof Name)
+/*
             System.out.println("ServerImpl.processEnvelopeTarget >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-            receivers.keySet().forEach(System.out::println);
+            receivers.keySet().forEach(v -> System.out.println("ServerImpl.processEnvelopeTarget "+v));
             System.out.println("ServerImpl.processEnvelopeTarget <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+*/
             receivers.keySet().forEach(address -> {
                 try {
                     address.getClass().getSimpleName();
                     target.getClass().getSimpleName();
                     address.equals(target);
+/*
                     if (address != null)
                         System.out.println("ServerImpl.processEnvelopeTarget " + address.getClass().getSimpleName() + "=" + target.getClass().getSimpleName() + " => " + Objects.equals(address,target));
                     else
                         System.out.println("Address is null!");
+*/
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             });
+/*
             System.out.println("ServerImpl.processEnvelopeTarget ****************************************************");
+*/
             return Optional.empty();
         }
         return Optional.of(receiver::receive);
@@ -121,7 +130,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
 
     @Override
     public void transport(Envelope envelope) {
-        //System.out.println("ServerImpl.transport "+envelope);
+        //System.out.println(""+envelope);
         envelopeProcessor.transport(envelope);
     }
 
@@ -145,9 +154,10 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         public void run() {
             synchronized (this) {
                 while (true) {
+                    Envelope envelope = null;
                     try {
                         while (!queue.isEmpty()) {
-                            Envelope envelope = queue.poll();
+                            envelope = queue.poll();
                             envelope.targets(targets);
                         }
                         try {
@@ -156,11 +166,15 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
                             e.printStackTrace();
                         }
                     } catch (SevereError severeError) {
+                        final Envelope errorEnvelope = envelope;
                         SwitchCase.create(severeError.getErrorKind())
                                 .caseDo(ErrorKind.UNKNOWN_TARGET, errorKind -> {
-                                    System.out.println("EnvelopeProcessorImpl.run -------------------- SevereError ---------------------");
-                                    System.out.println("Cannot find "+severeError.getValue(StandardField.ADDRESS).asAddress());
-
+                                    if (errorEnvelope != null) {
+                                        transport(errorEnvelope.createReplyComposer().create(new StandardProtocol.ErrorMessage(severeError)));
+                                    } else {
+                                        System.out.println("EnvelopeProcessorImpl.run -------------------- SevereError ---------------------");
+                                        System.out.println("Cannot find "+severeError.getValue(StandardField.ADDRESS).asAddress());
+                                    }
                                 })
                                 .elseDo(errorKind1 -> severeError.printStackTrace());
                     }

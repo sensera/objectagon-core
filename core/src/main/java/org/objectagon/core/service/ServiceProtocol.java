@@ -50,7 +50,7 @@ public interface ServiceProtocol extends Protocol<ServiceProtocol.Send, ServiceP
     }
 
     enum ErrorKind {
-        ServiceIsStoppning, ServiceIsStarting;
+        StartFailed, StopFailed, ServiceIsStoppning, ServiceIsStarting;
     }
 
 }

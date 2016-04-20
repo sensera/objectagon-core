@@ -1,5 +1,6 @@
 package org.objectagon.core.object.fieldvalue;
 
+import org.objectagon.core.object.fieldvalue.data.FieldValueDataImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
@@ -29,7 +30,7 @@ public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, Fi
 
     @Override
     protected FieldValueData createNewData() {
-        return FieldValueDataImpl.create(getAddress(), StandardVersion.create(0L));
+        return FieldValueDataImpl.create(getAddress(), StandardVersion.create(0L), MessageValue.empty());
     }
 
     @Override
@@ -67,12 +68,15 @@ public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, Fi
                 .orElse(w -> super.handle(w));
     }
 
-    public void getValue(FieldValueWorker worker, FieldValueData data) {
-        worker.replyWithParam(data.getValue());
+    public void getValue(FieldValueWorker fieldValueWorker, FieldValueData data) {
+        System.out.println("FieldValueImpl.getValue "+data.getValue()+" <"+fieldValueWorker.currentTransaction()+">");
+        fieldValueWorker.replyWithParam(MessageValue.values(FieldValue.VALUE, data.getValue()));
     }
 
     private void setValue(FieldValueWorker fieldValueWorker, FieldValueData fieldValueData, ChangeFieldValue fieldValueIdentityStandardVersionChange, Message.Values preparedValues) {
-        fieldValueIdentityStandardVersionChange.setValue(fieldValueWorker.getValue(FieldValueProtocol.FieldName.VALUE));
+        Message.Value value = fieldValueWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
+        System.out.println("FieldValueImpl.setValue "+value+" <"+fieldValueWorker.currentTransaction()+">");
+        fieldValueIdentityStandardVersionChange.setValue(value);
     }
 
     private void addValue(FieldValueWorker fieldValueWorker) {

@@ -40,7 +40,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
                 if (worker.messageHasName(StandardProtocol.MessageName.ERROR_MESSAGE)) {
                     System.out.println("BasicReceiverImpl.receive IGNORED ERROR " + worker.getMessageName() + Util.printValuesToString(worker.getValues()));
                 } else {
-                    worker.replyWithError(ErrorKind.UNKNOWN_MESSAGE);
+                    worker.replyWithError(new SevereError(ErrorClass.RECEIVER, ErrorKind.UNKNOWN_MESSAGE, MessageValue.messageName(message.getName())));
                 }
             }
         });
@@ -58,6 +58,8 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         private Message.Values headers;
 
         public BasicComposer(Receiver receiver, Address target, Message.Values headers) {
+            if (target == null)
+                throw new SevereError(ErrorClass.COMPOSER, ErrorKind.TARGET_IS_NULL);
             this.receiver = receiver;
             this.target = target;
             this.headers = headers;
@@ -262,7 +264,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
         @Override
         public TaskBuilder getTaskBuilder() {
-            return new StandardTaskBuilder(getReceiverCtrl());
+            return getReceiverCtrl().createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
         }
 
         @Override

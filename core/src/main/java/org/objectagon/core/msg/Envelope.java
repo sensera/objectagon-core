@@ -19,4 +19,6 @@ public interface Envelope {
     interface Targets {
          Optional<Transporter> target(Address address);
     }
+
+    Composer createReplyComposer();
 }

@@ -10,6 +10,7 @@ import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.message.VolatileMessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.Util;
 
 import java.util.LinkedList;
@@ -29,6 +30,12 @@ public class BasicWorkerImpl implements BasicWorker {
     public BasicWorkerImpl(Receiver.WorkerContext workerContext) {
         this.workerContext = workerContext;
     }
+
+    @Override
+    public TaskBuilder getTaskBuilder() {
+        return getWorkerContext().getTaskBuilder();
+    }
+
 
     protected StandardProtocol.StandardSend createStandardProtocolSend(Address target) {
         StandardProtocol standardProtocol = this.workerContext.createReceiver(StandardProtocol.STANDARD_PROTOCOL);

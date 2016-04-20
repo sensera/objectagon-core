@@ -46,5 +46,4 @@ public interface Server extends Transporter {
         void removeAlias(Name name);
         Optional<Address> lookupAddressByAlias(Name name);
     }
-
 }

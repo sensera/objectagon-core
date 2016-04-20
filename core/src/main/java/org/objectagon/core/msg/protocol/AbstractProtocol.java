@@ -158,7 +158,7 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
         }
 
         protected TaskBuilder taskBuilder() {
-            return new StandardTaskBuilder(getTaskCtrl());
+            return getReceiverCtrl().createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
         }
 
         protected LocalTaskCtrl getTaskCtrl() {

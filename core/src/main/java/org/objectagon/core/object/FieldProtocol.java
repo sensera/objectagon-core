@@ -13,11 +13,13 @@ public interface FieldProtocol extends Protocol<FieldProtocol.Send, Protocol.Rep
 
     ProtocolName FIELD_PROTOCOL = new ProtocolNameImpl("FIELD_PROTOCOL");
 
+    Forward createForward(CreateSendParam createSend);
+
     enum MessageName implements Message.MessageName, Task.TaskName {
         GET_NAME,
         SET_NAME,
         SET_TYPE,
-        GET_TYPE,
+        GET_TYPE, GET_DEFAULT_VALUE, SET_DEFAULT_VALUE, CREATE_FIELD_VALUE,
     }
 
     enum FieldName implements Message.Field {
@@ -50,6 +52,13 @@ public interface FieldProtocol extends Protocol<FieldProtocol.Send, Protocol.Rep
         Task setName(Field.FieldName name);
         Task getType();
         Task setType(Field.FieldType type);
+        Task getDefaultValue();
+        Task setDefaultValue(Message.Value value);
+        Task createFieldValue(Instance.InstanceIdentity instanceIdentity, Message.Value value);
+    }
+
+    interface Forward extends Protocol.Send {
+        void getDefaultValue();
     }
 
     @FunctionalInterface

@@ -18,4 +18,14 @@ public interface Composer {
         Builder set(Message.Field field, Message.Value value);
         Envelope create();
     }
+
+    @FunctionalInterface
+    interface ResolveTarget {
+        Address getAddress();
+    }
+
+    @FunctionalInterface
+    interface CreateComposer {
+        Composer create(Sender sender);
+    }
 }

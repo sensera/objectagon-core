@@ -31,11 +31,11 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
     }
 
     interface Send extends Protocol.Send {
-        Task getValue(Field.FieldName name);
-        Task setValue(Field.FieldName name, Message.Value value);
-        Task getRelation(RelationClass.RelationName name);
-        Task addRelation(RelationClass.RelationName name, Instance.InstanceIdentity instance);
-        Task removeRelation(RelationClass.RelationName name, Instance.InstanceIdentity instance);
+        Task getValue(Field.FieldIdentity fieldIdentity);
+        Task setValue(Field.FieldIdentity fieldIdentity, Message.Value value);
+        Task getRelation(RelationClass.RelationClassIdentity relationClassIdentity);
+        Task addRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance);
+        Task removeRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance);
     }
 
     interface Alter extends Protocol.Send {

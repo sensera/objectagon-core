@@ -4,6 +4,7 @@ import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.address.AddressList;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.StandardReceiverImpl;
@@ -13,8 +14,8 @@ import org.objectagon.core.service.StandardServiceName;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.persistence.PersistenceService;
-import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.stream.Stream;
@@ -72,12 +73,12 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
         }
         PersistenceServiceProtocol.Send createPersistenceServiceProtocolSend(Name target) {
             return getWorkerContext()
-                    .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, null)
+                    .<Protocol.ProtocolAddress,PersistenceServiceProtocol>createReceiver(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL)
                     .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
         }
         EntityProtocol.Send createEntityProtocolSend(Identity identity) {
             return getWorkerContext()
-                    .<Protocol.ProtocolAddress, EntityProtocol>createReceiver(EntityProtocol.ENTITY_PROTOCOL, null)
+                    .<Protocol.ProtocolAddress, EntityProtocol>createReceiver(EntityProtocol.ENTITY_PROTOCOL)
                     .createSend(() -> getWorkerContext().createTargetComposer(identity));
         }
     }
@@ -118,10 +119,13 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
         @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
             Stream<Identity> identities = transactionData.getIdentities(); // TODO implement EntityProtocol and registerAt
-            SequenceTask sequenceTask = new SequenceTask(getReceiverCtrl(), TransactionManagerProtocol.MessageName.COMMIT);
-            identities.forEach(identity -> context.createEntityProtocolSend(identity).lock(getAddress())); //TODO better solution, less tasks
-            identities.forEach(identity -> context.createEntityProtocolSend(identity).commit());
-            return sequenceTask;
+            TaskBuilder taskBuilder = actionContext.getTaskBuilder();
+            TaskBuilder.SequenceBuilder sequence = taskBuilder.sequence(TransactionManagerProtocol.MessageName.COMMIT);
+            AddressList addressList = AddressList.createFromSteam(identities);
+            sequence.<EntityProtocol.Send>protocol(EntityProtocol.ENTITY_PROTOCOL, addressList, send -> send.lock(getAddress()));
+            sequence.<EntityProtocol.Send>protocol(EntityProtocol.ENTITY_PROTOCOL, addressList, EntityProtocol.Send::commit);
+            sequence.<EntityProtocol.Send>protocol(EntityProtocol.ENTITY_PROTOCOL, addressList, send -> send.unlock(getAddress()));
+            return sequence.create();
         }
     }
 }

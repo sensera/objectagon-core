@@ -10,6 +10,7 @@ import org.objectagon.core.msg.message.VolatileTextValue;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.Util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -100,7 +101,11 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSend
 
         @Override
         public Iterable<Value> getValues() {
-            return values;
+            List<Value> newList = new ArrayList<>(values);
+            newList.add(getValue(StandardProtocol.FieldName.ERROR_SEVERITY));
+            newList.add(getValue(StandardProtocol.FieldName.ERROR_CLASS));
+            newList.add(getValue(StandardProtocol.FieldName.ERROR_KIND));
+            return newList;
         }
 
         public Value getValue(Field field) {

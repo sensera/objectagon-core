@@ -1,7 +1,11 @@
 package org.objectagon.core.object.field;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.FieldProtocol;
@@ -39,7 +43,10 @@ public class FieldService extends EntityService<Service.ServiceName, Field.Field
 
     @Override
     public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) {
-        return Optional.of((FieldProtocol.ConfigField) () -> messageValueFieldUtil.getValueByField(InstanceClass.INSTANCE_CLASS_IDENTITY).asAddress());
+        return Optional.of((FieldProtocol.ConfigField) () -> messageValueFieldUtil.getValueByFieldOption(InstanceClass.INSTANCE_CLASS_IDENTITY)
+                .orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.text(InstanceClass.INSTANCE_CLASS_IDENTITY,"UNKNOWN")))
+                .asAddress()
+        );
     }
 
     @Override

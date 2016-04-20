@@ -1,5 +1,7 @@
 package org.objectagon.core.object.instanceclass.data;
 
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
@@ -20,8 +22,8 @@ public class InstanceClassDataImpl extends AbstractData<InstanceClass.InstanceCl
         return new InstanceClassDataImpl(InstanceClassNameImpl.create(""), Stream.empty(), Stream.empty(), identity, version);
     }
 
-    List<Field.FieldIdentity> fields;
-    List<RelationClass.RelationClassIdentity> relations;
+    private List<Field.FieldIdentity> fields;
+    private List<RelationClass.RelationClassIdentity> relations;
     private InstanceClass.InstanceClassName name;
 
     InstanceClassDataImpl(InstanceClass.InstanceClassName name, Stream<Field.FieldIdentity> fields, Stream<RelationClass.RelationClassIdentity> relations, InstanceClass.InstanceClassIdentity identity, StandardVersion version) {
@@ -40,4 +42,22 @@ public class InstanceClassDataImpl extends AbstractData<InstanceClass.InstanceCl
         return (C) new ChangeInstanceClassImpl(this);
     }
 
+    @Override
+    public Iterable<Message.Value> values() {
+        //TODO Fix
+        return Arrays.asList(
+                MessageValue.name(InstanceClass.INSTANCE_CLASS_NAME, name),
+                MessageValue.number(InstanceClass.FIELDS, (long) fields.size()),
+                MessageValue.number(InstanceClass.RELATIONS, (long) fields.size())
+        );
+    }
+
+    @Override
+    public String toString() {
+        return "InstanceClassDataImpl{" +
+                "fields=" + fields +
+                ", relations=" + relations +
+                ", name=" + name +
+                '}';
+    }
 }

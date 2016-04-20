@@ -10,13 +10,12 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.receiver.ForwardAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.StandardAction;
 import org.objectagon.core.service.*;
-import org.objectagon.core.service.event.BroadcastEventServiceProtocol;
 import org.objectagon.core.service.event.EventServiceImpl;
 import org.objectagon.core.service.event.EventServiceProtocol;
-import org.objectagon.core.service.name.NameServiceProtocol;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.SearchServiceProtocol;
 import org.objectagon.core.storage.StorageServices;
@@ -35,7 +34,7 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
 
     public static ServiceName NAME = StandardServiceName.name("SEARCH_SERVICE");
     private enum InternalTask implements Task.TaskName {
-        RegisterName
+        REGISTER_LISTENER_FOR_SEARCH_NAME_EVENT
     }
 
     public static void registerAt(Server server) {
@@ -46,16 +45,27 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
     private Map<Name, List<Identity>> identitiesByName = new HashMap<>();
 
     private Optional<List<Identity>> getIdentitiesByName(Name name) {
-        return Optional.ofNullable(identitiesByName.get(name));
+        Optional<List<Identity>> identities = Optional.ofNullable(identitiesByName.get(name));
+        System.out.println("SearchService.getIdentitiesByName "+name+" res = "+identities.isPresent());
+/*
+        if (!identities.isPresent()) {
+            System.out.println("SearchService.getIdentitiesByName ------------------ PRINT IDENTITIES AS RESULT OF NAME MISS -----------------");
+            identitiesByName.keySet().stream().forEach(System.out::println);
+            System.out.println("SearchService.getIdentitiesByName -------------------                 END                    -----------------");
+        }
+*/
+        return identities;
     }
 
     private List<Identity> createList(Name name) {
+        System.out.println("SearchService.createList "+name);
         List<Identity> list = new ArrayList<>();
         identitiesByName.put(name, list);
         return list;
     }
 
     private void updateNamesList(Name name, Identity identity) {
+        System.out.println("SearchService.updateNamesList "+name+" identity="+identity);
         getIdentitiesByName(name)
                 .orElse(createList(name))
                 .add(identity);
@@ -72,15 +82,14 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
     }
 
     @Override
-    protected Optional<TaskBuilder> internalCreateStartServiceTask(SearchServiceWorker serviceWorker) {
+    protected Optional<TaskBuilder.Builder> internalCreateStartServiceTask(SearchServiceWorker serviceWorker) {
         eventService = Optional.of(getReceiverCtrl().lookupAddressByAlias(EventServiceImpl.EVENT_SERVICE_NAME).orElseThrow(() -> new SevereError(ErrorClass.SEARCH_SERVICE, ErrorKind.MISSING_CONFIGURATION)));
         TaskBuilder taskBuilder = serviceWorker.getTaskBuilder();
-        taskBuilder.<EventServiceProtocol.Send>message(
-                InternalTask.RegisterName,
-                NameServiceProtocol.NAME_SERVICE_PROTOCOL,
+        TaskBuilder.Builder builder = taskBuilder.<EventServiceProtocol.Send>protocol(
+                EventServiceProtocol.EVENT_SERVICE_PROTOCOL,
                 eventService.get(),
                 session -> session.startListenTo(getAddress(), StorageServices.SEARCH_NAME_EVENT));
-        return Optional.of(taskBuilder);
+        return Optional.of(builder);
     }
 
     @Override
@@ -107,7 +116,7 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
                 (initializer, context) -> new NameSearchAction(this, (SearchServiceWorker) context)
         );
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(BroadcastEventServiceProtocol.MessageName.BROADCAST),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(SearchServiceProtocol.MessageName.NAME_CHANGED_EVENT),
                 (initializer, context) -> new NameChangeEventAction(this, (SearchServiceWorker) context)
         );
     }
@@ -136,7 +145,7 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
         }
     }
 
-    private static class NameChangeEventAction extends StandardAction<SearchService, SearchServiceWorker> {
+    private static class NameChangeEventAction extends ForwardAction<SearchService, SearchServiceWorker> {
 
         private Name name;
         private Identity identity;
@@ -151,10 +160,11 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
             return true;
         }
 
+
+
         @Override
-        public Optional<Message.Value> internalRun() throws UserException {
+        public void internalRun() throws UserException {
             initializer.updateNamesList(name, identity);
-            return Optional.empty();
         }
     }
 

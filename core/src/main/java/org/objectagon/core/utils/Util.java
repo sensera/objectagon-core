@@ -6,9 +6,8 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.UnknownValue;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Created by christian on 2015-11-29.
@@ -46,6 +45,19 @@ public class Util {
     public interface Select<E> {
         boolean select(E value);
     }
+
+    public static <T> List<T> iterableToList(Iterable<T> iter) {
+        List<T> copy = new ArrayList<T>();
+        iter.forEach(copy::add);
+        return copy;
+    }
+
+    public static <T> T[] iterableToArray(Iterable<T> iter, Supplier<T[]> createArray) {
+        List<T> copy = new ArrayList<T>();
+        iter.forEach(copy::add);
+        return copy.toArray(createArray.get());
+    }
+
 
     public static ValuePrinter createValuePrinter() { return new ValuePrinter();}
 

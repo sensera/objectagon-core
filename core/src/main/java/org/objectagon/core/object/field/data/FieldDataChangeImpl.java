@@ -36,6 +36,11 @@ public class FieldDataChangeImpl implements Field.FieldDataChange {
     }
 
     @Override
+    public void setDefaultValue(Message.Value defaultValue) {
+        this.defaultValue = Optional.ofNullable(defaultValue);
+    }
+
+    @Override
     public <D extends org.objectagon.core.storage.Data<Field.FieldIdentity, StandardVersion>> D create(StandardVersion version) {
         return (D) new FieldDataImpl(
                 fieldData.getIdentity(),

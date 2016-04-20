@@ -2,7 +2,7 @@ package org.objectagon.core.object;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.object.field.FieldProtocolImpl;
 import org.objectagon.core.object.field.FieldService;
@@ -22,12 +22,9 @@ import org.objectagon.core.service.name.NameServiceProtocol;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.entity.EntityServiceProtocolImpl;
-import org.objectagon.core.task.ProtocolTask;
-import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.OneReceiverConfigurations;
-
-import java.util.Optional;
 
 /**
  * Created by christian on 2016-03-17.
@@ -35,10 +32,6 @@ import java.util.Optional;
 public class ObjectServices {
     public enum InitTasks implements Task.TaskName {
         InitObjectServiceTasks;
-    }
-
-    public enum MessageName implements Message.MessageName {
-        NameChangedEvent,
     }
 
     public static ObjectServices create(Server server, Service.ServiceName persistancyAddress) { return new ObjectServices(server, persistancyAddress);}
@@ -135,27 +128,23 @@ public class ObjectServices {
         return relationClassServiceAddress;
     }
 
-    public Task initialize() {
-        Optional<Address> nameServiceAddress = ((Server.AliasCtrl)server).lookupAddressByAlias(NameServiceImpl.NAME_SERVICE);
-        SequenceTask sequenceTask = new SequenceTask((Receiver.ReceiverCtrl) server, InitTasks.InitObjectServiceTasks);
-        registerName(nameServiceAddress, sequenceTask, this.fieldServiceAddress, FieldService.NAME);
-        registerName(nameServiceAddress, sequenceTask, this.fieldValueServiceAddress, FieldValueService.NAME);
-        registerName(nameServiceAddress, sequenceTask, this.instanceServiceAddress, InstanceService.NAME);
-        registerName(nameServiceAddress, sequenceTask, this.instanceClassServiceAddress, InstanceClassService.NAME);
-        registerName(nameServiceAddress, sequenceTask, this.relationServiceAddress, RelationService.NAME);
-        registerName(nameServiceAddress, sequenceTask, this.relationClassServiceAddress, RelationClassService.NAME);
-        return sequenceTask;
+    public void initialize(TaskBuilder.SequenceBuilder sequenceBuilder) {
+        Server.AliasCtrl aliasCtrl = (Server.AliasCtrl) this.server;
+        Composer.ResolveTarget nameServiceAddress = () -> aliasCtrl.lookupAddressByAlias(NameServiceImpl.NAME_SERVICE).get();
+        registerName(nameServiceAddress, sequenceBuilder, this.fieldServiceAddress, FieldService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.fieldValueServiceAddress, FieldValueService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.instanceServiceAddress, InstanceService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.instanceClassServiceAddress, InstanceClassService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.relationServiceAddress, RelationService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.relationClassServiceAddress, RelationClassService.NAME);
     }
 
-    private void registerName(Optional<Address> nameServiceAddress, SequenceTask sequenceTask, Address address, Service.ServiceName name) {
-        ProtocolTask<NameServiceProtocol.Send> sendProtocolTask = new ProtocolTask<>(
-                (Receiver.ReceiverCtrl) server,
-                InitTasks.InitObjectServiceTasks,
+    private void registerName(Composer.ResolveTarget nameServiceAddress, TaskBuilder.SequenceBuilder sequenceBuilder, Address address, Service.ServiceName name) {
+        sequenceBuilder.<NameServiceProtocol.Send>protocol(
                 NameServiceProtocol.NAME_SERVICE_PROTOCOL,
-                nameServiceAddress.get(), session -> {
-            return session.registerName(address, name);
-        });
-        sequenceTask.add(sendProtocolTask);
+                nameServiceAddress,
+                session -> session.registerName(address, name)
+        );
     }
 
 }

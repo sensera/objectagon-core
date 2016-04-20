@@ -11,7 +11,7 @@ import org.objectagon.core.msg.receiver.BasicWorker;
 /**
  * Created by christian on 2015-10-11.
  */
-public interface Task<A extends Address> extends BasicReceiver<A> {
+public interface Task<A extends Address> extends BasicReceiver<A>, Name.Named<Task.TaskName>  {
 
     enum Status {
         Unstarted, Initializing, Started, Verifying, Completed;
@@ -21,9 +21,9 @@ public interface Task<A extends Address> extends BasicReceiver<A> {
         COMPLETED
     }
 
-    TaskName getName();
-
     void start();
+
+    void trace();
 
     Task addSuccessAction(SuccessAction successAction);
 
@@ -42,4 +42,7 @@ public interface Task<A extends Address> extends BasicReceiver<A> {
     interface FailedAction {
         void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values);
     }
+
+    interface TaskAddress extends Address, Name.Named<Task.TaskName> {}
+
 }

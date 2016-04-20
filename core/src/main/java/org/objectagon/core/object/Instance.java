@@ -25,7 +25,7 @@ public interface Instance extends Entity<Instance.InstanceIdentity, Instance.Ins
 
     enum TaskName implements Message.MessageName, Task.TaskName {
         SET_VALUE,
-        GET_VALUE
+        GET_VALUE,
     }
 
     interface InstanceIdentity extends Identity {

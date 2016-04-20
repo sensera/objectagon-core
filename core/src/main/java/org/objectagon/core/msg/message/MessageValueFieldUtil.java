@@ -2,6 +2,7 @@ package org.objectagon.core.msg.message;
 
 import org.objectagon.core.msg.Message;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -23,6 +24,13 @@ public class MessageValueFieldUtil {
             if (value.getField().equals(field))
                 return value;
         return UnknownValue.create(field);
+    }
+
+    public Optional<Message.Value> getValueByFieldOption(Message.Field field) {
+        for (Message.Value value : values)
+            if (value.getField().equals(field))
+                return Optional.ofNullable(value);
+        return Optional.empty();
     }
 
     public Stream<Message.Value> stream() {

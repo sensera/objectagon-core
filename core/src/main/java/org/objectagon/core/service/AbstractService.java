@@ -3,10 +3,7 @@ package org.objectagon.core.service;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Envelope;
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.receiver.Reactor;
-import org.objectagon.core.msg.receiver.StandardAction;
-import org.objectagon.core.msg.receiver.StandardReceiverImpl;
+import org.objectagon.core.msg.receiver.*;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
 
@@ -21,7 +18,9 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
     private Task currentTask;
     private Optional<ServiceName> serviceName = Optional.empty();
 
-    protected void setServiceName(ServiceName serviceName) { this.serviceName = Optional.ofNullable(serviceName); }
+    protected void setServiceName(ServiceName serviceName) {
+        this.serviceName = Optional.ofNullable(serviceName);
+    }
 
     @Override
     public ServiceName getServiceName() {
@@ -49,19 +48,15 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
         return this;
     }
 
-    protected Optional<TaskBuilder> internalCreateStartServiceTask(W serviceWorker) { return Optional.empty(); }
-    protected Optional<TaskBuilder> internalCreateStopServiceTask(W serviceWorker) { return Optional.empty(); }
+    protected Optional<TaskBuilder.Builder> internalCreateStartServiceTask(W serviceWorker) { return Optional.empty(); }
+    protected Optional<TaskBuilder.Builder> internalCreateStopServiceTask(W serviceWorker) { return Optional.empty(); }
 
     public final Optional<Task> createStartServiceTask(W serviceWorker) {
-        return internalCreateStartServiceTask(serviceWorker)
-                .orElse(serviceWorker.getTaskBuilder())
-                .current();
+        return internalCreateStartServiceTask(serviceWorker).map(TaskBuilder.Builder::create);
     }
 
     public final Optional<Task> createStopServiceTask(W serviceWorker) {
-        return internalCreateStopServiceTask(serviceWorker)
-                .orElse(serviceWorker.getTaskBuilder())
-                .current();
+        return internalCreateStopServiceTask(serviceWorker).map(TaskBuilder.Builder::create);
     }
 
     /*************************************************************/
@@ -125,7 +120,24 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
 
     }
 
-    private static class StartServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
+    static protected abstract class AbstractServiceAsycnAction<W extends Service.ServiceWorker> extends AsyncAction<ServiceActionCommands<W>, W> {
+
+        public AbstractServiceAsycnAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
+            super(serviceActionCommands, serviceWorker);
+        }
+
+    }
+
+    static protected abstract class AbstractServiceForwardAction<W extends Service.ServiceWorker> extends ForwardAction<ServiceActionCommands<W>, W> {
+
+        public AbstractServiceForwardAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
+            super(serviceActionCommands, serviceWorker);
+        }
+
+    }
+
+
+    private static class StartServiceAction<W extends Service.ServiceWorker> extends AbstractServiceForwardAction<W> {
 
         public StartServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
@@ -151,27 +163,29 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
         }
 
         @Override
-        protected Optional<Message.Value> internalRun() throws UserException {
+        protected void internalRun() throws UserException {
             Optional<Task> currentTaskOptional = initializer.createStartServiceTask(context);
 
             if (!currentTaskOptional.isPresent()) {
                 initializer.setStartedStatusAndClearCurrentTask();
                 context.replyOk();
-                return Optional.empty();
+                return ;
             }
 
             Task currentTask = currentTaskOptional.get();
-
-            currentTask.addSuccessAction(context);
-            currentTask.addFailedAction(context);
-            currentTask.addSuccessAction( (messageName, values) -> initializer.setStartedStatusAndClearCurrentTask() );
-            currentTask.addFailedAction((errorClass, errorKind, values) -> initializer.setStoppedStatusAndClearCurrentTask());
+            currentTask.addSuccessAction((messageName, values) -> {
+                initializer.setStartedStatusAndClearCurrentTask();
+                context.replyOk();
+            });
+            currentTask.addFailedAction((errorClass, errorKind, values) -> {
+                initializer.setStoppedStatusAndClearCurrentTask();
+                context.replyWithError(ServiceProtocol.ErrorKind.StartFailed);
+            });
             currentTask.start();
-            return Optional.empty();
         }
     }
 
-    private static class StopServiceAction<W extends Service.ServiceWorker> extends AbstractServiceAction<W> {
+    private static class StopServiceAction<W extends Service.ServiceWorker> extends AbstractServiceForwardAction<W> {
 
         public StopServiceAction(Service.ServiceActionCommands<W> serviceActionCommands, W serviceWorker) {
             super(serviceActionCommands, serviceWorker);
@@ -197,14 +211,14 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
         }
 
         @Override
-        protected Optional<Message.Value> internalRun() throws UserException {
+        protected void internalRun() throws UserException {
 
             Optional<Task> currentTaskOptional = initializer.createStopServiceTask(context);
 
             if (!currentTaskOptional.isPresent()) {
                 initializer.setStoppedStatusAndClearCurrentTask();
                 context.replyOk();
-                return Optional.empty();
+                return ;
             }
 
             Task currentTask = currentTaskOptional.get();
@@ -215,7 +229,6 @@ public abstract class AbstractService<W extends Service.ServiceWorker, A extends
             currentTask.addFailedAction( (errorClass, errorKind, values) -> initializer.setStartedStatusAndClearCurrentTask() );
 
             currentTask.start();
-            return Optional.empty();
         }
     }
 }

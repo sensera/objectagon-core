@@ -3,9 +3,7 @@ package org.objectagon.core.storage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.objectagon.core.Server;
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
-import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceProtocol;
@@ -19,11 +17,8 @@ import org.objectagon.core.storage.transaction.TransactionManagerImpl;
 import org.objectagon.core.storage.transaction.TransactionManagerProtocolImpl;
 import org.objectagon.core.storage.transaction.TransactionService;
 import org.objectagon.core.storage.transaction.TransactionServiceProtocolImpl;
-import org.objectagon.core.task.ProtocolTask;
-import org.objectagon.core.task.SequenceTask;
 import org.objectagon.core.task.Task;
-
-import java.util.Optional;
+import org.objectagon.core.task.TaskBuilder;
 
 /**
  * Created by christian on 2016-03-17.
@@ -65,31 +60,19 @@ public class StorageServices {
         return this;
     }
 
-    public Task initialize() {
-        Optional<Address> nameServiceAddress = ((Server.AliasCtrl)server).lookupAddressByAlias(NameServiceImpl.NAME_SERVICE);
-        SequenceTask sequenceTask = new SequenceTask(
-                (Receiver.ReceiverCtrl) server,
-                InitTasks.InitStorageServicesTasks);
+    public void initialize(TaskBuilder.SequenceBuilder sequence) {
+        Server.AliasCtrl aliasCtrl = (Server.AliasCtrl) this.server;
 
-        sequenceTask.add(new ProtocolTask<NameServiceProtocol.Send>(
-                (Receiver.ReceiverCtrl) server,
-                InitTasks.RegisterNameTask,
+        sequence.protocol(
+                ServiceProtocol.SERVICE_PROTOCOL,
+                searchServiceName,
+                ServiceProtocol.Send::startService
+        );
+        sequence.<NameServiceProtocol.Send>protocol(
                 NameServiceProtocol.NAME_SERVICE_PROTOCOL,
-                nameServiceAddress.get(), session -> session.registerName(persistenceServiceName, PersistenceService.NAME))
+                () -> aliasCtrl.lookupAddressByAlias(NameServiceImpl.NAME_SERVICE).get(),
+                session -> session.registerName(persistenceServiceName, PersistenceService.NAME)
         );
-
-        sequenceTask.add(
-                new ProtocolTask<>(
-                    (Receiver.ReceiverCtrl) server,
-                    InitTasks.StartSearchProtocol,
-                    ServiceProtocol.SERVICE_PROTOCOL,
-                    searchServiceName,
-                    ServiceProtocol.Send::startService
-                )
-        );
-
-
-        return sequenceTask;
     }
 
 }

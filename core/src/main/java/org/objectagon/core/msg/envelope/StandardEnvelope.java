@@ -3,9 +3,9 @@ package org.objectagon.core.msg.envelope;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Envelope;
-import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.message.MinimalMessage;
+import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 
 /**
@@ -34,6 +34,41 @@ public class StandardEnvelope implements Envelope {
 
     @Override
     public Message.Values headers() {return headers;}
+
+    @Override
+    public Composer createReplyComposer() {
+        return new Composer() {
+            @Override
+            public Envelope create(Message message) {
+                return new StandardEnvelope(target,sender, message, headers);
+            }
+
+            @Override
+            public Envelope create(Message.MessageName messageName) {
+                return create(MinimalMessage.minimal(messageName));
+            }
+
+            @Override
+            public Envelope create(Message.MessageName messageName, Message.Value... values) {
+                return create(SimpleMessage.simple(messageName, values));
+            }
+
+            @Override
+            public Builder builder(Message.MessageName messageName) {
+                throw new SevereError(ErrorClass.COMPOSER, ErrorKind.NOT_IMPLEMENTED);
+            }
+
+            @Override
+            public Composer alternateReceiver(Receiver receiver) {
+                throw new SevereError(ErrorClass.COMPOSER, ErrorKind.NOT_IMPLEMENTED);
+            }
+
+            @Override
+            public Address getSenderAddress() {
+                return target;
+            }
+        };
+    }
 
     @Override
     public void targets(Targets targets) {

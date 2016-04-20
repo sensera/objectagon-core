@@ -1,6 +1,10 @@
 package org.objectagon.core.object.relationclass;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.RelationClass;
@@ -35,7 +39,9 @@ public class RelationClassService extends ObjectService<Service.ServiceName, Rel
         return Optional.of(new RelationClassProtocol.ConfigRelationClass() {
             @Override
             public InstanceClass.InstanceClassIdentity getInstanceClassIdentity() {
-                return messageValueFieldUtil.getValueByField(InstanceClass.INSTANCE_CLASS_IDENTITY).asAddress();
+                return messageValueFieldUtil.getValueByFieldOption(InstanceClass.INSTANCE_CLASS_IDENTITY)
+                        .orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.text(InstanceClass.INSTANCE_CLASS_IDENTITY,"UNKNOWN")))
+                        .asAddress();
             }
 
             @Override

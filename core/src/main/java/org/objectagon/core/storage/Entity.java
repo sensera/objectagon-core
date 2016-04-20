@@ -1,5 +1,6 @@
 package org.objectagon.core.storage;
 
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.name.StandardName;
@@ -20,5 +21,6 @@ public interface Entity<I extends Identity, D extends Data> extends Receiver<I> 
     interface EntityConfig extends NamedConfiguration {
         <I extends Identity, V extends Version> DataVersion<I,V> getDataVersion(I identity);
         long getDataVersionCounter();
+        Message.Values initialParams();
     }
 }

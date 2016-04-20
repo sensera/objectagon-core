@@ -23,6 +23,7 @@ public interface Field extends Entity<Field.FieldIdentity,Field.FieldData> {
     Message.Field FIELD_NAME = NamedField.name("FIELD_NAME");
     Message.Field FIELD_TYPE = NamedField.name("FIELD_TYPE");
     Message.Field FIELDS = NamedField.values("FIELDS");
+    Message.Field DEFAULT_VALUE = NamedField.name("DEFAULT_VALUE");
 
     Data.Type DATA_TYPE = DataType.create("FIELD");
 
@@ -45,5 +46,6 @@ public interface Field extends Entity<Field.FieldIdentity,Field.FieldData> {
     interface FieldDataChange extends Data.Change<Field.FieldIdentity,StandardVersion>{
         FieldDataChange setName(FieldName name);
         FieldDataChange setType(FieldType type);
+        void setDefaultValue(Message.Value defaultValue);
     }
 }

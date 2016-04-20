@@ -1,5 +1,5 @@
-Feature: Create type
-  As part of building a program i must be able to create a Type.
+Feature: Find type
+  As part of building a program i must be able to search and find an type by name
 
   Background:
     Given there is an active transaction

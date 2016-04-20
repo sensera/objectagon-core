@@ -2,13 +2,10 @@ package org.objectagon.core.service;
 
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
-import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.task.StandardTaskBuilder;
-import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 
 /**
@@ -40,11 +37,6 @@ public class ServiceWorkerImpl extends BasicWorkerImpl implements Service.Servic
 
     public void replyWithError(ServiceProtocol.ErrorKind errorKind) {
         createServiceProtocolReply().replyWithError(errorKind);
-    }
-
-    @Override
-    public TaskBuilder getTaskBuilder() {
-        return getWorkerContext().getTaskBuilder();
     }
 
     protected  <U extends Protocol.Session> U createReplySession(Protocol.ProtocolName protocolName) {

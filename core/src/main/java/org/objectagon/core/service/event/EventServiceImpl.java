@@ -28,7 +28,7 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         server.registerFactory(EVENT_SERVICE_NAME, EventServiceImpl::new);
     }
 
-    private Map<Name,AddressList> eventListeners = new HashMap<>();
+    private Map<Name,AddressList<Address>> eventListeners = new HashMap<>();
 
     public EventServiceImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -58,16 +58,18 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
     }
 
     void startListenTo(Name name, Address address) {
+        System.out.println("EventServiceImpl.startListenTo "+name+" "+address);
         AddressList addressList = eventListeners.get(name);
         if (addressList==null) {
-            addressList = new AddressList(address);
+            addressList = new AddressList<Address>(address);
             eventListeners.put(name, addressList);
         } else
             addressList.add(address);
     }
 
     void stopListenTo(Name name, Address address) {
-        AddressList addressList = eventListeners.get(name);
+        System.out.println("EventServiceImpl.stopListenTo "+name+" "+address);
+        AddressList<Address> addressList = eventListeners.get(name);
         if (addressList!=null) {
             addressList.remove(address);
             if (addressList.isEmpty())
@@ -76,9 +78,13 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
     }
 
     void broadcast(Name name, MessageValueMessage message, EventServiceWorkerImpl serviceWorker) {
-        AddressList addressList = eventListeners.get(name);
-        if (addressList!=null)
-            serviceWorker.broadcast(addressList, message);
+        System.out.println("EventServiceImpl.broadcast "+name+" ("+message+")");
+        AddressList<Address> addressList = eventListeners.get(name);
+        if (addressList!=null) {
+            System.out.println("EventServiceImpl.broadcast "+name+" receipients count "+addressList.size());
+            addressList.stream().forEach(address -> serviceWorker.broadcast(address, message));
+        } else
+            System.out.println("EventServiceImpl.broadcast "+name+" no receipients!");
     }
 
     @Override

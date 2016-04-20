@@ -17,6 +17,7 @@ import static java.util.Arrays.asList;
 public class MessageValue<V> implements Message.Value {
 
     public static Message.Value text(Message.Field field, String value) { return new MessageValue<>(field, value);}
+    public static Message.Value text(String value) { return new MessageValue<>(NamedField.text("TEXT"), value);}
     public static Message.Value number(Message.Field field, Long value) { return new MessageValue<>(field, value);}
     public static Message.Value name(Message.Field field, Name value) { return new MessageValue<>(field, value);}
     public static Message.Value name(Name value) { return new MessageValue<>(StandardField.NAME, value);}
@@ -32,6 +33,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value values(Message.Values value) { return new MessageValue<>(StandardField.VALUES, value);}
     public static Message.Value values(Iterable<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> values);}
     public static Message.Value values(Message.Value... values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> asList(values));}
+    public static Message.Value values(Message.Field field, Message.Value... values) { return new MessageValue<Message.Values>(field, () -> asList(values));}
     public static Message.Value values(Message.Field field, Iterable<Message.Value> values) { return new MessageValue<Message.Values>(field, () -> values);}
     public static Message.Value empty() {return UnknownValue.create(StandardField.NAME);}
 

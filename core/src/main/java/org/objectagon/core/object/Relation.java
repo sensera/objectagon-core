@@ -23,12 +23,14 @@ public interface Relation extends Entity<Relation.RelationIdentity, Relation.Rel
     interface RelationIdentity extends Identity {
         RelationClass.RelationClassIdentity getRelationClassIdentity();
         Instance.InstanceIdentity getInstanceIdentity();
+        //TODO NEEDS another instance to connecto to
     }
 
     interface RelationData extends Data<RelationIdentity, StandardVersion> {
         default Type getDataType() {return DATA_TYPE;}
         RelationClass.RelationClassIdentity getRelationClassIdentity();
         Instance.InstanceIdentity getInstanceIdentity();
+        //TODO NEEDS another instance to connecto to
     }
 
     interface RelationDataChange extends Data.Change<RelationIdentity, StandardVersion> {

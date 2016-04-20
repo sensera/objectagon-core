@@ -1,19 +1,17 @@
 package org.objectagon.core.storage.entity;
 
-import org.objectagon.core.exception.ErrorClass;
-import org.objectagon.core.exception.ErrorKind;
-import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
+import org.objectagon.core.object.FieldValue;
+import org.objectagon.core.object.FieldValueProtocol;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.event.EventServiceProtocol;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.PersistenceServiceProtocol;
 import org.objectagon.core.storage.Transaction;
-import org.objectagon.core.task.TaskBuilder;
 
 
 /**
@@ -25,10 +23,6 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
         super(workerContext);
     }
 
-    @Override
-    public TaskBuilder getTaskBuilder() {
-        throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
-    }
 
     @Override
     public Transaction currentTransaction() {
@@ -38,8 +32,7 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
     public EntityServiceProtocol.Send createEntityServiceProtocolSend(Service.ServiceName serviceAddress, Name target) {
         return getWorkerContext()
                 .<Protocol.ProtocolAddress,EntityServiceProtocol>createReceiver(
-                        EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL,
-                        null)
+                        EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL)
                 .createSend(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
     }
 
@@ -57,4 +50,9 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
                 .createSend(() -> getWorkerContext().createForwardComposer(serviceAddress));
     }
 
+    public FieldValueProtocol.Send createFieldValueProtocolSend(FieldValue.FieldValueIdentity fieldValueIdentity) {
+        return getWorkerContext()
+                .<Protocol.ProtocolAddress,FieldValueProtocol>createReceiver(FieldValueProtocol.FIELD_VALUE_PROTOCOL)
+                .createSend(() -> getWorkerContext().createTargetComposer(fieldValueIdentity));
+    }
 }

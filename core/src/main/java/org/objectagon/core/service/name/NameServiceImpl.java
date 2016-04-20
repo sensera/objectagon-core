@@ -40,12 +40,6 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     }
 
     @Override
-    public void configure(Configurations... configurations) {
-        super.configure(configurations);
-        getReceiverCtrl().registerAliasForAddress(NAME_SERVICE, getAddress());  // TODO Fix this when implement start/stop server
-    }
-
-    @Override
     protected Service.ServiceName createAddress(Configurations... configurations) {
         return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) ->
                 StandardServiceNameAddress.name(NAME_SERVICE, serverId, timestamp, addressId)

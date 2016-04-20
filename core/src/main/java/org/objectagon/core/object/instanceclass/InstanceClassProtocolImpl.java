@@ -5,7 +5,6 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
-import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.RelationClass;
@@ -33,15 +32,14 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
         }
 
         @Override
-        public Task addField(Field.FieldName name) {
-            return task(MessageName.ADD_FIELD, send -> send.send(MessageName.ADD_FIELD, name(Field.FIELD_NAME, name)));
+        public Task addField() {
+            return task(MessageName.ADD_FIELD, send -> send.send(MessageName.ADD_FIELD));
         }
 
         @Override
-        public Task addRelation(RelationClass.RelationName name, RelationClass.RelationType type, InstanceClass.InstanceClassIdentity relatedClass) {
+        public Task addRelation(RelationClass.RelationType type, InstanceClass.InstanceClassIdentity relatedClass) {
             return task(MessageName.ADD_RELATION, send -> send.send(
                     MessageName.ADD_RELATION,
-                    name(RelationClass.RELATION_NAME, name),
                     text(RelationClass.RELATION_TYPE, type.name()),
                     address(RelationClass.RELATION_CLASS_IDENTITY, relatedClass)));
         }

@@ -7,10 +7,8 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
-import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.NamedField;
-import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -25,12 +23,13 @@ public class SequenceTask extends AbstractTask {
     private int atSequence = 0;
     private List<Message.Value> values = new ArrayList<>();
 
-    public SequenceTask(Receiver.ReceiverCtrl taskCtrl, TaskName name) {
+    SequenceTask(Receiver.ReceiverCtrl taskCtrl, TaskName name) {
         super(taskCtrl, name);
     }
 
     @Override
     protected void internalStart() {
+        if (trace) System.out.println("SequenceTask.internalStart Count tasks "+sequence.size());
         startNextTask(Task.MessageName.COMPLETED, Message.NO_VALUES);
     }
 
@@ -62,23 +61,19 @@ public class SequenceTask extends AbstractTask {
 
     private void startNextTask(Message.MessageName messageName, Iterable<Message.Value> values) {
         if (sequence.size()==atSequence) {
+            if (trace) System.out.println("SequenceTask.startNextTask COMPLETED "+atSequence+" task(s)");
             success(Task.MessageName.COMPLETED, values);
             return;
         }
         Task task = activeTask();
         atSequence++;
+        if (trace) System.out.println("SequenceTask.startNextTask #"+sequence+" "+task.getName());
+        if (trace) task.trace();
         task.start();
     }
     @Override
     protected void handle(TaskWorker worker) {
 
-    }
-
-
-
-    @Override
-    protected Address createAddress(Configurations... configurations) {
-        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardAddress::standard);
     }
 
     public void add(Message.Value value) { values.add(value); }

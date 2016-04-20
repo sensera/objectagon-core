@@ -1,6 +1,7 @@
 package org.objectagon.core.storage.standard;
 
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.VolatileNumberValue;
 import org.objectagon.core.storage.Version;
@@ -9,6 +10,7 @@ import org.objectagon.core.storage.Version;
  * Created by christian on 2015-11-26.
  */
 @EqualsAndHashCode
+@ToString
 public class StandardVersion implements Version {
 
     public static StandardVersion create(Long version) {
@@ -19,7 +21,7 @@ public class StandardVersion implements Version {
         return new StandardVersion(value.asNumber());
     }
 
-    private Long version;
+    private final Long version;
 
     public StandardVersion(Long version) {
         this.version = version;
@@ -31,7 +33,7 @@ public class StandardVersion implements Version {
     }
 
     public StandardVersion nextVersion() {
-        return new StandardVersion(++version);
+        return new StandardVersion(version + 1);
     }
 
     public static Version.Next<StandardVersion> nextStandardVersionCounter() {

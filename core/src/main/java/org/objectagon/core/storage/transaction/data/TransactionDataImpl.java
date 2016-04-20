@@ -1,5 +1,7 @@
 package org.objectagon.core.storage.transaction.data;
 
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.TransactionManager;
@@ -7,6 +9,7 @@ import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -37,4 +40,8 @@ public class TransactionDataImpl extends AbstractData<Transaction,StandardVersio
         return (C) new TransactionDataChangeImpl(this);
     }
 
+    @Override
+    public Iterable<Message.Value> values() {
+        return identities.stream().map(MessageValue::address).collect(Collectors.toList());
+    }
 }

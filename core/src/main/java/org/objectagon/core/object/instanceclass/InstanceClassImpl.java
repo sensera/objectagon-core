@@ -11,10 +11,7 @@ import org.objectagon.core.object.relationclass.RelationClassService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.event.EventServiceImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
-import org.objectagon.core.storage.DataVersion;
-import org.objectagon.core.storage.Identity;
-import org.objectagon.core.storage.StorageServices;
-import org.objectagon.core.storage.Transaction;
+import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
@@ -67,10 +64,11 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
         }
 
         public void broadCastNameChange(InstanceClassIdentity identity, InstanceClassName instanceClassName) {
+            System.out.println("InstanceClassWorker.broadCastNameChange "+identity+" "+instanceClassName);
             createEventServiceProtocolSend(eventService).broadcast(
                     StorageServices.SEARCH_NAME_EVENT,
-                    ObjectServices.MessageName.NameChangedEvent,
-                    MessageValue.address(identity),
+                    SearchServiceProtocol.MessageName.NAME_CHANGED_EVENT,
+                    MessageValue.address(Identity.IDENTITY, identity),
                     MessageValue.name(instanceClassName));
         }
     }
@@ -123,20 +121,21 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private Optional<Task> createField(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
-        Message.Value fieldName = instanceClassWorker.getValue(Field.FIELD_NAME);
-        System.out.println("InstanceClassImpl.createField ********************************************** "+fieldName);
-        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, FieldService.NAME).create(fieldName));
+        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, FieldService.NAME)
+                .create(MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress())));
     }
 
     private void addField(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
-        System.out.println("InstanceClassImpl.addField ****************************************************'");
         Field.FieldIdentity fieldIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(Identity.IDENTITY).asAddress();
         changeInstanceClass.addField(fieldIdentity);
     }
 
     private Optional<Task> createRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
-        Message.Value relationName = instanceClassWorker.getValue(RelationClass.RELATION_NAME);
-        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, RelationClassService.NAME).create(relationName));
+        return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, RelationClassService.NAME)
+                .create(
+                        instanceClassWorker.getValue(RelationClass.RELATION_TYPE),
+                        instanceClassWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY),
+                        MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress())));
     }
 
     private void addRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
@@ -145,7 +144,6 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void createInstance(InstanceClassWorker entityWorker) {
-        System.out.println("InstanceClassImpl.createInstance ****************************************");
         entityWorker.start(
                 entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, InstanceService.NAME)
                         .create(MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress()))
