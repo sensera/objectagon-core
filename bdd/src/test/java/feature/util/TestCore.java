@@ -177,6 +177,19 @@ public class TestCore {
         return message.getValue(StandardField.ADDRESS).asAddress();
     }
 
+    Transaction internalExtendTransaction(Transaction transaction) throws UserException {
+        TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
+        TaskBuilder.Builder<Task> builder = taskBuilder.protocol(
+                TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL,
+                transaction,
+                TransactionManagerProtocol.Send::extend
+        );
+        Message message = TaskWait.create(
+                builder.create()
+        ).startAndWait(timeout);
+        return message.getValue(StandardField.ADDRESS).asAddress();
+    }
+
     public void stop() {
 
     }
@@ -286,6 +299,10 @@ public class TestCore {
 
         public Transaction getActiveTransaction() {
             return transaction.get();
+        }
+
+        public Transaction extendTransaction(Transaction transaction) throws UserException {
+            return internalExtendTransaction(transaction);
         }
     }
 

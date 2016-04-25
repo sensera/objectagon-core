@@ -3,6 +3,7 @@ package feature.steps;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
 import feature.util.TestCore;
@@ -76,5 +77,13 @@ public class TransactionSteps  {
         testCore.setActiveTransaction(transaction);
         TestCore.TestUser developer = testCore.createTestUser("Developer");
         developer.setTransaction(transaction);
+    }
+
+    @And("^there is an extended transaction from (.*) named (.*)$")
+    public void thereIsAnExtendedTransactionFromAdamsTransactionNamedEvasTransaction(String transactionAlias, String extendedTransactionAlias) throws Throwable {
+        Transaction transaction = testCore.getNamedAddress(transactionAlias);
+        TestCore.TestUser developer = testCore.createTestUser("Developer");
+        Transaction extendedTransaction  = developer.extendTransaction(transaction);
+        testCore.storeNamedAddress(extendedTransactionAlias, extendedTransaction);
     }
 }

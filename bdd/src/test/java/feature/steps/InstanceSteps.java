@@ -3,6 +3,7 @@ package feature.steps;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import feature.util.InstanceManager;
@@ -45,10 +46,7 @@ public class InstanceSteps {
 
     @When("^set instance: (.*) field: (.*) to value: (.*)$")
     public void setInstanceITEMFieldItemNameToValueGurra(String instanceName, String fieldName, String value) throws Throwable {
-        InstanceManager mgr = InstanceManager.create(testCore.createTestUser("Developer"));
-        Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceName);
-        Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);
-        mgr.setValue(instanceIdentity, fieldIdentity, MessageValue.text(value));
+        userSetValueInField("Developer", value, instanceName, fieldName);
     }
 
     @Then("^the value of (.*) field: (.*) is: (.*)$")
@@ -67,5 +65,13 @@ public class InstanceSteps {
         Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);
         Message.Value valueForTest = mgr.getValue(instanceIdentity, fieldIdentity);
         assertThat(valueForTest.asText(), is(equalTo(value)));
+    }
+
+    @And("^user (.*) set value (.*) in (.*) field (.*)$")
+    public void userSetValueInField(String userAlias, String value, String instanceName, String fieldName) throws Throwable {
+        InstanceManager mgr = InstanceManager.create(testCore.createTestUser(userAlias));
+        Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceName);
+        Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);
+        mgr.setValue(instanceIdentity, fieldIdentity, MessageValue.text(value));
     }
 }

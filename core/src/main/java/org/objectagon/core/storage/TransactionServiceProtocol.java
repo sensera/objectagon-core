@@ -12,13 +12,18 @@ public interface TransactionServiceProtocol extends Protocol<TransactionServiceP
 
     ProtocolName TRANSACTION_SERVICE_PROTOCOL = new ProtocolNameImpl("TRANSACTION_SERVICE_PROTOCOL");
 
+    Internal createInternal(CreateSendParam createSend);
+
     enum MessageName implements Message.MessageName, Task.TaskName {
-        CREATE,
+        CREATE, EXTEND,
     }
 
     interface Send extends Protocol.Send {
         Task create();
     }
 
+    interface Internal extends Protocol.Send {
+        Task extend(Transaction transaction);
+    }
 
 }

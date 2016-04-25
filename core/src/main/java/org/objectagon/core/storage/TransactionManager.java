@@ -7,6 +7,7 @@ import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -25,13 +26,14 @@ public interface TransactionManager extends Receiver<Transaction> {
 
     interface TransactionData extends Data<Transaction,StandardVersion> {
         default Type getDataType() {return DATA_TYPE;}
-
         Stream<Identity> getIdentities();
+        Optional<Transaction> getExtendsTransaction();
     }
 
     interface TransactionDataChange extends Data.Change<Transaction,StandardVersion> {
         TransactionDataChange add(Identity identity);
         TransactionDataChange remove(Identity identity);
+        TransactionDataChange setExtendsTransaction(Transaction transaction);
     }
 
 }

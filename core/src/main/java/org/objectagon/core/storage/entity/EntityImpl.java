@@ -74,9 +74,13 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .map(DataVersion.TransactionVersionNode::getVersion);
     }
 
+    protected Optional<V> getDefaultVersion() {
+        return dataVersion.rootNode().map(DataVersion.TransactionVersionNode::getVersion);
+    }
+
     private void updateDataAndVersion(D newData, DataVersion<I, V> newDataVersion) {
-        System.out.println("EntityImpl.updateDataAndVersion "+newData);
-        System.out.println("EntityImpl.updateDataAndVersion "+dataVersion);
+        //System.out.println("EntityImpl.updateDataAndVersion "+newData);
+        //System.out.println("EntityImpl.updateDataAndVersion "+dataVersion);
         this.dataVersion = newDataVersion;
         this.dataCache.put(newData.getVersion(), newData);
     }
@@ -299,22 +303,41 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 }
                 return;
             }
-            final Optional<V> verisionOption = getGetVersionFromTransaction(transaction);
+            final Optional<V> versionOption = getGetVersionFromTransaction(transaction);
 
-            verisionOption.ifPresent((version)-> worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
+            versionOption.ifPresent(getFromPersistence());
+            versionOption.orElseGet(()-> {
+                Optional<V> defaultVersion = getDefaultVersion();
+                defaultVersion.map(v -> {
+                    Optional<D> cachedDataByVersion = getCachedDataByVersion(v);
+                    cachedDataByVersion.ifPresent(d -> {
+                        try {
+                            doDataRead(d);
+                        } catch (UserException e) {
+                            worker.replyWithError(e);
+                        }
+                    });
+                    cachedDataByVersion.orElseGet(() -> {getFromPersistence().accept(v); return null;});
+                    return null;
+                });
+                defaultVersion.orElseGet(() -> {
+                    try {
+                        doDataRead(createNewData(Optional.empty()));
+                    } catch (UserException e) {
+                        worker.replyWithError(e);
+                    }
+                    return null;
+                });
+                return null;
+            });
+        }
+
+        private Consumer<V> getFromPersistence() {
+            return (version) -> worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
                     .getData(getDataType(), getAddress(), version)
                     .addFailedAction(worker::failed)
                     .addSuccessAction((messageName, values) -> doDataRead(Util.getValueByField(values, Data.DATA).getValue()))
-                    .start()
-            );
-            verisionOption.orElseGet(()-> {
-                try {
-                    doDataRead(createNewData(Optional.empty()));
-                } catch (UserException e) {
-                    worker.replyWithError(e);
-                }
-                return null;
-            });
+                    .start();
         }
 
         private void doDataRead(D data) throws UserException {
@@ -381,12 +404,12 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         public WriteDataAction(WriteActionConsumer<W,D,C> change, Message.Values preparedValues) { this.change = change; this.preparedValues = preparedValues; }
 
         public WriteDataAction<C> changeData(WriteActionConsumer<W,D,C> change) throws UserException {
-            System.out.println("WriteDataAction.changeData START");
+            //System.out.println("WriteDataAction.changeData START");
             newDataVersion = newDataVersion(transaction, version -> this.newVersion = version);
             C changeData = (C) oldData.<C>change();
             change.doDataWrite(worker, oldData, changeData, getValues());
             newData = changeData.create(newVersion);
-            System.out.println("WriteDataAction.changeData END");
+            //System.out.println("WriteDataAction.changeData END");
             return this;
         }
 
@@ -397,7 +420,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         }
 
         public WriteDataAction<C> pushToPersistence() {
-            System.out.println("WriteDataAction.pushToPersistence "+newData.getVersion());
+            //System.out.println("WriteDataAction.pushToPersistence "+newData.getVersion());
             EntityImpl.this.pushToPersistence(worker, newData, newDataVersion, getValues());
             return this;
         }

@@ -4,6 +4,7 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.storage.Transaction;
 
 import java.util.Optional;
 

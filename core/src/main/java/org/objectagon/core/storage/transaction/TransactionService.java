@@ -15,6 +15,7 @@ import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.storage.transaction.data.TransactionDataImpl;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +49,9 @@ public class TransactionService extends AbstractService<TransactionService.Trans
         reactorBuilder.add(
                 patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionServiceProtocol.MessageName.CREATE),
                 (initializer, context) -> new CreateAction(this, (TransactionServiceWorkerImpl) context)
+        ).add(
+                patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionServiceProtocol.MessageName.EXTEND),
+                (initializer, context) -> new CreateAction(this, (TransactionServiceWorkerImpl) context)
         );
     }
 
@@ -71,6 +75,7 @@ public class TransactionService extends AbstractService<TransactionService.Trans
     private class CreateAction extends AsyncAction<TransactionService, TransactionServiceWorkerImpl> {
         TransactionDataImpl transactionData;
         TransactionManager transactionManager;
+        Transaction extendsTransaction;
 
         public CreateAction(TransactionService initializer, TransactionServiceWorkerImpl context) {
             super(initializer, context);
@@ -78,19 +83,31 @@ public class TransactionService extends AbstractService<TransactionService.Trans
 
         @Override
         public boolean initialize() throws UserException {
+            extendsTransaction = context.getValue(Transaction.EXTENDS).asAddress();
             return super.initialize();
         }
 
         @Override
         protected Task internalRun(TransactionServiceWorkerImpl actionContext) throws UserException {
-            transactionManager = context.createReceiver(TransactionManagerImpl.NAME, new Configurations() {
-                @Override
-                public <C extends NamedConfiguration> Optional<C> getConfigurationByName(Name name) {
-                    return Optional.of( (C)  (TransactionManagerProtocol.TransactionManagerConfig) (Transaction transaction) -> {
-                        return transactionData = TransactionDataImpl.create(transaction, StandardVersion.create(0L));
-                    });
-                }
+            Configurations configurations = OneReceiverConfigurations.create(
+                    TransactionManagerProtocol.TRANSACTION_MANAGER_CONFIG,
+                    new TransactionManagerProtocol.TransactionManagerConfig() {
+                        @Override
+                        public TransactionManager.TransactionData getTransactionData(Transaction transaction) {
+                            transactionData = TransactionDataImpl.create(transaction, StandardVersion.create(0L));
+                            if (extendsTransaction!=null)
+                                transactionData = transactionData.<TransactionManager.TransactionDataChange>change()
+                                        .setExtendsTransaction(extendsTransaction)
+                                        .create(transactionData.getVersion());
+                            return transactionData;
+                        }
+
+                        @Override
+                        public Optional<Transaction> extendsTransaction() {
+                            return Optional.ofNullable(extendsTransaction);
+                        }
             });
+            transactionManager = context.createReceiver(TransactionManagerImpl.NAME, configurations);
             transactionManagers.put(transactionManager.getAddress(), transactionManager);
             setSuccessAction((messageName, values) -> context.replyWithParam(MessageValue.address(transactionManager.getAddress())));
             return context.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(transactionData);

@@ -9,16 +9,14 @@ Feature: Transaction view
     And there is an instance created from type: Item named: ITEM1
     And the active transaction has been commited
     And there is an user named Adam with role User
+    And there is an user named Eva with role User
     And there is an transaction named AdamsTransaction
+    And there is an extended transaction from AdamsTransaction named EvasTransaction
     And there is an user named Adam with transaction AdamsTransaction
+    And there is an user named Eva with transaction EvasTransaction
 
   Scenario: Different view of same value
     Given the active transaction is: SystemTransaction
     Then the value of ITEM1 field: ItemName is: Phone
     And user Adam get value Phone from ITEM1 field ItemName
-
-  Scenario: Change value in transaction
-    Given the active transaction is: SystemTransaction
-    And user Adam set value Max in ITEM1 field ItemName
-    Then the value of ITEM1 field: ItemName is: Phone
-    And user Adam get value Max from ITEM1 field ItemName
+    And user Eva get value Phone from ITEM1 field ItemName

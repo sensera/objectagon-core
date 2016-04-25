@@ -50,7 +50,13 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
     @Override
     protected Transaction createAddress(Configurations... configurations) {
-        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(StandardTransaction::new);
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        TransactionManagerProtocol.TransactionManagerConfig transactionManagerConfig =  finder.getConfigurationByName(TransactionManagerProtocol.TRANSACTION_MANAGER_CONFIG);
+        return finder.createConfiguredAddress((serverId, timestamp, addressId) ->
+            transactionManagerConfig.extendsTransaction()
+                    .map(transaction -> StandardTransaction.extend(serverId, timestamp, addressId, transaction))
+                    .orElse(StandardTransaction.create(serverId, timestamp, addressId))
+        );
     }
 
     @Override
@@ -62,6 +68,9 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
                 ).add(
                     patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionManagerProtocol.MessageName.COMMIT),
                     (initializer, context) -> new CommitAction(this, (TransactionManagerWorker) context)
+                ).add(
+                    patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionManagerProtocol.MessageName.EXTEND),
+                    (initializer, context) -> new ExtendAction(this, (TransactionManagerWorker) context)
                 ).add(
                     patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionManagerProtocol.MessageName.TARGETS),
                     (initializer, context) -> new TargetsAction(this, (TransactionManagerWorker) context)
@@ -88,6 +97,11 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
                     .<Protocol.ProtocolAddress, EntityProtocol>createReceiver(EntityProtocol.ENTITY_PROTOCOL)
                     .createSend(() -> getWorkerContext().createTargetComposer(identity));
         }
+        TransactionServiceProtocol.Internal createTransactionServiceProtocolInternal(Name target) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress,TransactionServiceProtocol>createReceiver(TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL)
+                    .createInternal(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
+        }
     }
 
     private class AddEntityToAction extends AsyncAction<TransactionManagerImpl, TransactionManagerWorker> {
@@ -105,7 +119,7 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
         @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
-            System.out.println("AddEntityToAction.internalRun "+identity);
+            //System.out.println("AddEntityToAction.internalRun "+identity);
             TransactionManager.TransactionDataChange change = transactionData.change();
             change.add(identity);
             TransactionManager.TransactionData newTransactionData = change.create(transactionData.getVersion().nextVersion());
@@ -116,8 +130,6 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
     }
 
     private class CommitAction extends AsyncAction<TransactionManagerImpl, TransactionManagerWorker> {
-
-        private Transaction transaction;
 
         public CommitAction(TransactionManagerImpl initializer, TransactionManagerWorker context) {
             super(initializer, context);
@@ -146,6 +158,27 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
                 sequence.<EntityProtocol.Send>protocol(EntityProtocol.ENTITY_PROTOCOL, address, send -> send.unlock(getAddress()));
             });
             return sequence.create();
+        }
+    }
+
+    private class ExtendAction extends AsyncAction<TransactionManagerImpl, TransactionManagerWorker> {
+
+        public ExtendAction(TransactionManagerImpl initializer, TransactionManagerWorker context) {
+            super(initializer, context);
+        }
+
+        @Override
+        public boolean initialize() throws UserException {
+            if (transactionData.getIdentities().findAny().isPresent())
+                return super.initialize();
+            System.out.println("CommitAction.initialize MISSING!");
+            context.replyOk();
+            return false;
+        }
+
+        @Override
+        protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
+            return actionContext.createTransactionServiceProtocolInternal(TransactionService.NAME).extend(getAddress());
         }
     }
 

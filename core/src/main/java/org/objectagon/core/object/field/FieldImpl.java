@@ -98,6 +98,10 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
     }
 
     private void getDefaultValueForInstance(FieldEntityWorker fieldEntityWorker, FieldData fieldData) {
+        if (fieldData.getDefaultValue().isPresent())
+            System.out.println("FieldImpl.getDefaultValueForInstance value="+fieldData.getDefaultValue().get());
+        else
+            System.out.println("FieldImpl.getDefaultValueForInstance value=NO VALUE");
         fieldEntityWorker.replyWithParam(MessageValue.values(FieldValue.VALUE, fieldData.getDefaultValue().orElse(MessageValue.empty())));
     }
 

@@ -7,6 +7,8 @@ import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.task.Task;
 
+import java.util.Optional;
+
 /**
  * Created by christian on 2016-03-29.
  */
@@ -20,7 +22,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         REMOVE_ENTITY_FROM,
         REMOVE,
         COMMIT,
-        TARGETS, ROLLBACK
+        TARGETS, EXTEND, ROLLBACK
     }
 
     interface Send extends Protocol.Send {
@@ -30,10 +32,12 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         Task commit();
         Task rollback();
         Task getTargets();
+        Task extend();
     }
 
     interface TransactionManagerConfig extends NamedConfiguration {
         TransactionManager.TransactionData getTransactionData(Transaction transaction);
+        Optional<Transaction> extendsTransaction();
     }
 
 }

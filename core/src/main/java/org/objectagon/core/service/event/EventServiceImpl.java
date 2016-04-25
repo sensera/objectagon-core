@@ -58,7 +58,7 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
     }
 
     void startListenTo(Name name, Address address) {
-        System.out.println("EventServiceImpl.startListenTo "+name+" "+address);
+        //System.out.println("EventServiceImpl.startListenTo "+name+" "+address);
         AddressList addressList = eventListeners.get(name);
         if (addressList==null) {
             addressList = new AddressList<Address>(address);
@@ -68,7 +68,7 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
     }
 
     void stopListenTo(Name name, Address address) {
-        System.out.println("EventServiceImpl.stopListenTo "+name+" "+address);
+        //System.out.println("EventServiceImpl.stopListenTo "+name+" "+address);
         AddressList<Address> addressList = eventListeners.get(name);
         if (addressList!=null) {
             addressList.remove(address);
@@ -78,13 +78,13 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
     }
 
     void broadcast(Name name, MessageValueMessage message, EventServiceWorkerImpl serviceWorker) {
-        System.out.println("EventServiceImpl.broadcast "+name+" ("+message+")");
+        //System.out.println("EventServiceImpl.broadcast "+name+" ("+message+")");
         AddressList<Address> addressList = eventListeners.get(name);
         if (addressList!=null) {
-            System.out.println("EventServiceImpl.broadcast "+name+" receipients count "+addressList.size());
+            //System.out.println("EventServiceImpl.broadcast "+name+" receipients count "+addressList.size());
             addressList.stream().forEach(address -> serviceWorker.broadcast(address, message));
-        } else
-            System.out.println("EventServiceImpl.broadcast "+name+" no receipients!");
+        } //else
+            //System.out.println("EventServiceImpl.broadcast "+name+" no receipients!");
     }
 
     @Override

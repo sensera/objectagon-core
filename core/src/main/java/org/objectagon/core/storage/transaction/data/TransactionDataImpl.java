@@ -9,6 +9,7 @@ import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,19 +21,26 @@ import static java.util.Collections.emptyList;
 public class TransactionDataImpl extends AbstractData<Transaction,StandardVersion> implements TransactionManager.TransactionData {
 
     public static TransactionDataImpl create(Transaction transaction, StandardVersion version) {
-        return new TransactionDataImpl(transaction, version, emptyList());
+        return new TransactionDataImpl(transaction, version, emptyList(), Optional.empty());
     }
 
-    List<Identity> identities;
+    private List<Identity> identities;
+    private Optional<Transaction> extendsTransaction;
 
     @Override
     public Stream<Identity> getIdentities() {
         return identities.stream();
     }
 
-    TransactionDataImpl(Transaction identity, StandardVersion version, List<Identity> identities) {
+    @Override
+    public Optional<Transaction> getExtendsTransaction() {
+        return extendsTransaction;
+    }
+
+    TransactionDataImpl(Transaction identity, StandardVersion version, List<Identity> identities, Optional<Transaction> extendsTransaction) {
         super(identity, version);
         this.identities = identities;
+        this.extendsTransaction = extendsTransaction;
     }
 
     @Override
