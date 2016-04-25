@@ -19,4 +19,6 @@ public interface EntityWorker extends BasicWorker {
 
     EntityServiceProtocol.Send createEntityServiceProtocolSend(Service.ServiceName serviceAddress, Name target);
 
+    TransactionManagerProtocol.Send createTransactionManagerProtocolSend(Transaction transaction);
+
 }

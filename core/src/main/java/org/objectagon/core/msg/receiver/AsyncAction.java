@@ -2,6 +2,7 @@ package org.objectagon.core.msg.receiver;
 
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.task.Task;
 
 /**
@@ -11,7 +12,7 @@ public abstract class AsyncAction<I extends Reactor.ActionInitializer, C extends
 
     protected I initializer;
     protected C context;
-    protected Task.SuccessAction successAction = (messageName, values) -> context.replyWithParam(values.iterator().next());
+    protected Task.SuccessAction successAction = (messageName, values) -> context.replyWithParam(values.iterator().hasNext()?values.iterator().next(): MessageValue.empty());
     protected Task.FailedAction failedAction = (errorClass, errorKind, values) -> context.replyWithError(new SevereError(errorClass, errorKind, values));
 
     public AsyncAction(I initializer, C context) {

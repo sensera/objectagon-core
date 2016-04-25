@@ -34,8 +34,6 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         return Optional.ofNullable(root);
     }
 
-
-
     public DataVersionImpl(I identity, V version, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
         super(identity, version);
         this.versionCounter = versionCounter;

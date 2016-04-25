@@ -1,6 +1,7 @@
 package org.objectagon.core.storage.transaction;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.storage.Identity;
@@ -27,12 +28,12 @@ public class TransactionManagerProtocolImpl extends AbstractProtocol<Transaction
 
         @Override
         public Task addEntityTo(Identity identity) {
-            return null;
+            return task(MessageName.ADD_ENTITY_TO, send -> send.send(MessageName.ADD_ENTITY_TO, MessageValue.address(identity)));
         }
 
         @Override
         public Task removeEntityFrom(Identity identity) {
-            return null;
+            return task(MessageName.REMOVE_ENTITY_FROM, send -> send.send(MessageName.REMOVE_ENTITY_FROM, MessageValue.address(identity)));
         }
 
         @Override
@@ -42,12 +43,17 @@ public class TransactionManagerProtocolImpl extends AbstractProtocol<Transaction
 
         @Override
         public Task commit() {
-            return null;
+            return task(MessageName.COMMIT, send -> send.send(MessageName.COMMIT));
         }
 
         @Override
         public Task rollback() {
             return null;
+        }
+
+        @Override
+        public Task getTargets() {
+            return task(MessageName.TARGETS, send -> send.send(MessageName.TARGETS));
         }
     }
 }

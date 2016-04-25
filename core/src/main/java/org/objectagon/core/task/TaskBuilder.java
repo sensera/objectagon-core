@@ -2,6 +2,7 @@ package org.objectagon.core.task;
 
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 
 import java.util.Optional;
@@ -19,6 +20,8 @@ public interface TaskBuilder {
     <S extends Protocol.Send> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
     ChainedBuilder chain(Task.TaskName taskName, Action action);
     SequenceBuilder sequence(Task.TaskName taskName);
+
+    void addHeader(Message.Value value);
 
     Optional<Task> current();
 
@@ -38,6 +41,7 @@ public interface TaskBuilder {
         <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Composer.ResolveTarget target, ProtocolTask.SendMessageAction<S> sendMessageAction);
         <S extends Protocol.Send> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
         Builder<ActionTask> action(Task.TaskName taskName, Action action);
+        <S extends Protocol.Send> Builder<Task> addTask(Task task);
     }
 
     interface Action {

@@ -4,6 +4,7 @@ import lombok.Data;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
@@ -21,7 +22,7 @@ public class InstanceClassManager {
     private final TestCore.TestUser developer;
 
     private Message taskWait(Task task, AquireValue... aquireValues) throws UserException {
-        Message message = TaskWait.create(task).startAndWait(10000000000L);
+        Message message = TaskWait.create(task).startAndWait(TestCore.timeout);
         developer.storeResponseMessage(message);
         Stream.of(aquireValues).forEach(aquireValue -> aquireValue.message(message));
         return message;
@@ -56,6 +57,20 @@ public class InstanceClassManager {
                 message -> developer.setValue(Field.FIELD_IDENTITY, message.getValue(StandardField.ADDRESS))
         );
         return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
+    }
+
+    public void setFieldDefaultValue(Field.FieldIdentity fieldIdentity, String defaultValue) throws UserException {
+        taskWait(
+                developer.createFieldProtocolSend(fieldIdentity).setDefaultValue(MessageValue.text(Field.DEFAULT_VALUE, defaultValue))
+        );
+    }
+
+
+    public Message.Value getFieldDefaultValue(Field.FieldIdentity fieldIdentity) throws UserException {
+        Message msg = taskWait(
+                developer.createFieldProtocolSend(fieldIdentity).getDefaultValue()
+        );
+        return MessageValueFieldUtil.create(msg.getValues()).getValueByField(Field.DEFAULT_VALUE).asValues().values().iterator().next();
     }
 
     @FunctionalInterface

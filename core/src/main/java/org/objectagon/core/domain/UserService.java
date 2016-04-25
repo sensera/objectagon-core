@@ -5,6 +5,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
 import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.DataVersionImpl;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardData;
@@ -31,7 +32,7 @@ public class UserService extends EntityService<Service.ServiceName, StandardIden
     protected Server.Factory createEntityFactory() {return User::new;}
 
     @Override
-    protected DataVersion<StandardIdentity, StandardVersion> createInitialDataFromValues(StandardIdentity identity, Message.Values initialParams) {
+    protected DataVersion<StandardIdentity, StandardVersion> createInitialDataFromValues(StandardIdentity identity, Message.Values initialParams, Transaction transaction) {
         return new DataVersionImpl<>(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }
 

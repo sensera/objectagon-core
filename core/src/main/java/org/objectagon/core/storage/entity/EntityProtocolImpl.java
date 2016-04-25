@@ -16,7 +16,7 @@ import org.objectagon.core.task.Task;
 public class EntityProtocolImpl extends AbstractProtocol<EntityProtocol.Send, Protocol.Reply> implements EntityProtocol {
 
     public static void registerAtServer(Server server) {
-        server.registerFactory(ENTITY_PROTOCOL, new SingletonFactory<>(EntityServiceProtocolImpl::new));
+        server.registerFactory(ENTITY_PROTOCOL, new SingletonFactory<>(EntityProtocolImpl::new));
     }
 
     public EntityProtocolImpl(ReceiverCtrl receiverCtrl) {

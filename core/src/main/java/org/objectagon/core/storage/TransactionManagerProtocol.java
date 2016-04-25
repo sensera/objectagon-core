@@ -20,7 +20,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         REMOVE_ENTITY_FROM,
         REMOVE,
         COMMIT,
-        ROLLBACK
+        TARGETS, ROLLBACK
     }
 
     interface Send extends Protocol.Send {
@@ -29,6 +29,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         Task remove();
         Task commit();
         Task rollback();
+        Task getTargets();
     }
 
     interface TransactionManagerConfig extends NamedConfiguration {

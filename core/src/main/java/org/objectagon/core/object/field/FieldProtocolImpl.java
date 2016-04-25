@@ -64,7 +64,7 @@ public class FieldProtocolImpl extends AbstractProtocol<FieldProtocol.Send, Prot
 
         @Override
         public Task setDefaultValue(Message.Value value) {
-            return task(MessageName.SET_DEFAULT_VALUE, send -> send.send(MessageName.SET_DEFAULT_VALUE, MessageValue.values(FieldValue.VALUE, value)));
+            return task(MessageName.SET_DEFAULT_VALUE, send -> send.send(MessageName.SET_DEFAULT_VALUE, MessageValue.values(Field.DEFAULT_VALUE, value)));
         }
 
         @Override
@@ -84,7 +84,7 @@ public class FieldProtocolImpl extends AbstractProtocol<FieldProtocol.Send, Prot
 
         @Override
         public void getDefaultValue() {
-            send(MessageName.GET_DEFAULT_VALUE);
+            send(MessageName.GET_DEFAULT_VALUE_FOR_INSTANCE);
         }
     }
 }

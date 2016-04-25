@@ -45,8 +45,8 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     @Override
-    protected InstanceClassData createNewData() {
-        return InstanceClassDataImpl.create(getAddress(), StandardVersion.create(0L));
+    protected InstanceClassData createNewData(Optional<StandardVersion> version) {
+        return InstanceClassDataImpl.create(getAddress(), version.orElse(StandardVersion.create(0L)));
     }
 
     @Override

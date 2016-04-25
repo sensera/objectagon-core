@@ -51,9 +51,18 @@ public class InstanceSteps {
         mgr.setValue(instanceIdentity, fieldIdentity, MessageValue.text(value));
     }
 
-    @Then("^the value of instance: (.*) field: (.*) is: (.*)$")
+    @Then("^the value of (.*) field: (.*) is: (.*)$")
     public void theValueOfInstanceITEMFieldItemNameIsGurra(String instanceName, String fieldName, String value) throws Throwable {
         InstanceManager mgr = InstanceManager.create(testCore.createTestUser("Developer"));
+        Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceName);
+        Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);
+        Message.Value valueForTest = mgr.getValue(instanceIdentity, fieldIdentity);
+        assertThat(valueForTest.asText(), is(equalTo(value)));
+    }
+
+    @Then("^user (.*) get value (.*) from (.*) field (.*)$")
+    public void userAdamGetValuePhoneFromITEMFieldItemName(String userName, String value, String instanceName, String fieldName) throws Throwable {
+        InstanceManager mgr = InstanceManager.create(testCore.createTestUser(userName));
         Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceName);
         Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);
         Message.Value valueForTest = mgr.getValue(instanceIdentity, fieldIdentity);

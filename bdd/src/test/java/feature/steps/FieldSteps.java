@@ -3,10 +3,12 @@ package feature.steps;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
 import feature.util.InstanceClassManager;
 import feature.util.TestCore;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
 
@@ -41,4 +43,18 @@ public class FieldSteps {
         testCore.storeNamedAddress(fieldName, fieldIdentity);
     }
 
+    @And("^the field (.*) has default value (.*)$")
+    public void theFieldItemNameHasDefaultValuePhone(String fieldAlias, String fieldDefaultValue) throws Throwable {
+        Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldAlias);
+        InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
+        mgr.setFieldDefaultValue(fieldIdentity, fieldDefaultValue);
+    }
+
+    @And("^the default value for (.*) is (.*)$")
+    public void theDefaultValueForItemNameIsPhone(String fieldAlias, String fieldDefaultValue) throws Throwable {
+        Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldAlias);
+        InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
+        Message.Value value = mgr.getFieldDefaultValue(fieldIdentity);
+        assertThat(value.asText(), is(equalTo(fieldDefaultValue)));
+    }
 }

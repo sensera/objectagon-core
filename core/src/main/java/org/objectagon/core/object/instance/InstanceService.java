@@ -13,6 +13,7 @@ import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
 import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.DataVersionImpl;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardVersion;
@@ -36,7 +37,7 @@ public class InstanceService extends EntityService<Service.ServiceName, Instance
     @Override protected Server.Factory createEntityFactory() { return InstanceImpl::new; }
 
     @Override
-    protected DataVersion<Instance.InstanceIdentity, StandardVersion> createInitialDataFromValues(Instance.InstanceIdentity identity, Message.Values initialParams) {
+    protected DataVersion<Instance.InstanceIdentity, StandardVersion> createInitialDataFromValues(Instance.InstanceIdentity identity, Message.Values initialParams, Transaction transaction) {
         return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0l, StandardVersion::new);
     }
 

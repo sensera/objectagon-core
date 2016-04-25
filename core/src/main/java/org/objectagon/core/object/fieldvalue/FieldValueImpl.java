@@ -1,16 +1,18 @@
 package org.objectagon.core.object.fieldvalue;
 
-import org.objectagon.core.object.fieldvalue.data.FieldValueDataImpl;
-import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.FieldValue;
 import org.objectagon.core.object.FieldValueProtocol;
+import org.objectagon.core.object.fieldvalue.data.FieldValueDataImpl;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
+import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.utils.FindNamedConfiguration;
+
+import java.util.Optional;
 
 import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
@@ -29,8 +31,8 @@ public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, Fi
     }
 
     @Override
-    protected FieldValueData createNewData() {
-        return FieldValueDataImpl.create(getAddress(), StandardVersion.create(0L), MessageValue.empty());
+    protected FieldValueData createNewData(Optional<StandardVersion> version) {
+        return FieldValueDataImpl.create(getAddress(), version.orElse(StandardVersion.create(0L)), MessageValue.empty());
     }
 
     @Override

@@ -9,4 +9,8 @@ Feature: Create instance
 
   Scenario: Set a value to an instance field
     When set instance: ITEM1 field: ItemName to value: Gurra
-    Then the value of instance: ITEM1 field: ItemName is: Gurra
+    Then the value of ITEM1 field: ItemName is: Gurra
+
+  Scenario: Get default value from instance
+    Given the field ItemName has default value Phone
+    Then the value of ITEM1 field: ItemName is: Phone

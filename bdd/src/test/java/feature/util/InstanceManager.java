@@ -21,7 +21,7 @@ public class InstanceManager {
     private final TestCore.TestUser developer;
 
     private Message taskWait(Task task, AquireValue... aquireValues) throws UserException {
-        Message message = TaskWait.create(task).startAndWait(10000000000L);
+        Message message = TaskWait.create(task).startAndWait(TestCore.timeout);
         developer.storeResponseMessage(message);
         Stream.of(aquireValues).forEach(aquireValue -> aquireValue.message(message));
         return message;

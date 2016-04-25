@@ -13,6 +13,8 @@ public interface Entity<I extends Identity, D extends Data> extends Receiver<I> 
 
     Name ENTITY_CONFIG_NAME = StandardName.name("ENTITY_CONFIG_NAME");
 
+    <V extends Version> D createNewDataWithVersion(V versionForNewData);
+
     enum TaskName implements Task.TaskName {
         COMMIT_DATA_VERSION, ROLLBACK_DATA_VERSION, DELETE_DATA_VERSION_FROM_PERSISTANCE
 

@@ -8,6 +8,8 @@ import org.objectagon.core.storage.entity.EntityWorker;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.Optional;
+
 /**
  * Created by christian on 2015-11-01.
  */
@@ -29,8 +31,8 @@ public class StandardEntity<D extends StandardData> extends EntityImpl<StandardI
     }
 
     @Override
-    protected D createNewData() {
-        return (D) StandardData.create(getAddress(), StandardVersion.create(0L), getDataType());
+    protected D createNewData(Optional<StandardVersion> version) {
+        return (D) StandardData.create(getAddress(), version.orElse(StandardVersion.create(0L)), getDataType());
     }
 
     @Override

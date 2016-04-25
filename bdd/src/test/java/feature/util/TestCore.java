@@ -21,14 +21,15 @@ import org.objectagon.core.service.event.EventServiceImpl;
 import org.objectagon.core.service.event.EventServiceProtocolImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.service.name.NameServiceProtocolImpl;
-import org.objectagon.core.storage.EntityServiceProtocol;
-import org.objectagon.core.storage.StorageServices;
-import org.objectagon.core.storage.Transaction;
-import org.objectagon.core.storage.TransactionServiceProtocol;
-import org.objectagon.core.task.*;
+import org.objectagon.core.storage.*;
+import org.objectagon.core.task.StandardTaskBuilder;
+import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.objectagon.core.utils.FindNamedConfiguration.finder;
 
@@ -38,6 +39,7 @@ import static org.objectagon.core.utils.FindNamedConfiguration.finder;
 
 public class TestCore {
 
+    public static long timeout = 100000000L;
 
     enum InitTasks implements Task.TaskName {
         InitTestCoreTasks,
@@ -55,7 +57,7 @@ public class TestCore {
             testCore = new TestCore(name);
             Task initialized = testCore.initialize();
             try {
-                TaskWait.create(initialized).startAndWait(10000000000L);
+                TaskWait.create(initialized).startAndWait(timeout*2);
             } catch (UserException e) {
                 throw new RuntimeException("Timout!", e);
             }
@@ -143,20 +145,36 @@ public class TestCore {
         return latestTestUser;
     }
 
-    public TestUser createTestUser(String name) {
-        System.out.println("TestCore.createTestUser "+name);
-        latestTestUser = Optional.of(server.createReceiver(TEST_USER, OneReceiverConfigurations.create(TEST_USER, (TestUserConfig) () -> TEST_USER)));
-        return latestTestUser.get();
+    public Transaction getActiveTransaction() {
+        return transaction.get();
+    }
+    public void setActiveTransaction(Transaction transaction) {
+        this.transaction = Optional.ofNullable(transaction);
     }
 
-    public void createTransaction() throws UserException {
+    public Map<String,TestUser> testUsers = new HashMap<>();
+
+    public Optional<TestUser> getTestUser(String name) {
+        return Optional.ofNullable(testUsers.get(name));
+    }
+
+    public TestUser createTestUser(String name) {
+        return getTestUser(name).orElseGet( () -> {
+            System.out.println("TestCore.createTestUser " + name);
+            latestTestUser = Optional.of(server.createReceiver(TEST_USER, OneReceiverConfigurations.create(TEST_USER, (TestUserConfig) () -> TEST_USER)));
+            testUsers.put(name, latestTestUser.get());
+            return latestTestUser.get();
+        });
+    }
+
+    Transaction internalCreateTransaction() throws UserException {
         TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
         TaskBuilder.Builder<Task> builder = taskBuilder.protocol(TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL,
                 storageServices.getTransactionServiceName(), TransactionServiceProtocol.Send::create);
         Message message = TaskWait.create(
                 builder.create()
-        ).startAndWait(1000L);
-        transaction = Optional.of(message.getValue(StandardField.ADDRESS).asAddress());
+        ).startAndWait(timeout);
+        return message.getValue(StandardField.ADDRESS).asAddress();
     }
 
     public void stop() {
@@ -166,6 +184,7 @@ public class TestCore {
     public class TestUser extends AbstractReceiver<Address> {
         Name name;
         Optional<Message> message = Optional.empty();
+        Optional<Transaction> transaction = Optional.empty();
         Map<Message.Field,Message.Value> storedValues = new HashMap<>();
 
         public void setValue(Message.Field field, Message.Value value) { storedValues.put(field, value); }
@@ -231,6 +250,42 @@ public class TestCore {
 
         public void verifyResponseMessage(ResponseMessageName responseMessageName) {
             Assert.assertEquals(message.get().getName(), responseMessageName.getMessageName());
+        }
+
+        public Transaction createTransaction() throws UserException {
+            Transaction transaction = internalCreateTransaction();
+            this.transaction = Optional.ofNullable(transaction);
+            return transaction;
+        }
+
+        public void setTransaction(Transaction transaction) {
+            this.transaction = Optional.ofNullable(transaction);
+        }
+
+        public void commitTransaction() throws UserException {
+            commitTransaction(this.transaction.get());
+        }
+
+        public void commitTransaction(Transaction transaction) throws UserException {
+            TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
+            TaskBuilder.Builder<Task> builder = taskBuilder.protocol(TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL,
+                    transaction, TransactionManagerProtocol.Send::commit);
+            TaskWait.create(builder.create()).startAndWait(timeout);
+        }
+
+        public Stream<Identity> getTransactionTargets(Transaction transaction) throws UserException {
+            TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
+            TaskBuilder.Builder<Task> builder = taskBuilder.<TransactionManagerProtocol.Send>protocol(TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL,
+                    transaction, session -> session.getTargets());
+
+            Message message = TaskWait.create(builder.create()).startAndWait(timeout);
+            Message.Values values = message.getValue(StandardField.VALUES).asValues();
+            return StreamSupport.stream(values.values().spliterator(), false).map(value -> value.asAddress());
+        }
+
+
+        public Transaction getActiveTransaction() {
+            return transaction.get();
         }
     }
 

@@ -11,7 +11,7 @@ public interface Data<I extends Identity, V extends Version> extends Message.Val
 
     interface Type extends Name {}
 
-    enum MergeStrategy {
+    enum MergeStrategy implements Name {
         None,
         OverWrite,
         Uppgrade, // Will merge old and new data

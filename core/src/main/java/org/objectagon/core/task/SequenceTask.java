@@ -42,6 +42,8 @@ public class SequenceTask extends AbstractTask {
     }
 
     public SequenceTask add(Task task) {
+        if (task == null)
+            throw new NullPointerException("task is null!");
         sequence.add(task);
         task.addSuccessAction(this::startNextTask);
         task.addFailedAction(this::failed);

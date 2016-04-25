@@ -9,6 +9,7 @@ import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceProtocol;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.service.name.NameServiceProtocol;
+import org.objectagon.core.storage.entity.EntityProtocolImpl;
 import org.objectagon.core.storage.persistence.PersistenceService;
 import org.objectagon.core.storage.persistence.PersistenceServiceProtocolImpl;
 import org.objectagon.core.storage.search.SearchService;
@@ -50,6 +51,7 @@ public class StorageServices {
         TransactionManagerProtocolImpl.registerAtServer(server);
         SearchService.registerAt(server);
         SearchServiceProtocolImpl.registerAtServer(server);
+        EntityProtocolImpl.registerAtServer(server);
         return this;
     }
 

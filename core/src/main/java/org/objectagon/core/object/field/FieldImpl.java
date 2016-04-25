@@ -21,6 +21,8 @@ import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.Optional;
+
 import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
@@ -38,8 +40,8 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
     }
 
     @Override
-    protected FieldData createNewData() {
-        return FieldDataImpl.create(getAddress(),StandardVersion.create(0L), null, StandardFieldType.Text);
+    protected FieldData createNewData(Optional<StandardVersion> version) {
+        return FieldDataImpl.create(getAddress(),version.orElse(StandardVersion.create(0L)), null, StandardFieldType.Text);
     }
 
     @Override
@@ -73,6 +75,7 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
                 .trigger(FieldProtocol.MessageName.GET_TYPE, read(this::getType))
                 .trigger(FieldProtocol.MessageName.SET_TYPE, write(this::<FieldDataChange>setType))
                 .trigger(FieldProtocol.MessageName.GET_DEFAULT_VALUE, read(this::getDefaultValue))
+                .trigger(FieldProtocol.MessageName.GET_DEFAULT_VALUE_FOR_INSTANCE, read(this::getDefaultValueForInstance))
                 .trigger(FieldProtocol.MessageName.SET_DEFAULT_VALUE, write(this::<FieldDataChange>setDefaultValue))
                 .trigger(FieldProtocol.MessageName.CREATE_FIELD_VALUE, read(this::createFieldValue))
                 .orElse(w -> super.handle(w));
@@ -94,12 +97,17 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
         fieldIdentityStandardVersionChange.setType(MessageValueFieldUtil.create(values).getValueByField(FIELD_TYPE).asName());
     }
 
-    private void getDefaultValue(FieldEntityWorker fieldEntityWorker, FieldData fieldData) {
+    private void getDefaultValueForInstance(FieldEntityWorker fieldEntityWorker, FieldData fieldData) {
         fieldEntityWorker.replyWithParam(MessageValue.values(FieldValue.VALUE, fieldData.getDefaultValue().orElse(MessageValue.empty())));
     }
 
+    private void getDefaultValue(FieldEntityWorker fieldEntityWorker, FieldData fieldData) {
+        fieldEntityWorker.replyWithParam(MessageValue.values(Field.DEFAULT_VALUE, fieldData.getDefaultValue().orElse(MessageValue.empty())));
+    }
+
     private void setDefaultValue(FieldEntityWorker fieldEntityWorker, FieldData fieldData, FieldDataChange fieldIdentityStandardVersionChange, Message.Values values) {
-        fieldIdentityStandardVersionChange.setDefaultValue(MessageValueFieldUtil.create(values).getValueByField(DEFAULT_VALUE));
+        Message.Value valueByField = MessageValueFieldUtil.create(values).getValueByField(DEFAULT_VALUE).asValues().values().iterator().next();
+        fieldIdentityStandardVersionChange.setDefaultValue(valueByField);
     }
 
     private void createFieldValue(FieldEntityWorker fieldEntityWorker, FieldData fieldData) {

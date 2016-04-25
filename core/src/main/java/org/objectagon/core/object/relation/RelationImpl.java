@@ -12,6 +12,8 @@ import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.Optional;
+
 import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
@@ -34,8 +36,8 @@ public class RelationImpl extends EntityImpl<Relation.RelationIdentity, Relation
     }
 
     @Override
-    protected RelationData createNewData() {
-        return RelationDataImpl.create(getAddress(), StandardVersion.create(0L));
+    protected RelationData createNewData(Optional<StandardVersion> version) {
+        return RelationDataImpl.create(getAddress(), version.orElse(StandardVersion.create(0L)));
     }
 
     @Override

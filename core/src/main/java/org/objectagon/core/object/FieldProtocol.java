@@ -19,7 +19,11 @@ public interface FieldProtocol extends Protocol<FieldProtocol.Send, Protocol.Rep
         GET_NAME,
         SET_NAME,
         SET_TYPE,
-        GET_TYPE, GET_DEFAULT_VALUE, SET_DEFAULT_VALUE, CREATE_FIELD_VALUE,
+        GET_TYPE,
+        GET_DEFAULT_VALUE,
+        GET_DEFAULT_VALUE_FOR_INSTANCE,
+        SET_DEFAULT_VALUE,
+        CREATE_FIELD_VALUE,
     }
 
     enum FieldName implements Message.Field {

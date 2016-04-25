@@ -52,7 +52,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     protected abstract V internalCreateNewVersionForDataVersion(long counterNumber);
 
-    protected abstract D createNewData();
+    protected abstract D createNewData(Optional<V> version);
 
     protected Data.Type getDataType() { return dataType; }
 
@@ -81,6 +81,13 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         this.dataCache.put(newData.getVersion(), newData);
     }
 
+    @Override
+    public <VV extends Version> D createNewDataWithVersion(VV versionForNewData) {
+        D newData = createNewData(Optional.ofNullable( (V) versionForNewData));
+        dataCache.put(newData.getVersion(), newData);
+        return newData;
+    }
+
     private class NodeFinder {
         Optional<DataVersion.TransactionVersionNode<V>> res = Optional.empty();
         Transaction transaction;
@@ -96,13 +103,15 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         }
 
         private DataVersion.TransactionVersionNode<V> nodeFinder(DataVersion.TransactionVersionNode<V> transactionVersionNode) {
+            if (transactionVersionNode==null)
+                throw new NullPointerException("transactionVersionNode is null");
             if (Objects.equals(transactionVersionNode.getTransaction(), transaction)) {
-                res = Optional.of(transactionVersionNode);
+                res = Optional.ofNullable(transactionVersionNode);
             } else {
                 transactionVersionNode.getNextVersion().ifPresent(this::nodeFinder);
                 //transactionVersionNode.getBranchVersion().ifPresent(this::nodeFinder);
             }
-            return res.get();
+            return res.orElseGet(() -> null);
         }
     }
 
@@ -134,9 +143,10 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
+                break;
             }
             default:
-                throw new SevereError(ErrorClass.ENTITY, ErrorKind.NOT_IMPLEMENTED);
+                throw new SevereError(ErrorClass.ENTITY, ErrorKind.NOT_IMPLEMENTED, MessageValue.name(vTransactionVersionNode.getMergeStrategy()));
         }
     }
 
@@ -299,7 +309,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             );
             verisionOption.orElseGet(()-> {
                 try {
-                    doDataRead(createNewData());
+                    doDataRead(createNewData(Optional.empty()));
                 } catch (UserException e) {
                     worker.replyWithError(e);
                 }
@@ -374,15 +384,21 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             System.out.println("WriteDataAction.changeData START");
             newDataVersion = newDataVersion(transaction, version -> this.newVersion = version);
             C changeData = (C) oldData.<C>change();
-            change.doDataWrite(worker, oldData, changeData, preparedValues);
+            change.doDataWrite(worker, oldData, changeData, getValues());
             newData = changeData.create(newVersion);
             System.out.println("WriteDataAction.changeData END");
             return this;
         }
 
+        private Message.Values getValues() {
+            if (preparedValues==null)
+                return () -> worker.getValues();
+            return preparedValues;
+        }
+
         public WriteDataAction<C> pushToPersistence() {
             System.out.println("WriteDataAction.pushToPersistence "+newData.getVersion());
-            EntityImpl.this.pushToPersistence(worker, newData, newDataVersion, preparedValues);
+            EntityImpl.this.pushToPersistence(worker, newData, newDataVersion, getValues());
             return this;
         }
 

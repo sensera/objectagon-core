@@ -12,6 +12,7 @@ import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.PersistenceServiceProtocol;
 import org.objectagon.core.storage.Transaction;
+import org.objectagon.core.storage.TransactionManagerProtocol;
 
 
 /**
@@ -54,5 +55,12 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
         return getWorkerContext()
                 .<Protocol.ProtocolAddress,FieldValueProtocol>createReceiver(FieldValueProtocol.FIELD_VALUE_PROTOCOL)
                 .createSend(() -> getWorkerContext().createTargetComposer(fieldValueIdentity));
+    }
+
+    @Override
+    public TransactionManagerProtocol.Send createTransactionManagerProtocolSend(Transaction transaction) {
+        return getWorkerContext()
+                .<Protocol.ProtocolAddress,TransactionManagerProtocol>createReceiver(TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL)
+                .createSend(() -> getWorkerContext().createTargetComposer(transaction));
     }
 }

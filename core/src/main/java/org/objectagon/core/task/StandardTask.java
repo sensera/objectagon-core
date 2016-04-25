@@ -1,9 +1,6 @@
 package org.objectagon.core.task;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.message.MessageValue;
 
@@ -17,9 +14,13 @@ public class StandardTask<S extends Protocol.Send> extends AbstractTask {
     private S send;
 
     StandardTask(Receiver.ReceiverCtrl taskCtrl, TaskName taskName, Protocol.ProtocolName protocolName, Address target, SendMessageAction<S> sendMessageAction) {
+        this(taskCtrl, taskName, protocolName, target, sendMessageAction, MessageValue.values().asValues());
+    }
+
+    StandardTask(Receiver.ReceiverCtrl taskCtrl, TaskName taskName, Protocol.ProtocolName protocolName, Address target, SendMessageAction<S> sendMessageAction, Message.Values values) {
         super(taskCtrl, taskName);
         this.protocolName = protocolName;
-        this.composer = new StandardComposer(this, target, MessageValue.values().asValues());
+        this.composer = new StandardComposer(this, target, values);
         this.sendMessageAction = sendMessageAction;
     }
 

@@ -7,7 +7,6 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import feature.util.ResponseMessageName;
 import feature.util.TestCore;
-import org.objectagon.core.exception.UserException;
 
 /**
  * Created by christian on 2016-03-16.
@@ -24,8 +23,8 @@ public class CommonSteps {
         testCore.getLatestTestUser().get().verifyResponseMessage(responseMessageName);
     }
 
-    @Given("^there is an active transaction$")
-    public void createTransaction() throws UserException {
-        testCore.createTransaction();
+    @Given("^there is an user named (.*) with role (.*)$")
+    public void thereIsAnUserNamedGudWithRoleDeveloper(String userName, String roleName) throws Throwable {
+        testCore.createTestUser(userName);
     }
 }

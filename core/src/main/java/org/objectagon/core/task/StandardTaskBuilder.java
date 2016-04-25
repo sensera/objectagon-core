@@ -5,15 +5,12 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.composer.ResolveTargetComposer;
 import org.objectagon.core.msg.composer.StandardComposer;
-import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.receiver.AbstractReceiver;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.OneReceiverConfigurations;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by christian on 2015-11-03.
@@ -39,6 +36,14 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
     private TaskBuilderReceiverCtrl taskBuilderReceiverCtrl;
     private long sequenceIdCounter = 0;
     private Optional<Hook> hook = Optional.empty();
+    private List<Message.Value> headers = new ArrayList<>();
+
+    private Message.Values headers() { return () -> headers;}
+
+    @Override
+    public void addHeader(Message.Value value) {
+        headers.add(value);
+    }
 
     private StandardTaskBuilder(Receiver.ReceiverCtrl taskCtrl) {
         super(taskCtrl);
@@ -63,33 +68,33 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
     }
 
     private void createdTask(Task task) {
-        tasksByAddress.add(task);
-        task.addFailedAction((errorClass, errorKind, values) -> tasksByAddress.remove(task));
-        task.addSuccessAction((messageName, values) -> tasksByAddress.remove(task));
         if (task.getAddress()==null) {
             task.configure(OneReceiverConfigurations.create(Receiver.ADDRESS_CONFIGURATIONS, TaskAddressConfigurationParameters.address(
                     getAddress(),
                     (Task.TaskName) task.getName(), // FIXME: 2016-04-11
                     sequenceIdCounter++
             )));
+            task.addFailedAction((errorClass, errorKind, values) -> tasksByAddress.remove(task));
+            task.addSuccessAction((messageName, values) -> tasksByAddress.remove(task));
+            tasksByAddress.add(task);
         }
     }
 
     @Override
     public <S extends Protocol.Send> Builder<ProtocolTask<S>> protocol(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
-        return new BuilderImpl<>(new ProtocolTask<S>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction));
+        return new BuilderImpl<>(new ProtocolTask<S>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction, headers()));
     }
 
     @Override
     public <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
         Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
-        S send = (S) protocol.createSend(() -> StandardComposer.create(this, target, MessageValue.values().asValues()));
+        S send = (S) protocol.createSend(() -> StandardComposer.create(this, target, headers()));
         return new BuilderImpl<>(sendMessageAction.run(send));
     }
 
     @Override
     public <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction) {
-        return new BuilderImpl<>(new StandardTask<>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction));
+        return new BuilderImpl<>(new StandardTask<>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction, headers()));
     }
 
     @Override
@@ -104,7 +109,7 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
 
     @Override
     public <S extends Protocol.Send> ChainedBuilder chain(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction) {
-        return new ChainedBuilderImpl<>(new StandardTask<>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction));
+        return new ChainedBuilderImpl<>(new StandardTask<>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction, headers()));
     }
 
     @Override
@@ -205,7 +210,7 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         @Override
         public <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
             Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
-            S send = (S) protocol.createSend(() -> StandardComposer.create(task, target, MessageValue.values().asValues()));
+            S send = (S) protocol.createSend(() -> StandardComposer.create(task, target, headers()));
             Task subTask = sendMessageAction.run(send);
             task.add(subTask);
             return new BuilderImpl<>(subTask);
@@ -214,7 +219,7 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         @Override
         public <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Composer.ResolveTarget target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
             Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
-            S send = (S) protocol.createSend(() -> ResolveTargetComposer.create(task, target, MessageValue.values().asValues()));
+            S send = (S) protocol.createSend(() -> ResolveTargetComposer.create(task, target, headers()));
             Task subTask = sendMessageAction.run(send);
             task.add(subTask);
             return new BuilderImpl<>(subTask);
@@ -223,6 +228,12 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         @Override
         public Builder<ActionTask> action(Task.TaskName taskName, Action action) {
             ActionTask subTask = new ActionTask(taskBuilderReceiverCtrl, taskName, action);
+            task.add(subTask);
+            return new BuilderImpl<>(subTask);
+        }
+
+        @Override
+        public <S extends Protocol.Send> Builder<Task> addTask(Task subTask) {
             task.add(subTask);
             return new BuilderImpl<>(subTask);
         }
