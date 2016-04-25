@@ -128,7 +128,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         DataVersion<I,V> dataVersion = getDataVersion();
         DataVersion<I,V> newDataVersion = dataVersion.<DataVersion.ChangeDataVersion<I,V>>change().commit(transaction).create(null);
 
-        DataVersion.TransactionVersionNode<V> vTransactionVersionNode = new NodeFinder(transaction).startFinder(newDataVersion.rootNode()).get();
+        DataVersion.TransactionVersionNode<V> vTransactionVersionNode = new NodeFinder(transaction).startFinder(dataVersion.rootNode()).get();
 
         switch(vTransactionVersionNode.getMergeStrategy()) {
             case Uppgrade: {
@@ -138,6 +138,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                         .pushData(newData, newDataVersion)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
+                        .addSuccessAction((messageName, values) -> { EntityImpl.this.dataVersion = newDataVersion; dataCache.put(newData.getVersion(), newData); })
                         .start();
                 break;
             }
@@ -146,6 +147,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                         .pushData(newDataVersion)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
+                        .addSuccessAction((messageName, values) -> { EntityImpl.this.dataVersion = newDataVersion;  })
                         .start();
                 break;
             }

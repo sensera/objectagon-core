@@ -17,6 +17,12 @@ Feature: Transaction view
     Then the value of ITEM1 field: ItemName is: Phone
     And user Adam get value Phone from ITEM1 field ItemName
 
+  Scenario: If the value is changed, other views till se the same value
+    Given the active transaction is: SystemTransaction
+    When set instance: ITEM1 field: ItemName to value: Gurra
+    Then the value of ITEM1 field: ItemName is: Gurra
+    And user Adam get value Gurra from ITEM1 field ItemName
+
   Scenario: Change value in transaction
     Given the active transaction is: SystemTransaction
     And user Adam set value Max in ITEM1 field ItemName

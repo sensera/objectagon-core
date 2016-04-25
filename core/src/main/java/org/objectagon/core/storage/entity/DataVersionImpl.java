@@ -204,6 +204,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             @Getter @Setter Transaction transaction;
             @Getter @Setter Optional<DataVersionsChangeNode> prevVersion = Optional.empty();
             @Setter Optional<DataVersionsChangeNode> nextVersion = Optional.empty();
+            boolean remove = false;
 
             boolean hasTransaction(Transaction transaction) {
                 return Objects.equals(transaction, this.transaction);
@@ -229,15 +230,18 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
             public void commit() {
                 prevVersion.ifPresent(dataVersionsChangeDataVersionNode -> dataVersionsChangeDataVersionNode.setVersion(version));
+                prevVersion.orElseGet(() -> root = null);
             }
 
             public void rollback() {
                 prevVersion.ifPresent(dataVersionsChangeDataVersionNode -> version = dataVersionsChangeDataVersionNode.getVersion());
+                prevVersion.orElseGet(() -> root = null);
             }
 
             public void remove() {
                 prevVersion.ifPresent(this::removeFromPrevVersion);
                 nextVersion.ifPresent(this::removeFromNextVersion);
+                prevVersion.orElseGet(() -> root = null);
             }
 
             private void removeFromPrevVersion(DataVersionsChangeNode dataVersionsChangeNode) {
