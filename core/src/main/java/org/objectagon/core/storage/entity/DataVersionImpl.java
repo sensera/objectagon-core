@@ -24,18 +24,29 @@ import java.util.function.Predicate;
  */
 public class DataVersionImpl<I extends Identity, V extends Version> extends AbstractData<I,V> implements DataVersion<I,V> {
 
-    public static <I extends Identity, V extends Version> ChangeDataVersion<I,V> create(I identity, NextVersionCounter<V> nextVersionCounter) { return new DataVersionsChange<I,V>(identity, nextVersionCounter);}
+    //public static <I extends Identity, V extends Version> ChangeDataVersion<I,V> create(I identity, NextVersionCounter<V> nextVersionCounter) { return new DataVersionsChange<I,V>(identity, nextVersionCounter);}
+
+    public static <I extends Identity, V extends Version> DataVersionImpl<I,V> create(I identity, V version, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
+        return new DataVersionImpl<>(identity, version, null, versionCounter, nextVersionCounter);
+    }
 
     private long versionCounter;
     private NextVersionCounter<V> nextVersionCounter;
+    private V dataVersion;
     private TransactionVersionNodeImpl root;
 
     @Override public Optional<TransactionVersionNode<V>> rootNode() {
         return Optional.ofNullable(root);
     }
 
-    public DataVersionImpl(I identity, V version, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
+    @Override
+    public Optional<V> getDataVersion() {
+        return Optional.ofNullable(dataVersion);
+    }
+
+    private DataVersionImpl(I identity, V version, V dataVersion, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
         super(identity, version);
+        this.dataVersion = dataVersion;
         this.versionCounter = versionCounter;
         this.nextVersionCounter = nextVersionCounter;
     }
@@ -100,6 +111,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
     public <C extends Change<I, V>> C change() {
         DataVersionsChange<I, V> ivDataVersionsChange = new DataVersionsChange<>(getIdentity(), nextVersionCounter);
         ivDataVersionsChange.setVersionCounter(versionCounter);
+        ivDataVersionsChange.setDataVersion(dataVersion);
         if (root != null)
             root.addTo(ivDataVersionsChange);
         return (C) ivDataVersionsChange;
@@ -111,8 +123,15 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         final private I identity;
         @Setter private long versionCounter = 0;
         final private NextVersionCounter<V> nextVersionCounter;
+        @Setter private V dataVersion;
 
         private DataVersionsChangeNode root;
+
+        @Override
+        public ChangeDataVersion<I, V> dataVersion(V dataVersion) throws UserException {
+            this.dataVersion = dataVersion;
+            return this;
+        }
 
         Optional<DataVersionsChangeNode> findNode(Predicate<DataVersionsChangeNode> find) {
             NodeFinder nodeFinder = new NodeFinder(find);
@@ -180,7 +199,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
         @Override
         public <D extends org.objectagon.core.storage.Data<I, V>> D create(V version) {
-            DataVersionImpl<I, V> ivDataVersion = new DataVersionImpl<>(identity, version, versionCounter, nextVersionCounter);
+            DataVersionImpl<I, V> ivDataVersion = new DataVersionImpl<>(identity, version, dataVersion, versionCounter, nextVersionCounter);
             if (root!=null)
                 root.setRoot(ivDataVersion);
             return (D) ivDataVersion;
@@ -230,7 +249,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
             public void commit() {
                 prevVersion.ifPresent(dataVersionsChangeDataVersionNode -> dataVersionsChangeDataVersionNode.setVersion(version));
-                prevVersion.orElseGet(() -> root = null);
+                prevVersion.orElseGet(() -> {dataVersion = version;return root = null;} );
             }
 
             public void rollback() {

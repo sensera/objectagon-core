@@ -33,7 +33,7 @@ public class UserService extends EntityService<Service.ServiceName, StandardIden
 
     @Override
     protected DataVersion<StandardIdentity, StandardVersion> createInitialDataFromValues(StandardIdentity identity, Message.Values initialParams, Transaction transaction) {
-        return new DataVersionImpl<>(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
+        return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }
 
 }

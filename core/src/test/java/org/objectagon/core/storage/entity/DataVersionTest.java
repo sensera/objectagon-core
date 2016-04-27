@@ -28,7 +28,7 @@ public class DataVersionTest {
     public void setup() {
         identity = mock(Identity.class);
         version = mock(Version.class);
-        dataVersion = new DataVersionImpl<>(identity, version, 0L, (counter) -> nextVersion);
+        dataVersion = DataVersionImpl.create(identity, version, 0L, (counter) -> nextVersion);
     }
 
     @Test

@@ -39,7 +39,7 @@ public class FieldService extends EntityService<Service.ServiceName, Field.Field
 
     @Override
     protected DataVersion<Field.FieldIdentity, StandardVersion> createInitialDataFromValues(Field.FieldIdentity identity, Message.Values initialParams, Transaction transaction) {
-        return new DataVersionImpl<>(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
+        return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }
 
     @Override

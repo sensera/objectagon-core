@@ -22,7 +22,7 @@ public abstract class ObjectService<A extends Service.ServiceName, I extends Ide
 
     @Override
     protected DataVersion<I, StandardVersion> createInitialDataFromValues(I identity, Message.Values initialParams, Transaction transaction) {
-        return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0, StandardVersion::create);
+        return DataVersionImpl.create(identity, StandardVersion.create(0l), 0, StandardVersion::create);
     }
 
 }

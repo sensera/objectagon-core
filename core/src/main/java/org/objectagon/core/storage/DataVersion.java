@@ -17,6 +17,7 @@ public interface DataVersion<I extends Identity, V extends Version> extends Data
     Message.Field DATA_VERSION_COUNTER = NamedField.number("DataVersionCounter");
 
     Optional<TransactionVersionNode<V>> rootNode();
+    Optional<V> getDataVersion();
 
     Type DATA_TYPE = DataType.create("DATA_VERSION");
 
@@ -30,6 +31,7 @@ public interface DataVersion<I extends Identity, V extends Version> extends Data
     }
 
     interface ChangeDataVersion<I extends Identity, V extends Version> extends Change<I,V> {
+        ChangeDataVersion<I,V> dataVersion(V dataVersion) throws UserException;
         ChangeDataVersion<I,V> commit(Transaction transaction) throws UserException;
         ChangeDataVersion<I,V> rollback(Transaction transaction) throws UserException;
         ChangeDataVersion<I,V> remove(Transaction transaction) throws UserException;

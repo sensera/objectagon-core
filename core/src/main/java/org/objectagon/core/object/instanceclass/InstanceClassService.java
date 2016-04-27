@@ -32,7 +32,7 @@ public class InstanceClassService extends EntityService<Service.ServiceName, Ins
 
     @Override protected Server.Factory createEntityFactory() {return InstanceClassImpl::new;}
     @Override protected DataVersion<InstanceClass.InstanceClassIdentity, StandardVersion> createInitialDataFromValues(InstanceClass.InstanceClassIdentity identity, Message.Values initialParams, Transaction transaction) {
-        return new DataVersionImpl<>(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
+        return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }
 
     @Override protected EntityServiceWorker createWorker(WorkerContext workerContext) {return new InstanceClassServiceWorker(workerContext);}

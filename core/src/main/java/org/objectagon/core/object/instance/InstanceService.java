@@ -38,7 +38,7 @@ public class InstanceService extends EntityService<Service.ServiceName, Instance
 
     @Override
     protected DataVersion<Instance.InstanceIdentity, StandardVersion> createInitialDataFromValues(Instance.InstanceIdentity identity, Message.Values initialParams, Transaction transaction) {
-        return new DataVersionImpl<>(identity, StandardVersion.create(0l), 0l, StandardVersion::new);
+        return DataVersionImpl.create(identity, StandardVersion.create(0l), 0l, StandardVersion::new);
     }
 
     @Override

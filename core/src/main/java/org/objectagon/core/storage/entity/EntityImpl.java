@@ -75,7 +75,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     }
 
     protected Optional<V> getDefaultVersion() {
-        return dataVersion.rootNode().map(DataVersion.TransactionVersionNode::getVersion);
+        return dataVersion.getDataVersion();
     }
 
     private void updateDataAndVersion(D newData, DataVersion<I, V> newDataVersion) {

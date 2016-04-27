@@ -21,7 +21,7 @@ Feature: Transaction view
     Given the active transaction is: SystemTransaction
     When set instance: ITEM1 field: ItemName to value: Gurra
     Then the value of ITEM1 field: ItemName is: Gurra
-    And user Adam get value Gurra from ITEM1 field ItemName
+    And user Adam get value Phone from ITEM1 field ItemName
 
   Scenario: Change value in transaction
     Given the active transaction is: SystemTransaction
