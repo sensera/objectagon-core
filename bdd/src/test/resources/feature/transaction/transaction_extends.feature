@@ -20,3 +20,19 @@ Feature: Transaction view
     Then the value of ITEM1 field: ItemName is: Phone
     And user Adam get value Phone from ITEM1 field ItemName
     And user Eva get value Phone from ITEM1 field ItemName
+
+  Scenario: An extended transaction will have the same value as its parent, when unchanged
+    Given user Adam set value Web in ITEM1 field ItemName
+    And user Eva get value Web from ITEM1 field ItemName
+
+  Scenario: Different transaction means different values extended transaction
+    Given user Eva set value Web in ITEM1 field ItemName
+    And user Adam get value Phone from ITEM1 field ItemName
+
+  Scenario: Different transaction means different values extended transaction with commit
+    Given user Eva set value Web in ITEM1 field ItemName
+    And commit the transaction named EvasTransaction
+    And user Eva get value Web from ITEM1 field ItemName
+    And user Adam get value Web from ITEM1 field ItemName
+
+

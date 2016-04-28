@@ -111,11 +111,23 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 throw new NullPointerException("transactionVersionNode is null");
             if (Objects.equals(transactionVersionNode.getTransaction(), transaction)) {
                 res = Optional.ofNullable(transactionVersionNode);
+            } else if (deepEquals(transactionVersionNode.getTransaction(), transaction)) {
+                res = Optional.ofNullable(transactionVersionNode);
             } else {
                 transactionVersionNode.getNextVersion().ifPresent(this::nodeFinder);
                 //transactionVersionNode.getBranchVersion().ifPresent(this::nodeFinder);
             }
             return res.orElseGet(() -> null);
+        }
+
+        private boolean deepEquals(Transaction first, Transaction second) {
+            if (Objects.equals(first,second))
+                return true;
+//            if (first.extendsTransaction().map(extendedTrans -> deepEquals(extendedTrans, second)).orElse(false))
+//                return true;
+            if (second.extendsTransaction().map(extendedTrans -> deepEquals(first, extendedTrans)).orElse(false))
+                return true;
+            return false;
         }
     }
 
