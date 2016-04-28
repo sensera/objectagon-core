@@ -36,7 +36,7 @@ public class TransactionServiceProtocolImpl extends AbstractProtocol<Transaction
 
         @Override
         public Task create() {
-            return task(MessageName.CREATE, send -> send.send(MessageName.CREATE));
+            return task(MessageName.CREATE_TRANSACTION, send -> send.send(MessageName.CREATE_TRANSACTION));
         }
     }
 
@@ -47,7 +47,9 @@ public class TransactionServiceProtocolImpl extends AbstractProtocol<Transaction
 
         @Override
         public Task extend(Transaction transaction) {
-            return task(MessageName.EXTEND, send -> send.send(MessageName.EXTEND, address(Transaction.EXTENDS, transaction)));
+            if (transaction==null)
+                throw new NullPointerException("transaction is null!");
+            return task(MessageName.EXTEND_TRANSACTION, send -> send.send(MessageName.EXTEND_TRANSACTION, address(Transaction.EXTENDS, transaction)));
         }
     }
 }

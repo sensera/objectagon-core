@@ -190,8 +190,10 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
             Optional<Address> addressOptional = initializer.getAddressByName(name);
             //Address address = addressOptional
             //        .orElseThrow(() -> new UserException(ErrorClass.NAME_SERVICE, ErrorKind.NAME_NOT_FOUND));
-            if (!addressOptional.isPresent())
+            if (!addressOptional.isPresent()) {
+                System.out.println("Forward.internalRun ******************************** NAME: "+name+" not found! ***************************** ");
                 new UserException(ErrorClass.NAME_SERVICE, ErrorKind.NAME_NOT_FOUND);
+            }
             addressOptional.ifPresent(address -> context.forward(address, message));
         }
     }

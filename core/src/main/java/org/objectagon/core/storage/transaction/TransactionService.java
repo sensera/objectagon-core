@@ -47,10 +47,10 @@ public class TransactionService extends AbstractService<TransactionService.Trans
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionServiceProtocol.MessageName.CREATE),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionServiceProtocol.MessageName.CREATE_TRANSACTION),
                 (initializer, context) -> new CreateAction(this, (TransactionServiceWorkerImpl) context)
         ).add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionServiceProtocol.MessageName.EXTEND),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionServiceProtocol.MessageName.EXTEND_TRANSACTION),
                 (initializer, context) -> new CreateAction(this, (TransactionServiceWorkerImpl) context)
         );
     }

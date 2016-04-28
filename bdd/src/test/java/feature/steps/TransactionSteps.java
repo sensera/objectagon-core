@@ -11,7 +11,7 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.Transaction;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * Created by christian on 2016-04-20.
@@ -67,8 +67,8 @@ public class TransactionSteps  {
     public void theActiveTransactionContainsItem(String alias) throws Throwable {
         TestCore.TestUser developer = testCore.createTestUser("Developer");
         Identity identity = testCore.getNamedAddress(alias);
-        Stream<Identity> targets = developer.getTransactionTargets(developer.getActiveTransaction());
-        targets.filter(identity1 -> identity1.equals(identity)).findAny().orElseThrow(() -> new Exception(alias + " not found in transaction!"));
+        List<Identity> targets = developer.getTransactionTargets(developer.getActiveTransaction());
+        targets.stream().filter(identity1 -> identity1.equals(identity)).findAny().orElseThrow(() -> new Exception(alias + " not found in transaction!"));
     }
 
     @Given("^the active transaction is: (.*)$")

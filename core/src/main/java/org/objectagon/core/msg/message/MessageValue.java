@@ -6,9 +6,11 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 
@@ -33,11 +35,11 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value address(Message.Field field, Address value) { return new MessageValue<>(field, value);}
     public static Message.Value address(Address value) { return new MessageValue<>(StandardField.ADDRESS, value);}
     public static Message.Value values(Message.Values value) { return new MessageValue<>(StandardField.VALUES, value);}
-    public static Message.Value values(Stream<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> values.collect(Collectors.toList()));}
-    public static Message.Value values(Iterable<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> values);}
+    public static Message.Value values(Stream<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, streamToValues(values));}
+    public static Message.Value values(Iterable<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, iterableToValues(values));}
     public static Message.Value values(Message.Value... values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> asList(values));}
     public static Message.Value values(Message.Field field, Message.Value... values) { return new MessageValue<Message.Values>(field, () -> asList(values));}
-    public static Message.Value values(Message.Field field, Iterable<Message.Value> values) { return new MessageValue<Message.Values>(field, () -> values);}
+    public static Message.Value values(Message.Field field, Iterable<Message.Value> values) { return new MessageValue<Message.Values>(field, iterableToValues(values));}
     public static Message.Value empty() {return UnknownValue.create(StandardField.NAME);}
 
     Message.Field field;
@@ -124,5 +126,13 @@ public class MessageValue<V> implements Message.Value {
         return field.getName()+" "+value;
     }
 
+    private static Message.Values iterableToValues(Iterable<Message.Value> values) {
+        List<Message.Value> valuesListCopy = StreamSupport.stream(values.spliterator(), false).collect(Collectors.toList());
+        return () -> valuesListCopy;
+    }
 
+    private static Message.Values streamToValues(Stream<Message.Value> values) {
+        List<Message.Value> valuesListCopy = values.collect(Collectors.toList());
+        return () -> valuesListCopy;
+    }
 }

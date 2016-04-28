@@ -75,6 +75,11 @@ public class StorageServices {
                 () -> aliasCtrl.lookupAddressByAlias(NameServiceImpl.NAME_SERVICE).get(),
                 session -> session.registerName(persistenceServiceName, PersistenceService.NAME)
         );
+        sequence.<NameServiceProtocol.Send>protocol(
+                NameServiceProtocol.NAME_SERVICE_PROTOCOL,
+                () -> aliasCtrl.lookupAddressByAlias(NameServiceImpl.NAME_SERVICE).get(),
+                session -> session.registerName(transactionServiceName, TransactionService.NAME)
+        );
     }
 
 }

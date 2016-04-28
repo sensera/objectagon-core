@@ -46,26 +46,16 @@ public class SearchService extends AbstractService<SearchService.SearchServiceWo
 
     private Optional<List<Identity>> getIdentitiesByName(Name name) {
         Optional<List<Identity>> identities = Optional.ofNullable(identitiesByName.get(name));
-        System.out.println("SearchService.getIdentitiesByName "+name+" res = "+identities.isPresent());
-/*
-        if (!identities.isPresent()) {
-            System.out.println("SearchService.getIdentitiesByName ------------------ PRINT IDENTITIES AS RESULT OF NAME MISS -----------------");
-            identitiesByName.keySet().stream().forEach(System.out::println);
-            System.out.println("SearchService.getIdentitiesByName -------------------                 END                    -----------------");
-        }
-*/
         return identities;
     }
 
     private List<Identity> createList(Name name) {
-        System.out.println("SearchService.createList "+name);
         List<Identity> list = new ArrayList<>();
         identitiesByName.put(name, list);
         return list;
     }
 
     private void updateNamesList(Name name, Identity identity) {
-        System.out.println("SearchService.updateNamesList "+name+" identity="+identity);
         getIdentitiesByName(name)
                 .orElse(createList(name))
                 .add(identity);

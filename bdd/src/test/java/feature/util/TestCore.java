@@ -28,7 +28,7 @@ import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.objectagon.core.utils.FindNamedConfiguration.finder;
@@ -286,14 +286,14 @@ public class TestCore {
             TaskWait.create(builder.create()).startAndWait(timeout);
         }
 
-        public Stream<Identity> getTransactionTargets(Transaction transaction) throws UserException {
+        public List<Identity> getTransactionTargets(Transaction transaction) throws UserException {
             TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
             TaskBuilder.Builder<Task> builder = taskBuilder.<TransactionManagerProtocol.Send>protocol(TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL,
                     transaction, session -> session.getTargets());
 
             Message message = TaskWait.create(builder.create()).startAndWait(timeout);
             Message.Values values = message.getValue(StandardField.VALUES).asValues();
-            return StreamSupport.stream(values.values().spliterator(), false).map(value -> value.asAddress());
+            return StreamSupport.stream(values.values().spliterator(), false).map(value -> (Identity) value.asAddress()).collect(Collectors.toList());
         }
 
 

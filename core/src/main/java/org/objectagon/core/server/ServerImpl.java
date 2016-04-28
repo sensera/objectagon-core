@@ -130,7 +130,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
 
     @Override
     public void transport(Envelope envelope) {
-        //System.out.println(""+envelope);
+        System.out.println(""+envelope);
         envelopeProcessor.transport(envelope);
     }
 

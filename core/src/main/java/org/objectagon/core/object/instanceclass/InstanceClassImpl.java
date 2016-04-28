@@ -64,7 +64,6 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
         }
 
         public void broadCastNameChange(InstanceClassIdentity identity, InstanceClassName instanceClassName) {
-            System.out.println("InstanceClassWorker.broadCastNameChange "+identity+" "+instanceClassName);
             createEventServiceProtocolSend(eventService).broadcast(
                     StorageServices.SEARCH_NAME_EVENT,
                     SearchServiceProtocol.MessageName.NAME_CHANGED_EVENT,

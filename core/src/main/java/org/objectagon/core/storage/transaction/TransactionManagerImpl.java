@@ -168,15 +168,6 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
         }
 
         @Override
-        public boolean initialize() throws UserException {
-            if (transactionData.getIdentities().findAny().isPresent())
-                return super.initialize();
-            System.out.println("CommitAction.initialize MISSING!");
-            context.replyOk();
-            return false;
-        }
-
-        @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
             return actionContext.createTransactionServiceProtocolInternal(TransactionService.NAME).extend(getAddress());
         }
