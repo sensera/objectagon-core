@@ -237,6 +237,16 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
             task.add(subTask);
             return new BuilderImpl<>(subTask);
         }
+
+        @Override
+        public <S extends Protocol.Send> Builder<Task> addTask(SequenceTask.TaskSupplier taskSupplier) {
+            task.add( (msg, values) -> {
+                Optional<Task> newTaskOpt = taskSupplier.createTask(msg, values);
+                newTaskOpt.ifPresent(StandardTaskBuilder.this::createdTask);
+                return newTaskOpt;
+            });
+            return null;
+        }
     }
 
     private class TaskBuilderReceiverCtrl implements ReceiverCtrl {

@@ -1,6 +1,7 @@
 package org.objectagon.core.object.relation.data;
 
 import org.objectagon.core.object.Instance;
+import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.object.Relation;
 import org.objectagon.core.storage.Data;
@@ -25,7 +26,8 @@ public class RelationDataChangeImpl implements Relation.RelationDataChange {
                 relationData.getIdentity(),
                 version,
                 relationData.getRelationClassIdentity(),
-                instanceIdentity.orElse(relationData.getInstanceIdentity())
+                instanceIdentity.orElse(relationData.getInstanceIdentity(RelationClass.RelationDirection.RELATION_FROM)),
+                instanceIdentity.orElse(relationData.getInstanceIdentity(RelationClass.RelationDirection.RELATION_TO))
         );
     }
 

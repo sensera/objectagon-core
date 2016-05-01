@@ -20,7 +20,8 @@ public class RelationClassDataChangeImpl implements RelationClass.RelationClassD
         return (D)  new RelationClassDataImpl(
                 relationClassData.getIdentity(),
                 version,
-                relationClassData.getInstanceClassIdentity(),
+                relationClassData.getInstanceClassIdentity(RelationClass.RelationDirection.RELATION_FROM),
+                relationClassData.getInstanceClassIdentity(RelationClass.RelationDirection.RELATION_TO),
                 relationClassData.getRelationType());
     }
 }

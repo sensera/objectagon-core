@@ -7,6 +7,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Instance;
+import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.RelationClassProtocol;
 import org.objectagon.core.task.Task;
 
@@ -29,9 +30,13 @@ public class RelationClassProtocolImpl extends AbstractProtocol<RelationClassPro
             super(sendParam);
         }
 
+
         @Override
-        public Task createRelation(Instance.InstanceIdentity instanceIdentity) {
-            return task(MessageName.CREATE_RELATION, send -> send.send(MessageName.CREATE_RELATION, MessageValue.address(Instance.INSTANCE_IDENTITY, instanceIdentity)));
+        public Task createRelation(Instance.InstanceIdentity instanceIdentityFrom, Instance.InstanceIdentity instanceIdentityTo) {
+            return task(MessageName.CREATE_RELATION,
+                    send -> send.send(MessageName.CREATE_RELATION,
+                            MessageValue.address(RelationClass.INSTANCE_CLASS_FROM, instanceIdentityFrom),
+                            MessageValue.address(RelationClass.INSTANCE_CLASS_TO, instanceIdentityTo)));
         }
     }
 }

@@ -3,6 +3,9 @@ package org.objectagon.core.object.relationclass;
 import lombok.Getter;
 import lombok.ToString;
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.RelationClass;
@@ -14,12 +17,23 @@ import org.objectagon.core.object.RelationClass;
 @ToString(callSuper = true)
 public class RelationClassIdentityImpl extends StandardAddress implements RelationClass.RelationClassIdentity {
 
-    private InstanceClass.InstanceClassIdentity instanceClassIdentity;
+    private InstanceClass.InstanceClassIdentity instanceClassIdentityFrom;
+    private InstanceClass.InstanceClassIdentity instanceClassIdentityTo;
     private RelationClass.RelationType relationType;
 
-    public RelationClassIdentityImpl(InstanceClass.InstanceClassIdentity instanceClassIdentity, RelationClass.RelationType relationType, Server.ServerId serverId, long timestamp, long addressId) {
+    @Override
+    public InstanceClass.InstanceClassIdentity getInstanceClassIdentity(RelationClass.RelationDirection relationDirection) {
+        switch (relationDirection) {
+            case RELATION_FROM: return instanceClassIdentityFrom;
+            case RELATION_TO: return instanceClassIdentityTo;
+            default: throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.INCONSISTENCY);
+        }
+    }
+
+    public RelationClassIdentityImpl(InstanceClass.InstanceClassIdentity instanceClassIdentityFrom, InstanceClass.InstanceClassIdentity instanceClassIdentityTo, RelationClass.RelationType relationType, Server.ServerId serverId, long timestamp, long addressId) {
         super(serverId, timestamp, addressId);
-        this.instanceClassIdentity = instanceClassIdentity;
+        this.instanceClassIdentityFrom = instanceClassIdentityFrom;
+        this.instanceClassIdentityTo = instanceClassIdentityTo;
         this.relationType = relationType;
     }
 }

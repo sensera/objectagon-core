@@ -70,6 +70,8 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                 .trigger(InstanceProtocol.MessageName.SET_VALUE, write(this::setValue, this::createValue))
                 .trigger(InstanceProtocol.MessageName.ADD_FIELD, write(this::addField))
                 .trigger(InstanceProtocol.MessageName.REMOVE_FIELD, write(this::removeField, this::dropFieldValues))
+                .trigger(InstanceProtocol.MessageName.ADD_RELATION, write(this::addRelation, this::createRelation))
+                .trigger(InstanceProtocol.MessageName.SET_RELATION, write(this::addRelation))
                 .orElse(w -> super.handle(w));
     }
 
@@ -129,11 +131,26 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         return Optional.empty();
     }
 
+    private void addRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
+        Relation.RelationIdentity relationIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
+        System.out.println("InstanceImpl.addRelation "+relationIdentity+" <"+instanceWorker.currentTransaction()+">");
+        change.addRelation(relationIdentity);
+    }
+
+    private Optional<Task> createRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData) {
+        Instance.InstanceIdentity targetIdentity = instanceWorker.getValue(StandardField.ADDRESS).asAddress();
+        RelationClass.RelationClassIdentity relationClassIdentity = instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress();
+        System.out.println("InstanceImpl.createRelation target="+targetIdentity);
+        System.out.println("InstanceImpl.createRelation type="+relationClassIdentity);
+        return Optional.of(instanceWorker.createRelationClassProtocolSend(relationClassIdentity).createRelation(getAddress(), targetIdentity));
+    }
+
     private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
         System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
         change.addField(fieldValueIdentity);
     }
+
 
     @Override
     protected InstanceWorker createWorker(WorkerContext workerContext) {
@@ -162,6 +179,12 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
             return getWorkerContext()
                     .<Protocol.ProtocolAddress, FieldProtocol>createReceiver(FieldProtocol.FIELD_PROTOCOL)
                     .createSend(() -> getWorkerContext().createTargetComposer(fieldIdentity));
+        }
+
+        public RelationClassProtocol.Send createRelationClassProtocolSend(RelationClass.RelationClassIdentity relationClassIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress, RelationClassProtocol>createReceiver(RelationClassProtocol.RELATION_CLASS_PROTOCOL)
+                    .createSend(() -> getWorkerContext().createTargetComposer(relationClassIdentity));
         }
     }
 

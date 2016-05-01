@@ -7,6 +7,7 @@ import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
+import org.objectagon.core.object.relationclass.RelationDirectionUtil;
 import org.objectagon.core.object.service.ObjectService;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
@@ -43,8 +44,8 @@ public class RelationService extends ObjectService<Service.ServiceName, Relation
             }
 
             @Override
-            public Instance.InstanceIdentity getInstanceIdentity() {
-                return messageValueFieldUtil.getValueByField(Instance.INSTANCE_IDENTITY).asAddress();
+            public Instance.InstanceIdentity getInstanceIdentity(RelationClass.RelationDirection relationDirection) {
+                return RelationDirectionUtil.create(relationDirection).getInstanceIdentity(messageValueFieldUtil);
             }
         });
     }

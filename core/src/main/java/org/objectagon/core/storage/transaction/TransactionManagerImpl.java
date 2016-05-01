@@ -31,6 +31,8 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
     public static Service.ServiceName NAME = StandardServiceName.name("TRANSACTION_MANAGER");
 
+    private enum TransactionTasks implements Task.TaskName { RemoveAllItemsAndSave }
+
     public static void registerAt(Server server) {
         server.registerFactory(NAME, TransactionManagerImpl::new);
     }
@@ -102,6 +104,12 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
                     .<Protocol.ProtocolAddress,TransactionServiceProtocol>createReceiver(TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL)
                     .createInternal(() -> getWorkerContext().createRelayComposer(NameServiceImpl.NAME_SERVICE, target));
         }
+
+        Task persist(TransactionManager.TransactionData newTransactionData) {
+            return createPersistenceServiceProtocolSend(PersistenceService.NAME)
+                    .pushData(newTransactionData)
+                    .addSuccessAction((messageName, values) -> transactionData = newTransactionData);
+        }
     }
 
     private class AddEntityToAction extends AsyncAction<TransactionManagerImpl, TransactionManagerWorker> {
@@ -123,9 +131,7 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
             TransactionManager.TransactionDataChange change = transactionData.change();
             change.add(identity);
             TransactionManager.TransactionData newTransactionData = change.create(transactionData.getVersion().nextVersion());
-            return actionContext.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                    .pushData(newTransactionData)
-                    .addSuccessAction((messageName, values) -> transactionData = newTransactionData);
+            return actionContext.persist(newTransactionData);
         }
     }
 
@@ -157,6 +163,13 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
                 sequence.<EntityProtocol.Send>protocol(EntityProtocol.ENTITY_PROTOCOL, address, EntityProtocol.Send::commit);
                 sequence.<EntityProtocol.Send>protocol(EntityProtocol.ENTITY_PROTOCOL, address, send -> send.unlock(getAddress()));
             });
+/*
+            sequence.action(TransactionTasks.RemoveAllItemsAndSave, () -> {
+                TransactionManager.TransactionDataChange change = transactionData.change();
+                transactionData.getIdentities().forEach(change::remove);
+                actionContext.persist(change.create(transactionData.getVersion().nextVersion()));
+            });
+*/
             return sequence.create();
         }
     }

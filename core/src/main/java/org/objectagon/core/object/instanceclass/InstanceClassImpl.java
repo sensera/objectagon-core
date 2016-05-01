@@ -88,7 +88,8 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                 .trigger(InstanceClassProtocol.MessageName.GET_FIELDS, read(this::getFields))
                 .trigger(InstanceClassProtocol.MessageName.GET_RELATIONS, read(this::getRelations))
                 .trigger(InstanceClassProtocol.MessageName.ADD_FIELD, write(this::<ChangeInstanceClass>addField, this::createField))
-                .trigger(InstanceClassProtocol.MessageName.ADD_RELATION, write(this::<ChangeInstanceClass>addRelationClass, this::createRelationClass))
+                .trigger(InstanceClassProtocol.MessageName.ADD_RELATION, write(this::<ChangeInstanceClass>setRelationClass, this::createRelationClass))
+                .trigger(InstanceClassProtocol.MessageName.SET_RELATION, write(this::<ChangeInstanceClass>setRelationClass))
                 .trigger(InstanceClassProtocol.MessageName.GET_NAME, read(this::getName))
                 .trigger(InstanceClassProtocol.MessageName.SET_NAME, write(this::<ChangeInstanceClass>setName))
                 .trigger(InstanceClassProtocol.MessageName.CREATE_INSTANCE, this::createInstance)
@@ -131,13 +132,12 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
 
     private Optional<Task> createRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
         return Optional.of(instanceClassWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, RelationClassService.NAME)
-                .create(
-                        instanceClassWorker.getValue(RelationClass.RELATION_TYPE),
-                        instanceClassWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY),
-                        MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress())));
+                .create(instanceClassWorker.getValue(RelationClass.RELATION_TYPE),
+                        instanceClassWorker.getValue(RelationClass.INSTANCE_CLASS_TO),
+                        MessageValue.address(RelationClass.INSTANCE_CLASS_FROM, getAddress())));
     }
 
-    private void addRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+    private void setRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
         RelationClass.RelationClassIdentity relationClassIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(Identity.IDENTITY).asAddress();
         changeInstanceClass.addRelation(relationClassIdentity);
     }

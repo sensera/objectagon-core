@@ -4,6 +4,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.relationclass.RelationDirectionUtil;
 import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
 
@@ -18,25 +19,29 @@ public class RelationClassDataImpl extends AbstractData<RelationClass.RelationCl
         return new RelationClassDataImpl(
                 relationClassIdentity,
                 standardVersion,
-                relationClassIdentity.getInstanceClassIdentity(),
+                relationClassIdentity.getInstanceClassIdentity(RelationClass.RelationDirection.RELATION_FROM),
+                relationClassIdentity.getInstanceClassIdentity(RelationClass.RelationDirection.RELATION_TO),
                 relationClassIdentity.getRelationType());
     }
 
-    private InstanceClass.InstanceClassIdentity instanceClassIdentity;
+    private InstanceClass.InstanceClassIdentity instanceClassIdentityFrom;
+    private InstanceClass.InstanceClassIdentity instanceClassIdentityTo;
     private RelationClass.RelationType relationType;
 
     public RelationClassDataImpl(
             RelationClass.RelationClassIdentity identity,
             StandardVersion version,
-            InstanceClass.InstanceClassIdentity instanceClassIdentity,
+            InstanceClass.InstanceClassIdentity instanceClassIdentityFrom,
+            InstanceClass.InstanceClassIdentity instanceClassIdentityTo,
             RelationClass.RelationType relationType) {
         super(identity, version);
-        this.instanceClassIdentity = instanceClassIdentity;
+        this.instanceClassIdentityFrom = instanceClassIdentityFrom;
+        this.instanceClassIdentityTo = instanceClassIdentityTo;
         this.relationType = relationType;
     }
 
-    @Override public InstanceClass.InstanceClassIdentity getInstanceClassIdentity() {
-        return instanceClassIdentity;
+    @Override public InstanceClass.InstanceClassIdentity getInstanceClassIdentity(RelationClass.RelationDirection relationDirection) {
+        return RelationDirectionUtil.create(relationDirection).getInstanceClassIdentity(() -> instanceClassIdentityFrom, () -> instanceClassIdentityTo);
     }
     @Override public RelationClass.RelationType getRelationType() {return relationType;}
 
@@ -49,7 +54,9 @@ public class RelationClassDataImpl extends AbstractData<RelationClass.RelationCl
     public Iterable<Message.Value> values() {
         //TODO Fix
         return Arrays.asList(
-                MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, instanceClassIdentity)
+                MessageValue.address(RelationClass.RELATION_CLASS_IDENTITY, getIdentity()),
+                MessageValue.address(RelationClass.INSTANCE_CLASS_FROM, instanceClassIdentityFrom),
+                MessageValue.address(RelationClass.INSTANCE_CLASS_TO, instanceClassIdentityTo)
         );
     }
 }

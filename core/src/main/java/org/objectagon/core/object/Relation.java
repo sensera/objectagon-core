@@ -16,21 +16,20 @@ public interface Relation extends Entity<Relation.RelationIdentity, Relation.Rel
 
     EntityName ENTITY_NAME = EntityName.create("RELATION");
 
+    Message.Field RELATION_IDENTITY = NamedField.address("RELATION_IDENTITY");
     Message.Field RELATIONS = NamedField.values("RELATIONS");
 
     Data.Type DATA_TYPE = DataType.create("RELATION");
 
     interface RelationIdentity extends Identity {
         RelationClass.RelationClassIdentity getRelationClassIdentity();
-        Instance.InstanceIdentity getInstanceIdentity();
-        //TODO NEEDS another instance to connecto to
+        Instance.InstanceIdentity getInstanceIdentity(RelationClass.RelationDirection relationDirection);
     }
 
     interface RelationData extends Data<RelationIdentity, StandardVersion> {
         default Type getDataType() {return DATA_TYPE;}
         RelationClass.RelationClassIdentity getRelationClassIdentity();
-        Instance.InstanceIdentity getInstanceIdentity();
-        //TODO NEEDS another instance to connecto to
+        Instance.InstanceIdentity getInstanceIdentity(RelationClass.RelationDirection relationDirection);
     }
 
     interface RelationDataChange extends Data.Change<RelationIdentity, StandardVersion> {

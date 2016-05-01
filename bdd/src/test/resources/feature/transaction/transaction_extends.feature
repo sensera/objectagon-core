@@ -31,6 +31,7 @@ Feature: Transaction view
 
   Scenario: Different transaction means different values extended transaction with commit
     Given user Eva set value Web in ITEM1 field ItemName
+    And user Adam get value Phone from ITEM1 field ItemName
     And commit the transaction named EvasTransaction
     And user Eva get value Web from ITEM1 field ItemName
     And user Adam get value Web from ITEM1 field ItemName

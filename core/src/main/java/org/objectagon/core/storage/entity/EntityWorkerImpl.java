@@ -6,6 +6,8 @@ import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.object.FieldValue;
 import org.objectagon.core.object.FieldValueProtocol;
+import org.objectagon.core.object.Instance;
+import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.event.EventServiceProtocol;
 import org.objectagon.core.service.name.NameServiceImpl;
@@ -62,5 +64,12 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
         return getWorkerContext()
                 .<Protocol.ProtocolAddress,TransactionManagerProtocol>createReceiver(TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL)
                 .createSend(() -> getWorkerContext().createTargetComposer(transaction));
+    }
+
+    @Override
+    public InstanceProtocol.Internal createInstanceProtocolInternal(Instance.InstanceIdentity instanceIdentity) {
+        return getWorkerContext()
+                .<Protocol.ProtocolAddress,InstanceProtocol>createReceiver(InstanceProtocol.INSTANCE_PROTOCOL)
+                .createInternal(() -> getWorkerContext().createTargetComposer(instanceIdentity));
     }
 }

@@ -33,6 +33,6 @@ public interface RelationProtocol extends Protocol<RelationProtocol.Send, Protoc
 
     interface ConfigRelation extends NamedConfiguration {
         RelationClass.RelationClassIdentity getRelationClassIdentity();
-        Instance.InstanceIdentity getInstanceIdentity();
+        Instance.InstanceIdentity getInstanceIdentity(RelationClass.RelationDirection relationDirection);
     }
 }

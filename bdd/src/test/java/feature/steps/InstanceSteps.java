@@ -60,6 +60,7 @@ public class InstanceSteps {
 
     @Then("^user (.*) get value (.*) from (.*) field (.*)$")
     public void userAdamGetValuePhoneFromITEMFieldItemName(String userName, String value, String instanceName, String fieldName) throws Throwable {
+        System.out.println("InstanceSteps.userAdamGetValuePhoneFromITEMFieldItemName user "+userName+" get value "+instanceName+"."+fieldName+". Should be "+value);
         InstanceManager mgr = InstanceManager.create(testCore.createTestUser(userName));
         Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceName);
         Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);

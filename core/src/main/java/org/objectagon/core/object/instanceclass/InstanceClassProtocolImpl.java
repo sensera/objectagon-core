@@ -26,6 +26,11 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
         createSend = InstanceClassProtocolSend::new;
     }
 
+    @Override
+    public Internal createInternal(CreateSendParam createSendParam) {
+        return new InstanceClassProtocolInternal(createSendParam);
+    }
+
     private class InstanceClassProtocolSend extends AbstractProtocolSend implements InstanceClassProtocol.Send {
         public InstanceClassProtocolSend(CreateSendParam sendParam) {
             super(sendParam);
@@ -41,7 +46,7 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
             return task(MessageName.ADD_RELATION, send -> send.send(
                     MessageName.ADD_RELATION,
                     text(RelationClass.RELATION_TYPE, type.name()),
-                    address(RelationClass.RELATION_CLASS_IDENTITY, relatedClass)));
+                    address(RelationClass.INSTANCE_CLASS_TO, relatedClass)));
         }
 
         @Override
@@ -57,6 +62,17 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
         @Override
         public Task setName(InstanceClass.InstanceClassName name) {
             return task(MessageName.SET_NAME, send -> send.send(MessageName.SET_NAME, name(InstanceClass.INSTANCE_CLASS_NAME, name)));
+        }
+    }
+
+    private class InstanceClassProtocolInternal extends AbstractProtocolSend implements InstanceClassProtocol.Internal {
+        public InstanceClassProtocolInternal(CreateSendParam sendParam) {
+            super(sendParam);
+        }
+
+        @Override
+        public Task setRelation(RelationClass.RelationClassIdentity relationClassIdentity) {
+            return task(MessageName.SET_RELATION, send -> send.send(MessageName.SET_RELATION, address(RelationClass.RELATION_CLASS_IDENTITY, relationClassIdentity)));
         }
     }
 }

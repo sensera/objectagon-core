@@ -3,6 +3,7 @@ package org.objectagon.core.object.instance;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
@@ -30,6 +31,11 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
     @Override
     public Alter createAlter(CreateSendParam createSend) {
         return new InstanceProtocolAlter(createSend);
+    }
+
+    @Override
+    public Internal createInternal(CreateSendParam createSendParam) {
+        return new InstanceProtocolInternal(createSendParam);
     }
 
     class InstanceProtocolSend extends AbstractProtocolSend implements InstanceProtocol.Send {
@@ -87,6 +93,17 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
         @Override
         public Task removeRelationClass(RelationClass.RelationClassIdentity relationClassIdentity) {
             return task(MessageName.REMOVE_RELATION_CLASS, send -> send.send(MessageName.REMOVE_RELATION_CLASS, address(relationClassIdentity)));
+        }
+    }
+
+    class InstanceProtocolInternal extends AbstractProtocolSend implements InstanceProtocol.Internal {
+        public InstanceProtocolInternal(CreateSendParam sendParam) {
+            super(sendParam);
+        }
+
+        @Override
+        public Task setRelation(Relation.RelationIdentity relationIdentity) {
+            return task(MessageName.SET_RELATION, send -> send.send(MessageName.SET_RELATION, MessageValue.address(StandardField.ADDRESS, relationIdentity)));
         }
     }
 }

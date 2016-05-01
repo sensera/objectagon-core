@@ -17,7 +17,7 @@ public interface RelationClassProtocol extends Protocol<RelationClassProtocol.Se
     }
 
     interface Send extends Protocol.Send {
-        Task createRelation(Instance.InstanceIdentity instanceIdentity);
+        Task createRelation(Instance.InstanceIdentity instanceIdentityFrom, Instance.InstanceIdentity instanceIdentityTo);
     }
 
     @FunctionalInterface
@@ -26,7 +26,7 @@ public interface RelationClassProtocol extends Protocol<RelationClassProtocol.Se
     }
 
     interface ConfigRelationClass extends NamedConfiguration {
-        InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
+        InstanceClass.InstanceClassIdentity getInstanceClassIdentity(RelationClass.RelationDirection relationDirection);
         RelationClass.RelationType getRelationType();
     }
 }

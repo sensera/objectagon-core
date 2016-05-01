@@ -8,6 +8,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
+import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
 import org.objectagon.core.task.Task;
 
@@ -71,6 +72,14 @@ public class InstanceClassManager {
                 developer.createFieldProtocolSend(fieldIdentity).getDefaultValue()
         );
         return MessageValueFieldUtil.create(msg.getValues()).getValueByField(Field.DEFAULT_VALUE).asValues().values().iterator().next();
+    }
+
+    public RelationClass.RelationClassIdentity addRelation(RelationClass.RelationType relationType, InstanceClass.InstanceClassIdentity fromAliasClass, InstanceClass.InstanceClassIdentity toAliasClass) throws UserException {
+        Message msg = taskWait(
+                developer.createInstanceClassProtocolSend(fromAliasClass).addRelation(relationType, toAliasClass),
+                message -> developer.setValue(RelationClass.RELATION_CLASS_IDENTITY, message.getValue(StandardField.ADDRESS))
+        );
+        return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
     }
 
     @FunctionalInterface

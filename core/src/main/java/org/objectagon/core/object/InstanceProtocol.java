@@ -13,6 +13,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
     ProtocolName INSTANCE_PROTOCOL = new ProtocolNameImpl("INSTANCE_PROTOCOL");
 
     Alter createAlter(CreateSendParam createSend);
+    Internal createInternal(CreateSendParam createSendParam);
 
     enum MessageName implements Message.MessageName, Task.TaskName {
         GET_VALUE,
@@ -21,6 +22,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
         REMOVE_VALUE,
         GET_RELATION,
         ADD_RELATION,
+        SET_RELATION,
         REMOVE_RELATION,
 
         ADD_FIELD,
@@ -43,6 +45,10 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
         Task removeField(Field.FieldIdentity fieldIdentity);
         Task addRelationClass(RelationClass.RelationClassIdentity relationClassIdentity);
         Task removeRelationClass(RelationClass.RelationClassIdentity relationClassIdentity);
+    }
+
+    interface Internal extends Protocol.Send {
+        Task setRelation(Relation.RelationIdentity relationIdentity);
     }
 
     interface ConfigInstance extends NamedConfiguration {

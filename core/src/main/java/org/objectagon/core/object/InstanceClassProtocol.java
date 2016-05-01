@@ -15,6 +15,8 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
     Message.Field FIELDS = NamedField.values("FIELDS");
     Message.Field RELATIONS = NamedField.values("RELATIONS");
 
+    Internal createInternal(CreateSendParam createSendParam);
+
     enum MessageName implements Message.MessageName, Task.TaskName {
         CREATE_INSTANCE,
         ADD_FIELD,
@@ -22,7 +24,8 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         GET_RELATIONS,
         GET_NAME,
         SET_NAME,
-        ADD_RELATION
+        ADD_RELATION,
+        SET_RELATION
     }
 
     interface Send extends Protocol.Send {
@@ -33,5 +36,8 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         Task setName(InstanceClass.InstanceClassName instanceClassName);
     }
 
+    interface Internal extends Protocol.Send {
+        Task setRelation(RelationClass.RelationClassIdentity relationClassIdentity);
+    }
 }
 

@@ -4,7 +4,6 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.storage.Transaction;
 
 import java.util.Optional;
 
@@ -43,6 +42,7 @@ public interface TaskBuilder {
         <S extends Protocol.Send> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
         Builder<ActionTask> action(Task.TaskName taskName, Action action);
         <S extends Protocol.Send> Builder<Task> addTask(Task task);
+        <S extends Protocol.Send> Builder<Task> addTask(SequenceTask.TaskSupplier task);
     }
 
     interface Action {

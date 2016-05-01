@@ -2,6 +2,7 @@ package org.objectagon.core.object.relation;
 
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.object.Relation;
+import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.RelationProtocol;
 import org.objectagon.core.object.relation.data.RelationDataImpl;
 import org.objectagon.core.storage.DataVersion;
@@ -51,11 +52,12 @@ public class RelationImpl extends EntityImpl<Relation.RelationIdentity, Relation
         RelationProtocol.ConfigRelation configRelation = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
         return finder.createConfiguredAddress((serverId, timestamp, id) ->
                 new RelationIdentityImpl(
-                configRelation.getInstanceIdentity(),
-                configRelation.getRelationClassIdentity(),
-                serverId,
-                timestamp,
-                id)
+                        configRelation.getInstanceIdentity(RelationClass.RelationDirection.RELATION_FROM),
+                        configRelation.getInstanceIdentity(RelationClass.RelationDirection.RELATION_TO),
+                        configRelation.getRelationClassIdentity(),
+                        serverId,
+                        timestamp,
+                        id)
         );
     }
 }

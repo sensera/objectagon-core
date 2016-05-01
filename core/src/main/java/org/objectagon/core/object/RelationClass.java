@@ -18,6 +18,8 @@ public interface RelationClass extends Entity<RelationClass.RelationClassIdentit
     EntityName ENTITY_NAME = EntityName.create("RELATION_CLASS");
 
     Message.Field RELATION_CLASS_IDENTITY = NamedField.address("RELATION_CLASS_IDENTITY");
+    Message.Field INSTANCE_CLASS_FROM = NamedField.address("INSTANCE_CLASS_FROM");
+    Message.Field INSTANCE_CLASS_TO = NamedField.address("INSTANCE_CLASS_TO");
     Message.Field RELATION_NAME = NamedField.name("RELATION_NAME");
     Message.Field RELATION_TYPE = NamedField.text("RELATION_TYPE");
 
@@ -29,18 +31,25 @@ public interface RelationClass extends Entity<RelationClass.RelationClassIdentit
         INHERITANCE,
         AGGREGATE,
         ASSOCIATION,
-
     }
+
+    enum RelationDirection  {
+        RELATION_FROM,
+        RELATION_TO,
+    }
+
     interface RelationClassIdentity extends Identity {
-        InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
+        InstanceClass.InstanceClassIdentity getInstanceClassIdentity(RelationDirection relationDirection);
         RelationType getRelationType();
     }
+
     interface RelationClassData extends Data<RelationClassIdentity, StandardVersion> {
         default Type getDataType() {return DATA_TYPE;}
 
-        InstanceClass.InstanceClassIdentity getInstanceClassIdentity();
+        InstanceClass.InstanceClassIdentity getInstanceClassIdentity(RelationDirection relationDirection);
         RelationType getRelationType();
     }
+
     interface RelationClassDataChange extends Data.Change<RelationClassIdentity, StandardVersion> {
 
     }
