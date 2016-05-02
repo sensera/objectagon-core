@@ -17,9 +17,12 @@ import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.objectagon.core.object.fieldvalue.FieldValueUtil.findField;
 import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
@@ -29,6 +32,8 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
  * Created by christian on 2015-10-20.
  */
 public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.InstanceData,StandardVersion,InstanceImpl.InstanceWorker> implements Instance {
+
+    private enum InstanceTasks implements Task.TaskName { DestroyRelations }
 
     public InstanceImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl, Instance.DATA_TYPE);
@@ -72,6 +77,8 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                 .trigger(InstanceProtocol.MessageName.REMOVE_FIELD, write(this::removeField, this::dropFieldValues))
                 .trigger(InstanceProtocol.MessageName.ADD_RELATION, write(this::addRelation, this::createRelation))
                 .trigger(InstanceProtocol.MessageName.SET_RELATION, write(this::addRelation))
+                .trigger(InstanceProtocol.MessageName.REMOVE_RELATION, read(this::removeRelation))
+                .trigger(InstanceProtocol.MessageName.DROP_RELATION, write(this::dropRelation))
                 .orElse(w -> super.handle(w));
     }
 
@@ -145,12 +152,39 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         return Optional.of(instanceWorker.createRelationClassProtocolSend(relationClassIdentity).createRelation(getAddress(), targetIdentity));
     }
 
+    private void dropRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
+        Relation.RelationIdentity relationIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
+        System.out.println("InstanceImpl.dropRelation "+relationIdentity+" <"+instanceWorker.currentTransaction()+">");
+        change.removeRelation(relationIdentity);
+    }
+
+    private void removeRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
+        Instance.InstanceIdentity targetIdentity = instanceWorker.getValue(StandardField.ADDRESS).asAddress();
+        RelationClass.RelationClassIdentity relationClassIdentity = instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress();
+        System.out.println("InstanceImpl.removeRelation target="+targetIdentity);
+        System.out.println("InstanceImpl.removeRelation type="+relationClassIdentity);
+        List<Relation.RelationIdentity> relationsToRemove = instanceData.getRelations()
+                .filter(r -> r.getRelationClassIdentity().equals(relationClassIdentity))
+                .filter(r -> r.getInstanceIdentity(RelationClass.RelationDirection.RELATION_TO).equals(targetIdentity))
+                .collect(Collectors.toList());
+        if (relationsToRemove.isEmpty()) {
+            System.out.println("InstanceImpl.removeRelation found NO relations to remove!");
+            instanceWorker.replyOk();
+            return;
+        }
+        System.out.println("InstanceImpl.removeRelation found "+relationsToRemove.size()+" relation(s) to remove!");
+        TaskBuilder.SequenceBuilder sequence = instanceWorker.getTaskBuilder().sequence(InstanceTasks.DestroyRelations);
+        relationsToRemove.stream().forEach(relationIdentity -> {
+            sequence.addTask(instanceWorker.createRelationClassProtocolSend(relationClassIdentity).destroyRelation(getAddress(), relationIdentity));
+        });
+        instanceWorker.start(sequence.start());
+    }
+
     private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
         System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
         change.addField(fieldValueIdentity);
     }
-
 
     @Override
     protected InstanceWorker createWorker(WorkerContext workerContext) {

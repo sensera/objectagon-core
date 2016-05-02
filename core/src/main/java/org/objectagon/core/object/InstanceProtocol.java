@@ -24,6 +24,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
         ADD_RELATION,
         SET_RELATION,
         REMOVE_RELATION,
+        DROP_RELATION,
 
         ADD_FIELD,
         REMOVE_FIELD,
@@ -49,6 +50,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
 
     interface Internal extends Protocol.Send {
         Task setRelation(Relation.RelationIdentity relationIdentity);
+        Task dropRelation(Relation.RelationIdentity relationIdentity);
     }
 
     interface ConfigInstance extends NamedConfiguration {

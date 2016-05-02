@@ -105,5 +105,10 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
         public Task setRelation(Relation.RelationIdentity relationIdentity) {
             return task(MessageName.SET_RELATION, send -> send.send(MessageName.SET_RELATION, MessageValue.address(StandardField.ADDRESS, relationIdentity)));
         }
+
+        @Override
+        public Task dropRelation(Relation.RelationIdentity relationIdentity) {
+            return task(MessageName.DROP_RELATION, send -> send.send(MessageName.DROP_RELATION, MessageValue.address(StandardField.ADDRESS, relationIdentity)));
+        }
     }
 }

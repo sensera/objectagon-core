@@ -35,6 +35,13 @@ public class RelationManager {
         ).getValue(StandardField.ADDRESS).asAddress();
     }
 
+    public void removeRelation(Instance.InstanceIdentity instanceToRemove, Instance.InstanceIdentity targetInstance, RelationClass.RelationClassIdentity relationClassIdentity) throws UserException {
+        taskWait(
+                developer.createInstanceProtocolSend(targetInstance).removeRelation(relationClassIdentity, instanceToRemove),
+                message -> developer.setValue(Relation.RELATION_IDENTITY, message.getValue(StandardField.ADDRESS))
+        );
+    }
+
 
     @FunctionalInterface
     interface AquireValue {

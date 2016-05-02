@@ -7,6 +7,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Instance;
+import org.objectagon.core.object.Relation;
 import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.RelationClassProtocol;
 import org.objectagon.core.task.Task;
@@ -37,6 +38,14 @@ public class RelationClassProtocolImpl extends AbstractProtocol<RelationClassPro
                     send -> send.send(MessageName.CREATE_RELATION,
                             MessageValue.address(RelationClass.INSTANCE_CLASS_FROM, instanceIdentityFrom),
                             MessageValue.address(RelationClass.INSTANCE_CLASS_TO, instanceIdentityTo)));
+        }
+
+        @Override
+        public Task destroyRelation(Instance.InstanceIdentity instanceIdentityFrom, Relation.RelationIdentity relationIdentity) {
+            return task(MessageName.DESTROY_RELATION, send -> send.send(MessageName.DESTROY_RELATION,
+                    MessageValue.address(RelationClass.INSTANCE_CLASS_FROM, instanceIdentityFrom),
+                    MessageValue.address(Relation.RELATION_IDENTITY, relationIdentity)));
+
         }
     }
 }

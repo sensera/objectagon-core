@@ -27,14 +27,29 @@ public class RelationSteps {
     public void tareDown(Scenario scenario) { if (testCore!=null) testCore.stop();}
 
     @When("^I add (.*) to (.*) with relation (.*)$")
-    public void iAddOrderRowToOrderWithRelationOrderToOrderRow(String relationTo, String relationFrom, String relationAlias) throws Throwable {
+    public void GivenOrderRowToOrderWithRelationOrderToOrderRow(String relationTo, String relationFrom, String relationClassAlias) throws Throwable {
+        iAddOrderRowToOrderWithRelationOrderToOrderRow(relationClassAlias, relationFrom, relationTo, "relationAlias");
+    }
+    @When("^there is a relation (.*) from (.*) to (.*) named (.*)$")
+    public void iAddOrderRowToOrderWithRelationOrderToOrderRow(String relationClassAlias, String relationFrom, String relationTo, String relationAlias) throws Throwable {
         RelationManager mgr = RelationManager.create(testCore.createTestUser("Developer"));
         Instance.InstanceIdentity fromInstance = testCore.getNamedAddress(relationFrom);
         Instance.InstanceIdentity toInstance = testCore.getNamedAddress(relationTo);
-        RelationClass.RelationClassIdentity relationClassIdentity = testCore.getNamedAddress(relationAlias);
+        RelationClass.RelationClassIdentity relationClassIdentity = testCore.getNamedAddress(relationClassAlias);
         Relation.RelationIdentity relationIdentity = mgr.addRelation(fromInstance, toInstance, relationClassIdentity);
 
         assertThat(relationIdentity.getInstanceIdentity(RelationClass.RelationDirection.RELATION_TO), is(equalTo(toInstance)));
         assertThat(relationIdentity.getInstanceIdentity(RelationClass.RelationDirection.RELATION_FROM), is(equalTo(fromInstance)));
+
+        testCore.storeNamedAddress(relationAlias, relationIdentity);
+    }
+
+    @When("^I remove (.*) from (.*) with relation (.*)$")
+    public void iremoveOrderRowFromOrderWithRelationOrderToOrderRow(String relationToRemove, String targetrelation, String relationAlias) throws Throwable {
+        RelationManager mgr = RelationManager.create(testCore.createTestUser("Developer"));
+        Instance.InstanceIdentity instanceToRemove = testCore.getNamedAddress(relationToRemove);
+        Instance.InstanceIdentity targetInstance = testCore.getNamedAddress(targetrelation);
+        RelationClass.RelationClassIdentity relationClassIdentity = testCore.getNamedAddress(relationAlias);
+        mgr.removeRelation(instanceToRemove, targetInstance, relationClassIdentity);
     }
 }

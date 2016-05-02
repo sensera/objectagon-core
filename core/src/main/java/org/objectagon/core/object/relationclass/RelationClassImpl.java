@@ -23,6 +23,7 @@ import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
@@ -32,7 +33,7 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
  */
 public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIdentity, RelationClass.RelationClassData, StandardVersion, EntityWorker> implements RelationClass {
 
-    private enum RelationClassTasks implements Task.TaskName { CreateRelation,  }
+    private enum RelationClassTasks implements Task.TaskName { CreateRelation, DestroyRelation,  }
 
     public RelationClassImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl, RelationClass.DATA_TYPE);
@@ -73,6 +74,7 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
     protected void handle(EntityWorker worker) {
         triggerBuilder(worker)
                 .trigger(RelationClassProtocol.MessageName.CREATE_RELATION, read(this::createRelation))
+                .trigger(RelationClassProtocol.MessageName.DESTROY_RELATION, read(this::destroyRelation))
                 .orElse(w -> super.handle(w));
     }
 
@@ -93,6 +95,22 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
             Relation.RelationIdentity relationIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
             return Optional.of(entityWorker.createInstanceProtocolInternal(relationTo).setRelation(relationIdentity));
         });
+        entityWorker.start(
+            sequence.create()
+        );
+    }
+
+    private void destroyRelation(EntityWorker entityWorker, RelationClassData relationClassData) throws UserException {
+        Instance.InstanceIdentity relationFrom = entityWorker.getValue(RelationClass.INSTANCE_CLASS_FROM).asAddress();
+        Relation.RelationIdentity relationIdentity = entityWorker.getValue(Relation.RELATION_IDENTITY).asAddress();
+
+        if (!relationClassData.getInstanceClassIdentity(RelationDirection.RELATION_FROM).equals(relationFrom.getInstanceClassIdentity()))
+            throw new UserException(ErrorClass.RELATION_CLASS, ErrorKind.INCONSISTENCY, entityWorker.getValue(RelationClass.INSTANCE_CLASS_FROM));
+
+        TaskBuilder.SequenceBuilder sequence = entityWorker.getTaskBuilder().sequence(RelationClassTasks.DestroyRelation);
+        Arrays.asList(RelationDirection.values()).forEach(relationDirection ->
+                sequence.addTask(entityWorker.createInstanceProtocolInternal(relationIdentity.getInstanceIdentity(relationDirection)).dropRelation(relationIdentity))
+        );
         entityWorker.start(
             sequence.create()
         );
