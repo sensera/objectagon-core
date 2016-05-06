@@ -1,6 +1,12 @@
 # Objectagon REST server
 
-This document describest REST patterns and functions supported by the server 
+This document describest REST patterns and functions supported by the server
+ 
+## Description
+
+The implementation principles are focused on just relaying requests direct to the protocols.
+URL request are translated into witch protocol to use and what parameters to send. 
+URL responses are message response values translated directly to json.
 
 ## Disposition
 
@@ -47,20 +53,20 @@ Future versions
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
 | /class/                       | List classes        | Create new class  | -               | -                |   
-| /class/{name}                 | Get class info      | -                 | Update class    | -                |   
-| /class/{name}/name            | Get class name      | -                 | Set class name  | -                |   
-| /class/{name}/field           | List fields         | Create new field  | -               | -                |   
-| /class/{name}/relation        | Get relations       | Create new relation | -             | -                |   
-| /class/{name}/method          | Not supported yet   | -                 | -               | -                |   
+| /class/{id}                   | Get class info      | -                 | Update class    | -                |   
+| /class/{id}/name              | Get class name      | -                 | Set class name  | -                |   
+| /class/{id}/field             | List fields         | Create new field  | -               | -                |   
+| /class/{id}/relation          | Get relations       | Create new relation | -             | -                |   
+| /class/{id}/method            | Not supported yet   | -                 | -               | -                |   
 
 ###### REST - Field
 
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
 | /field/{id}                   | Field contents      | -                 | -               | Remove field     |   
-| /field/{id}/name              | Get field name      | -                 | -               | Set field name   |   
-| /field/{id}/type              | Get field type      | -                 | -               | Set field type   |   
-| /field/{id}/default           | Get field default value  | -            | -               | Set field default value |
+| /field/{id}/name              | Get field name      | -                 | Set field name  | -                |   
+| /field/{id}/type              | Get field type      | -                 | Set field type  | -                |   
+| /field/{id}/default           | Get field default value  | -            | Set field default value | -        | 
 
 ###### REST - Relation
 

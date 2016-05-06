@@ -1,11 +1,14 @@
 package org.objectagon.core.msg;
 
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.protocol.ProtocolNameStandardAddress;
 
 /**
  * Created by christian on 2015-10-06.
  */
 public interface Protocol<S extends Protocol.Send, R extends Protocol.Reply> extends Receiver<Protocol.ProtocolAddress> {
+
+    Message.Field PROTOCOL_NAME = NamedField.name("PROTOCOL_NAME");
 
     S createSend(CreateSendParam createSend);
     R createReply(CreateReplyParam createReply);

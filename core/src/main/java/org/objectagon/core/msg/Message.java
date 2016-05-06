@@ -83,4 +83,30 @@ public interface Message {
     interface Values {
         Iterable<Value> values();
     }
+
+    interface Builder extends BuilderItem {
+        Value build();
+    }
+
+    interface BuilderItem {
+        BuilderValue create(String name);
+        BuilderValue create(Field field);
+        BuilderItem values(String name);
+        BuilderItem values();
+        BuilderItem values(Field field);
+    }
+
+    interface BuilderValue {
+        void set(String value);
+        void set(Long value);
+        void set(Value value);
+        void set(Message value);
+        void set(MessageName value);
+        void set(Name value);
+        void set(Address value);
+    }
+
+    interface ToValue {
+        void toValue(BuilderItem builderItem);
+    }
 }

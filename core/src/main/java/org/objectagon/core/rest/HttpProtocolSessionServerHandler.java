@@ -17,18 +17,31 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.address.StandardAddress;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.object.*;
+import org.objectagon.core.object.field.FieldIdentityImpl;
+import org.objectagon.core.object.field.FieldNameImpl;
+import org.objectagon.core.object.instance.InstanceIdentityImpl;
+import org.objectagon.core.object.instanceclass.InstanceClassIdentityImpl;
+import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
+import org.objectagon.core.object.relation.RelationIdentityImpl;
+import org.objectagon.core.object.relationclass.RelationClassIdentityImpl;
+import org.objectagon.core.object.relationclass.RelationNameImpl;
+import org.objectagon.core.rest.util.JsonBuilder;
+import org.objectagon.core.rest.util.JsonBuilderImpl;
 import org.objectagon.core.task.Task;
-import org.objectagon.core.utils.Util;
 
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
@@ -56,6 +69,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
     private Reply reply;
 
     ProcessorLocator.Locator locator;
+    JsonBuilder jsonBuilder = new JsonBuilderImpl();
 
     private Message.MessageName messageName;
     private Iterable<Message.Value> values;
@@ -104,22 +118,16 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
             try {
                 String[] splittedPath = path.length() == 0 ? new String[0] : path.substring(1).split("/");
-/*
-                for (int i = 0; i < splittedPath.length; i++) {
-                    splittedPath[i] = splittedPath[i].replace("/","");
-                }
-*/
                 List<RestProcessor.PathItem> pathItems = new ArrayList<>();
                 Stream.of(splittedPath).forEach(s -> pathItems.add(new RestProcessor.PathItem() {
                     @Override
-                    public <A extends Address> A address() {
-                        String[] splittedAddress = s.split("-");
-                        return (A) StandardAddress.standard(serverCore.serverId, Long.parseLong(splittedAddress[0]), Long.parseLong(splittedAddress[1]));
+                    public <A extends Address> A address(Message.Field field) {
+                        return new RestProcessorRequestValue(field, s).address();
                     }
 
                     @Override
-                    public <N extends Name> N name() {
-                        return (N) StandardName.name(s);
+                    public <N extends Name> N name(Message.Field field) {
+                        return new RestProcessorRequestValue(field, s).name();
                     }
                 }));
                 Optional<RestProcessor> match = locator.match(Arrays.asList(splittedPath).iterator(), translate(((HttpRequest) msg).getMethod()) );
@@ -131,8 +139,11 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
                     @Override
                     public Optional<RestProcessor.PathItem> getPathItem(int index) {
-                        System.out.println("HttpProtocolSessionServerHandler.getPathItem NOT IMPLEMETED "+index);
-                        return Optional.empty();
+                        try {
+                            return Optional.of(pathItems.get(index));
+                        } catch (Exception e) {
+                            return Optional.empty();
+                        }
                     }
 
                     @Override
@@ -147,6 +158,14 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                             resp.add(MessageValue.text(NamedField.text(name),values.get(0)));
                         });
                         return resp.toArray(new Message.Value[resp.size()]);
+                    }
+
+                    @Override
+                    public RestProcessor.RequestValue getValue(Message.Field field) {
+                        String param = params.get(field.getName().toString());
+                        if (param==null)
+                            throw new RuntimeException("No param named "+field.getName().toString());
+                        return new RestProcessorRequestValue(field, param);
                     }
                 };
                 match.ifPresent(restProcessor -> restProcessor.process(serverCore, req, this));
@@ -183,7 +202,8 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                 FullHttpResponse response = new DefaultFullHttpResponse(
                         HTTP_1_1, trailer.getDecoderResult().isSuccess() ? OK : BAD_REQUEST,
                         content);
-                response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+                //response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+                response.headers().set(CONTENT_TYPE, "application/json; charset=UTF-8");
 
                 boolean keepAlive = HttpHeaders.isKeepAlive(request);
 
@@ -235,23 +255,105 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
     }
 
     private String errorToString() {
-        StringBuilder sb = new StringBuilder("Class: "+errorClass);
-        sb.append("\nKind: ").append(errorKind);
-        if (values!=null)
-            sb.append(Util.printValuesToString(values));
-        return sb.toString();
+        List<Message.Value> values = Arrays.asList(
+                MessageValue.text(StandardField.ERROR_CLASS, errorClass.name()),
+                MessageValue.text(StandardField.ERROR_KIND, errorKind.name()),
+                MessageValue.values(StandardField.VALUES, this.values)
+        );
+        JsonBuilder.Builder builder = jsonBuilder.builder();
+        StreamSupport.stream(values.spliterator(),false).forEach(v -> valueToBuilder(builder, v));
+        return builder.build().toString();
     }
 
     private String msgToString() {
-        StringBuilder sb = new StringBuilder(messageName.toString());
-        if (values!=null)
-            sb.append(Util.printValuesToString(values));
-        return sb.toString();
+        JsonBuilder.Builder builder = jsonBuilder.builder();
+        StreamSupport.stream(values.spliterator(),false).forEach(v -> valueToBuilder(builder, v));
+        return builder.build().toString();
+    }
+
+    private void valueToBuilder(JsonBuilder.Item item, Message.Value value) {
+        value.writeTo(new Message.Writer() {
+            @Override
+            public void write(Message.Field field, String text) {
+                item.setChildValue(field.getName().toString(), text);
+            }
+
+            @Override
+            public void write(Message.Field field, Long number) {
+                item.setChildValue(field.getName().toString(), ""+number);
+            }
+
+            @Override
+            public void write(Message.Field field, MessageValueMessage message) {
+                JsonBuilder.Item child = item.addChild(field.getName().toString());
+                child.setChildValue("message", ""+message.getMessageName());
+                StreamSupport.stream(message.getValues().spliterator(),false).forEach(v -> valueToBuilder(child.addChild("values"), v));
+            }
+
+            @Override
+            public void write(Message.Field field, Message.MessageName messageName) {
+                item.setChildValue(field.getName().toString(), ""+messageName);
+            }
+
+            @Override
+            public void write(Message.Field field, Address address) {
+                address.toValue(item.addChild(field.getName().toString()));
+            }
+
+            @Override
+            public void write(Message.Field field, Name name) {
+                item.setChildValue(field.getName().toString(), ""+name);
+            }
+
+            @Override
+            public void write(Message.Field field, Message.Values values) {
+                StreamSupport.stream(values.values().spliterator(),false).forEach(v -> valueToBuilder(item.addChild(field.getName().toString()), v));
+            }
+        });
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
+    }
+
+    private class RestProcessorRequestValue implements RestProcessor.RequestValue {
+        Message.Field field;
+        String value;
+
+        public RestProcessorRequestValue(Message.Field field, String value) {
+            this.field = field;
+            this.value = value;
+        }
+
+        @Override
+        public <A extends Address> A address() {
+            String[] splittedAddress = value.split("-");
+            long timestamp = Long.parseLong(splittedAddress[0]);
+            long addressId = Long.parseLong(splittedAddress[1]);
+            if (Field.FIELD_IDENTITY.equals(field))
+                return (A) new FieldIdentityImpl(null, serverCore.serverId, timestamp, addressId);
+            if (RelationClass.RELATION_CLASS_IDENTITY.equals(field))
+                return (A) new RelationClassIdentityImpl(null, null, null, serverCore.serverId, timestamp, addressId);
+            if (Relation.RELATION_IDENTITY.equals(field))
+                return (A) new RelationIdentityImpl(null, null, null, serverCore.serverId, timestamp, addressId);
+            if (InstanceClass.INSTANCE_CLASS_IDENTITY.equals(field))
+                return (A) new InstanceClassIdentityImpl(serverCore.serverId, timestamp, addressId);
+            if (Instance.INSTANCE_IDENTITY.equals(field))
+                return (A) new InstanceIdentityImpl(null, serverCore.serverId, timestamp, addressId);
+            return (A) StandardAddress.standard(serverCore.serverId, timestamp, addressId);
+        }
+
+        @Override
+        public <N extends Name> N name() {
+            if (Field.FIELD_NAME.equals(field))
+                return (N) FieldNameImpl.create(value);
+            if (InstanceClass.INSTANCE_CLASS_NAME.equals(field))
+                return (N) InstanceClassNameImpl.create(value);
+            if (RelationClass.RELATION_NAME.equals(field))
+                return (N) RelationNameImpl.create(value);
+            return (N) StandardName.name(value);
+        }
     }
 }

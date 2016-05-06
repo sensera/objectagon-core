@@ -21,6 +21,7 @@ public interface RestProcessor {
         Optional<PathItem> getPathItem(int index);
         String getUser();
         Message.Value[] queryAsValues();
+        RequestValue getValue(Message.Field field);
     }
 
     interface Response {
@@ -31,14 +32,19 @@ public interface RestProcessor {
     }
 
     interface PathItem {
-        <A extends Address> A address();
-        <N extends Name> N name();
+        <A extends Address> A address(Message.Field field);
+        <N extends Name> N name(Message.Field field);
     }
 
     interface JsonBuilder {
         JsonBuilder addValue(String value);
         JsonBuilder addChild(String name);
         void completed();
+    }
+
+    interface RequestValue {
+        <A extends Address> A address();
+        <N extends Name> N name();
     }
 }
 

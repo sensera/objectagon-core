@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 
 /**
@@ -20,5 +21,12 @@ public class StandardAddress implements Address {
     public static StandardAddress standard(Server.ServerId serverId, long timestamp, long addressId) { return new StandardAddress(serverId, timestamp, addressId);}
     public static StandardAddress fromConfig(Receiver.AddressConfigurationParameters addressConfigurationParameters) {
         return new StandardAddress(addressConfigurationParameters.getServerId(), addressConfigurationParameters.getTimeStamp(), addressConfigurationParameters.getId());
+    }
+
+    @Override
+    public void toValue(Message.BuilderItem builderItem) {
+        builderItem.create(Server.SERVER_ID).set(serverId);
+        builderItem.create(TIMESTAMP).set(timestamp);
+        builderItem.create(ADDRESS_ID).set(addressId);
     }
 }

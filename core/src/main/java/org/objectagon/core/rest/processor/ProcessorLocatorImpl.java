@@ -138,9 +138,9 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
             TreeItem treeItem = nextTreeItem.get(value);
             if (treeItem==null) {
                 if (value.contains("-"))
-                    treeItem = name.orElse(null);
-                else
                     treeItem = identity.orElse(null);
+                else
+                    treeItem = name.orElse(null);
             }
             if (treeItem==null)
                 throw new RuntimeException("Cannot find '"+value+"'");

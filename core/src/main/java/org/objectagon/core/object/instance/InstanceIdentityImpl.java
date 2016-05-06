@@ -18,8 +18,6 @@ public class InstanceIdentityImpl extends StandardAddress implements Instance.In
 
     public InstanceIdentityImpl(InstanceClass.InstanceClassIdentity instanceClassIdentity, Server.ServerId serverId, long timestamp, long addressId) {
         super(serverId, timestamp, addressId);
-        if (instanceClassIdentity==null)
-            throw new NullPointerException("instanceClassIdentity is null");
         this.instanceClassIdentity = instanceClassIdentity;
     }
 }

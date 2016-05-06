@@ -16,7 +16,8 @@ public enum StandardField implements Message.Field {
     SESSION_ID("SESSION_ID", Message.FieldType.Number),
 
     ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
-    ERROR_KIND("ERROR_KIND", Message.FieldType.Text);
+    ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
+    ERROR_CLASS("ERROR_CLASS", Message.FieldType.Text);
 
     private Message.FieldName name;
     private Message.FieldType fieldType;

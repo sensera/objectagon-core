@@ -1,6 +1,7 @@
 package org.objectagon.core;
 
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.task.TaskBuilder;
 
 import java.util.Optional;
@@ -9,6 +10,8 @@ import java.util.Optional;
  * Created by christian on 2015-10-06.
  */
 public interface Server extends Transporter {
+
+    Message.Field SERVER_ID = NamedField.name("SERVER_ID");
 
     <A extends Address, R extends Receiver<A>> R createReceiver(Name name, Receiver.Configurations... configurations);
 
@@ -46,4 +49,5 @@ public interface Server extends Transporter {
         void removeAlias(Name name);
         Optional<Address> lookupAddressByAlias(Name name);
     }
+
 }

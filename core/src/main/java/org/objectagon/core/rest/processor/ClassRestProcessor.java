@@ -6,15 +6,20 @@ import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.ServerCore;
 import org.objectagon.core.task.Task;
 
+import java.util.Optional;
+
 /**
  * Created by christian on 2016-05-03.
  */
-public class ClassRestProcessor extends AbstractNameProtocolRestProcessor<InstanceClass.InstanceClassIdentity> {
+public class ClassRestProcessor extends AbstractRestProcessor {
 
     public static void attachToLocator(ProcessorLocator.LocatorBuilder locatorBuilder) {
         locatorBuilder.patternBuilder(
-                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.addField()))
-        ).add("class").addName().add("field").setOperation(Operation.SaveNew);
+                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.setName(request.getValue(InstanceClass.INSTANCE_CLASS_NAME).name())))
+        ).add("class").addIdentity().add("name").setOperation(Operation.UpdateExecute);
+        locatorBuilder.patternBuilder(
+                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.getName()))
+        ).add("class").addIdentity().add("name").setOperation(Operation.Get);
     }
 
     InstanceClassProtocolSendConsumer instanceClassProtocolSendConsumer;
@@ -24,15 +29,19 @@ public class ClassRestProcessor extends AbstractNameProtocolRestProcessor<Instan
     }
 
     @Override
-    Task createResolvedNameTask(InstanceClass.InstanceClassIdentity instanceClassIdentity, ServerCore.TestUser testUser, Request request, Response response) {
-        System.out.println("ClassRestProcessor.createActionTask instanceClassIdentity="+instanceClassIdentity);
-        return instanceClassProtocolSendConsumer.consume(testUser.createInstanceClassProtocolSend(instanceClassIdentity), testUser, request, response)
-                .addSuccessAction(response::reply);
+    Task createActionTask(ServerCore.TestUser testUser, Request request, Response response) {
+        Optional<PathItem> pathItem = request.getPathItem(1);
+        if (!pathItem.isPresent())
+            throw new RuntimeException("Field ID not present!");
+        InstanceClass.InstanceClassIdentity instanceClassIdentity = pathItem.get().address(InstanceClass.INSTANCE_CLASS_IDENTITY);
+
+        return instanceClassProtocolSendConsumer.consume(testUser.createInstanceClassProtocolSend(instanceClassIdentity), testUser, request, response).addSuccessAction(response::reply);
     }
 
     interface InstanceClassProtocolSendConsumer {
         Task consume(InstanceClassProtocol.Send instanceClassProtocolSend, ServerCore.TestUser testUser, Request request, Response response);
     }
+
 
 }
 

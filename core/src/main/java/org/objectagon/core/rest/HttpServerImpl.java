@@ -71,10 +71,14 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
     private static ProcessorLocator.Locator createLocator() {
         ProcessorLocator processorLocator = new ProcessorLocatorImpl();
         ProcessorLocator.LocatorBuilder locatorBuilder = processorLocator.locatorBuilder();
-        ClassRestProcessor.attachToLocator(locatorBuilder);
+
         EntityRestProcessor.attachToLocator(locatorBuilder);
         TransactionRestProcessor.attachToLocator(locatorBuilder);
         TransactionServiceRestProcessor.attachToLocator(locatorBuilder);
+
+        ClassRestProcessor.attachToLocator(locatorBuilder);
+        FieldRestProcessor.attachToLocator(locatorBuilder);
+
         return locatorBuilder.build();
     }
 }

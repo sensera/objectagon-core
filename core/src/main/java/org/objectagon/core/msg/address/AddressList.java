@@ -1,6 +1,8 @@
 package org.objectagon.core.msg.address;
 
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.field.StandardField;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,5 +69,10 @@ public class AddressList<A extends Address> implements Address {
     @Override
     public String toString() {
         return "AddressList["+addressList+"]";
+    }
+
+    @Override
+    public void toValue(Message.BuilderItem builderItem) {
+        addressList.stream().forEach(a -> a.toValue(builderItem.values(StandardField.ADDRESS)));
     }
 }

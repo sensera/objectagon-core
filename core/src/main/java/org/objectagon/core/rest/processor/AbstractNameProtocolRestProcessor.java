@@ -38,7 +38,7 @@ public abstract class AbstractNameProtocolRestProcessor<A extends Address> imple
             response.error(ErrorClass.REST_PROCESSOR, ErrorKind.MISSING_PATH_ITEM, Arrays.asList(MessageValue.number(NamedField.number("NAME_INDEX"), (long) pathItemNameIndex)));
             return;
         }
-        Name name = pathItem.get().name();
+        Name name = pathItem.get().name(StandardField.NAME);
 
         testUser.createSearchProtocol()
                 .nameSearch(name)

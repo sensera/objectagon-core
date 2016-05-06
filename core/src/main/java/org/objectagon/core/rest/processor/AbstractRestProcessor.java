@@ -1,6 +1,5 @@
 package org.objectagon.core.rest.processor;
 
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.rest.RestProcessor;
 import org.objectagon.core.rest.ServerCore;
 import org.objectagon.core.task.Task;
@@ -8,7 +7,7 @@ import org.objectagon.core.task.Task;
 /**
  * Created by christian on 2016-05-05.
  */
-public abstract class AbstractRestProcessor<A extends Address> implements RestProcessor {
+public abstract class AbstractRestProcessor implements RestProcessor {
 
     public AbstractRestProcessor() {}
 
