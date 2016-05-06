@@ -1,7 +1,5 @@
 package org.objectagon.core.rest;
 
-import org.objectagon.core.Server;
-import org.objectagon.core.msg.Address;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -12,12 +10,12 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
  * Created by christian on 2016-02-11.
  */
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
-    private Server server;
-    private Address nameServiceAddress;
+    private ServerCore serverCore;
+    private ProcessorLocator.Locator locator;
 
-    public HttpServerInitializer(Server server, Address nameServiceAddress) {
-        this.server = server;
-        this.nameServiceAddress = nameServiceAddress;
+    public HttpServerInitializer(ServerCore serverCore, ProcessorLocator.Locator locator) {
+        this.serverCore = serverCore;
+        this.locator = locator;
     }
 
     @Override
@@ -29,7 +27,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast(new HttpResponseEncoder());
         // Remove the following line if you don't want automatic content compression.
         //p.addLast(new HttpContentCompressor());
-        p.addLast(new HttpProtocolSessionServerHandler(server, nameServiceAddress));
+        p.addLast(new HttpProtocolSessionServerHandler(serverCore, locator));
         p.addLast(new HttpSnoopServerHandler());
     }
 }

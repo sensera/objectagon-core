@@ -1,11 +1,5 @@
 package org.objectagon.core.rest;
 
-import org.objectagon.core.Server;
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.server.LocalServerId;
-import org.objectagon.core.service.name.NameServiceProtocolImpl;
-import org.objectagon.core.utils.AbstractStartStopController;
-import org.objectagon.core.utils.FailedToStartException;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -13,27 +7,27 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import org.objectagon.core.server.ServerImpl;
-import org.objectagon.core.service.name.NameServiceImpl;
-import org.objectagon.core.service.name.NameServiceProtocol;
+import org.objectagon.core.rest.processor.*;
+import org.objectagon.core.utils.AbstractStartStopController;
+import org.objectagon.core.utils.FailedToStartException;
 
 /**
  * Created by christian on 2016-02-11.
  */
 public class HttpServerImpl extends AbstractStartStopController implements HttpServer {
 
-    private final Server server;
-    private final Address nameServiceAddress;
+    private final ServerCore serverCore;
     private final int port;
     ServerBootstrap b;
     Channel ch;
     EventLoopGroup bossGroup;
     EventLoopGroup workerGroup;
+    ProcessorLocator.Locator locator;
 
-    public HttpServerImpl(Server server, Address nameServiceAddress, int port) {
-        this.server = server;
-        this.nameServiceAddress = nameServiceAddress;
+    public HttpServerImpl(ServerCore serverCore, int port, ProcessorLocator.Locator locator) {
+        this.serverCore = serverCore;
         this.port = port;
+        this.locator = locator;
     }
 
     @Override
@@ -46,7 +40,7 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new HttpServerInitializer(server, nameServiceAddress));
+                    .childHandler(new HttpServerInitializer(serverCore, locator));
 
             ch = b.bind(port).sync().channel();
         } catch (InterruptedException e) {
@@ -61,13 +55,11 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
     }
 
     public static void main(String[] params) throws FailedToStartException, InterruptedException {
-        Server server = new ServerImpl(LocalServerId.local("Home"));
-        NameServiceProtocolImpl.registerAtServer(server);
-        NameServiceProtocolImpl nameServiceProtocol = server.createReceiver(NameServiceProtocol.NAME_SERVICE_PROTOCOL);
-        NameServiceImpl.registerAtServer(server);
-        NameServiceImpl nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE);
+        ServerCore serverCore = ServerCore.get();
 
-        HttpServerImpl httpServer = new HttpServerImpl(server, nameService.getAddress(), 9900);
+        ProcessorLocator.Locator locator = createLocator();
+
+        HttpServerImpl httpServer = new HttpServerImpl(serverCore, 9900, locator);
         httpServer.start();
         System.out.println("HttpServerImpl.main STARTED");
         synchronized (httpServer) {
@@ -75,4 +67,21 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
         }
         System.out.println("HttpServerImpl.main ENDED");
     }
+
+    private static ProcessorLocator.Locator createLocator() {
+        ProcessorLocator processorLocator = new ProcessorLocatorImpl();
+        ProcessorLocator.LocatorBuilder locatorBuilder = processorLocator.locatorBuilder();
+        ClassRestProcessor.attachToLocator(locatorBuilder);
+        EntityRestProcessor.attachToLocator(locatorBuilder);
+        TransactionRestProcessor.attachToLocator(locatorBuilder);
+        TransactionServiceRestProcessor.attachToLocator(locatorBuilder);
+        return locatorBuilder.build();
+    }
 }
+
+/*
+PUT http://localhost:9900/transaction/
+PUT http://localhost:9900/class/
+
+
+*/

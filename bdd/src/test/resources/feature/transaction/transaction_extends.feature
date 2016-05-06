@@ -29,6 +29,7 @@ Feature: Transaction view
     Given user Eva set value Web in ITEM1 field ItemName
     And user Adam get value Phone from ITEM1 field ItemName
 
+    @Ignore
   Scenario: Different transaction means different values extended transaction with commit
     Given user Eva set value Web in ITEM1 field ItemName
     And user Adam get value Phone from ITEM1 field ItemName
