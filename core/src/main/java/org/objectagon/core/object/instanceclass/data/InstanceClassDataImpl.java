@@ -35,7 +35,7 @@ public class InstanceClassDataImpl extends AbstractData<InstanceClass.InstanceCl
 
     @Override public Stream<Field.FieldIdentity> getFields() {return fields.stream();}
     @Override public Stream<RelationClass.RelationClassIdentity> getRelations() {return relations.stream();}
-    @Override public InstanceClass.InstanceClassName getName() {return null;}
+    @Override public InstanceClass.InstanceClassName getName() {return name;}
 
     @Override
     public <C extends Change<InstanceClass.InstanceClassIdentity, StandardVersion>> C change() {

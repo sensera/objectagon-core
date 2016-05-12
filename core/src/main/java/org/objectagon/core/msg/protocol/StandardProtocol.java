@@ -34,6 +34,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSend
         ERROR_CLASS("ERROR_CLASS", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
         PARAM("PARAM", Message.FieldType.Any),
+        ORIGINAL_MESSAGE("ORIGINAL_MESSAGE", Message.FieldType.MessageName),
         ;
 
         private Message.FieldName name;

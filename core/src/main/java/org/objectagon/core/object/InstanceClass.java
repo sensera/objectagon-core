@@ -21,10 +21,10 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
     EntityName ENTITY_NAME = EntityName.create("INSTACE_CLASS");
 
     Message.Field INSTANCE_CLASS_IDENTITY = NamedField.address("INSTANCE_CLASS_IDENTITY");
-    Message.Field INSTANCE_CLASS_NAME = NamedField.address("INSTANCE_CLASS_NAME");
+    Message.Field INSTANCE_CLASS_NAME = NamedField.name("INSTANCE_CLASS_NAME");
 
-    Message.Field FIELDS = NamedField.address("FIELDS");
-    Message.Field RELATIONS = NamedField.address("RELATIONS");
+    Message.Field FIELDS = NamedField.values("FIELDS");
+    Message.Field RELATIONS = NamedField.values("RELATIONS");
 
     Data.Type DATA_TYPE = DataType.create("INSTANCE_CLASS");
 

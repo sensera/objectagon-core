@@ -5,6 +5,7 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.*;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.message.VolatileMessageValue;
@@ -52,7 +53,7 @@ public class BasicWorkerImpl implements BasicWorker {
     }
 
     public void replyOk() {
-        createStandardProtocolReply().replyOk();
+        createStandardProtocolReply().replyWithParam(MessageValue.messageName(StandardProtocol.FieldName.ORIGINAL_MESSAGE ,workerContext.getMessageName()));
         setHandled();
     }
 

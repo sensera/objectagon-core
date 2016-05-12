@@ -97,6 +97,12 @@ Future versions
 | /instance/{name}/{id}/method  | Invokoe method      | -                 | Invoke method   | -                |   
  
  
+## Example
+
+curl -i -X PUT http://localhost:9900/transaction/
+curl -i -X PUT http://localhost:9900/class?alias=Item
+curl -i -X POST http://localhost:9900/class/Item/name?INSTANCE_CLASS_NAME=Item
+curl -i -X GET http://localhost:9900/class/Item/name?INSTANCE_CLASS_NAME=Item
 
 
 

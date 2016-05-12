@@ -1,5 +1,7 @@
 package org.objectagon.core.rest.processor;
 
+import lombok.AllArgsConstructor;
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.RestProcessor;
 
@@ -43,8 +45,8 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
         }
 
         @Override
-        public Optional<RestProcessor> match(Iterator<String> path, RestProcessor.Operation operation) {
-            return treeItem.match(path, operation);
+        public LocatorResponse match(LocatorContext locatorContext) {
+            return treeItem.match(locatorContext);
         }
     }
 
@@ -131,11 +133,20 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
             });
         }
 
-        Optional<RestProcessor> match(Iterator<String> path, RestProcessor.Operation operation) {
-            if (!path.hasNext())
-                return Optional.ofNullable(restProcessorByOperation.get(operation));
-            String value = path.next();
-            TreeItem treeItem = nextTreeItem.get(value);
+        LocatorResponse match(LocatorContext locatorContext) {
+            if (!locatorContext.path().hasNext())
+                return new LocalLocatorResponse(Optional.ofNullable(restProcessorByOperation.get(locatorContext.operation())), locatorContext.getStoredFoundAlias());
+            String value = locatorContext.path().next();
+            TreeItem treeItem = null;
+            if (identity.isPresent()) {
+                Optional<Address> foundAlias = locatorContext.findAlias(value);
+                if (foundAlias.isPresent()) {
+                    treeItem = identity.get();
+                    locatorContext.foundAlias(value, foundAlias.get());
+                }
+            }
+            if (treeItem == null)
+                treeItem = nextTreeItem.get(value);
             if (treeItem==null) {
                 if (value.contains("-"))
                     treeItem = identity.orElse(null);
@@ -144,7 +155,23 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
             }
             if (treeItem==null)
                 throw new RuntimeException("Cannot find '"+value+"'");
-            return treeItem.match(path,operation);
+            return treeItem.match(locatorContext);
+        }
+    }
+
+    @AllArgsConstructor
+    private static class LocalLocatorResponse implements LocatorResponse {
+        private Optional<RestProcessor> restProcessor;
+        private Optional<Address> matchingAlias;
+
+        @Override
+        public Optional<RestProcessor> restProcessor() {
+            return restProcessor;
+        }
+
+        @Override
+        public Optional<Address> foundMatchingAlias() {
+            return matchingAlias;
         }
     }
 

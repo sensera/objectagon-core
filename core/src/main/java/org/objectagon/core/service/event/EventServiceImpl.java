@@ -8,6 +8,7 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.address.AddressList;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValueMessage;
+import org.objectagon.core.msg.receiver.ForwardAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.msg.receiver.StandardAction;
 import org.objectagon.core.service.*;
@@ -148,7 +149,7 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         }
     }
 
-    private static class BroadcastAction extends StandardAction<EventServiceImpl, EventServiceWorkerImpl> {
+    private static class BroadcastAction extends ForwardAction<EventServiceImpl, EventServiceWorkerImpl> {
 
         private Name name;
         private MessageValueMessage message;
@@ -164,9 +165,8 @@ public class EventServiceImpl extends AbstractService<EventServiceImpl.EventServ
         }
 
         @Override
-        public Optional<Message.Value> internalRun() throws UserException {
+        public void internalRun() throws UserException {
             initializer.broadcast(name, message, context);
-            return Optional.empty();
         }
     }
 }

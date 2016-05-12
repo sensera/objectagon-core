@@ -97,6 +97,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void getName(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
+        System.out.println("InstanceClassImpl.getName "+instanceClassData.getName()+" ¤"+instanceClassWorker.currentTransaction());
         instanceClassWorker.replyWithParam(MessageValue.name(InstanceClass.INSTANCE_CLASS_NAME, instanceClassData.getName()));
     }
 
@@ -104,6 +105,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
         InstanceClassName instanceClassName = instanceClassWorker.getValue(InstanceClass.INSTANCE_CLASS_NAME).asName();
         changeInstanceClass.setName(instanceClassName);
         instanceClassWorker.broadCastNameChange(getAddress(), instanceClassName);
+        System.out.println("InstanceClassImpl.setName "+instanceClassName+" ¤"+instanceClassWorker.currentTransaction());
     }
 
     private void getFields(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {

@@ -1,5 +1,7 @@
 package org.objectagon.core.rest;
 
+import org.objectagon.core.msg.Address;
+
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -11,7 +13,7 @@ public interface ProcessorLocator {
     LocatorBuilder locatorBuilder();
 
     interface Locator {
-        Optional<RestProcessor> match(Iterator<String> path, RestProcessor.Operation operation);
+        LocatorResponse match(LocatorContext locatorContext);
     }
 
     interface LocatorBuilder {
@@ -26,5 +28,17 @@ public interface ProcessorLocator {
         PatternBuilder addIdentity();
     }
 
+    interface LocatorContext {
+        Iterator<String> path();
+        RestProcessor.Operation operation();
+        Optional<Address> findAlias(String name);
+        Optional<Address> getStoredFoundAlias();
+        void foundAlias(String value, Address foundAlias);
+    }
+
+    interface LocatorResponse {
+        Optional<RestProcessor> restProcessor();
+        Optional<Address> foundMatchingAlias();
+    }
 
 }

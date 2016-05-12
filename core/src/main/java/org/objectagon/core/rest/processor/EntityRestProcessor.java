@@ -1,5 +1,9 @@
 package org.objectagon.core.rest.processor;
 
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.ServerCore;
 import org.objectagon.core.storage.EntityServiceProtocol;
@@ -35,8 +39,17 @@ public class EntityRestProcessor extends AbstractRestProcessor {
 
     @Override
     Task createActionTask(ServerCore.TestUser testUser, Request request, Response response) {
-        return entityServiceProtocolSendConsumer.consume(getEntityServiceProtocol(testUser), testUser, request, response)
+        Task task = entityServiceProtocolSendConsumer.consume(getEntityServiceProtocol(testUser), testUser, request, response)
                 .addSuccessAction(response::reply);
+        MessageValueFieldUtil.create(request.queryAsValues())
+                .getValueByFieldOption(NamedField.text("alias"))
+                //.ifPresent(value -> task.addSuccessAction((messageName, values) -> testUser.setValue(NamedField.address(value.asText()), MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS))));
+                .ifPresent(value -> task.addSuccessAction((messageName, values) -> {
+                    Message.Value address = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS);
+                    System.out.println("EntityRestProcessor.createActionTask store alias("+value.asText()+") value "+address);
+                    testUser.setValue(NamedField.text(value.asText()), address);
+                }));
+        return task;
     }
 
     interface EntityServiceProtocolSendConsumer {

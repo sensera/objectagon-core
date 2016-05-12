@@ -11,6 +11,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import lombok.RequiredArgsConstructor;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Address;
@@ -19,6 +20,7 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.name.StandardName;
@@ -92,7 +94,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         if (HttpMethod.POST.equals(httpMethod)) return RestProcessor.Operation.UpdateExecute;
         if (HttpMethod.PUT.equals(httpMethod)) return RestProcessor.Operation.SaveNew;
         if (HttpMethod.DELETE.equals(httpMethod)) return RestProcessor.Operation.Delete;
-        throw new RuntimeException("INternal error!");
+        throw new RuntimeException("Internal error!");
     }
 
     @Override
@@ -106,7 +108,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                 //return;
             URI uri = new URI(request.getUri());
             String path = uri.getPath();
-            System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+request.getMethod()+" "+path+" --------------------------------------------------");
+            System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+request.getMethod()+" "+path+" -----------------------------------------------------------------------------------------------------------------------------------------------------");
             //System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+path);
             params = new HashMap<>();
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
@@ -130,11 +132,14 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                         return new RestProcessorRequestValue(field, s).name();
                     }
                 }));
-                Optional<RestProcessor> match = locator.match(Arrays.asList(splittedPath).iterator(), translate(((HttpRequest) msg).getMethod()) );
+                final RestProcessor.Operation operation = translate(((HttpRequest) msg).getMethod());
+
+                ProcessorLocator.LocatorResponse locatorResponse = locator.match(new LocalLocatorContext(Arrays.asList(splittedPath).iterator(), operation, serverCore.createTestUser("test") ));
+                Optional<RestProcessor> match = locatorResponse.restProcessor();
                 RestProcessor.Request req = new RestProcessor.Request() {
                     @Override
                     public RestProcessor.Operation getOperation() {
-                        return translate(((HttpRequest) msg).getMethod());
+                        return operation;
                     }
 
                     @Override
@@ -167,11 +172,17 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                             throw new RuntimeException("No param named "+field.getName().toString());
                         return new RestProcessorRequestValue(field, param);
                     }
+
+                    @Override
+                    public Optional<Address> getAlias() {
+                        return locatorResponse.foundMatchingAlias();
+                    }
                 };
                 match.ifPresent(restProcessor -> restProcessor.process(serverCore, req, this));
                 match.orElseThrow(() -> new RuntimeException("No match for path '"+path+"'"));
             } catch (RuntimeException e) {
                 System.out.println("HttpProtocolSessionServerHandler.channelRead0 ERROR "+e.getMessage() + "%%%%%%%%%%%%%%%%%%%%%%%%");
+                e.printStackTrace();
                 failed(ErrorClass.UNKNOWN, ErrorKind.UNKNOWN_TARGET, Arrays.asList());
             }
         }
@@ -183,10 +194,10 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                 LastHttpContent trailer = (LastHttpContent) msg;
 
                 synchronized (this) {
-                    System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING");
+                    //System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING");
                     if (reply.equals(Reply.Waiting))
                         wait(1000);
-                    System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING released");
+                    //System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING released");
                     if (reply.equals(Reply.Waiting)) {
                         errorClass = ErrorClass.PROTOCOL;
                         errorKind = ErrorKind.TIMEOUT;
@@ -235,11 +246,16 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
     @Override
     public void reply(Message.MessageName messageName, Iterable<Message.Value> values) {
-        System.out.println("HttpProtocolSessionServerHandler.reply messageName="+messageName);
+        Message.MessageName originalMessageName = MessageValueFieldUtil.create(values).getValueByFieldOption(StandardProtocol.FieldName.ORIGINAL_MESSAGE).map(Message.Value::asMessageName).orElse(null);
+        System.out.println("HttpProtocolSessionServerHandler.reply messageName="+messageName+" original message "+originalMessageName);
         success(messageName, values);
     }
 
     private synchronized void success(Message.MessageName messageName, Iterable<Message.Value> values) {
+        if (reply==null)
+            throw new RuntimeException("reply status is null!");
+        if (!Reply.Waiting.equals(reply))
+            throw new RuntimeException("Reply status is "+reply);
         this.messageName = messageName;
         this.values = values;
         this.reply = Reply.Success;
@@ -247,6 +263,10 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
     }
 
     private synchronized void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
+        if (reply==null)
+            throw new RuntimeException("reply status is null!");
+        if (!Reply.Waiting.equals(reply))
+            throw new RuntimeException("Reply status is "+reply);
         this.errorClass = errorClass;
         this.errorKind = errorKind;
         this.values = values;
@@ -316,6 +336,39 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
+    }
+
+    @RequiredArgsConstructor
+    private static class LocalLocatorContext implements ProcessorLocator.LocatorContext {
+        private final Iterator<String> path;
+        private final RestProcessor.Operation operation;
+        private final ServerCore.TestUser testUser;
+        private Address storedFoundAlias;
+
+        @Override
+        public Iterator<String> path() {
+            return path;
+        }
+
+        @Override
+        public RestProcessor.Operation operation() {
+            return operation;
+        }
+
+        @Override
+        public Optional<Address> findAlias(String name) {
+            return testUser.getValue(NamedField.address(name)).map(Message.Value::asAddress);
+        }
+
+        @Override
+        public Optional<Address> getStoredFoundAlias() {
+            return Optional.ofNullable(storedFoundAlias);
+        }
+
+        @Override
+        public void foundAlias(String value, Address foundAlias) {
+            this.storedFoundAlias = foundAlias;
+        }
     }
 
     private class RestProcessorRequestValue implements RestProcessor.RequestValue {

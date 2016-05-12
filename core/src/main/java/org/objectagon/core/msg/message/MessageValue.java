@@ -6,6 +6,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value text(Message.Field field, String value) { return new MessageValue<>(field, value);}
     public static Message.Value text(String value) { return new MessageValue<>(NamedField.text("TEXT"), value);}
     public static Message.Value number(Message.Field field, Long value) { return new MessageValue<>(field, value);}
-    public static Message.Value name(Message.Field field, Name value) { return new MessageValue<>(field, value);}
+    public static Message.Value name(Message.Field field, Name value) { return value != null ? new MessageValue<>(field, value) : empty();}
     public static Message.Value name(Name value) { return new MessageValue<>(StandardField.NAME, value);}
     public static Message.Value messageName(Message.Field field, Message.MessageName value) { return new MessageValue<>(field, value);}
     public static Message.Value messageName(Message.MessageName messageName) { return new MessageValue<>(StandardField.MESSAGE_NAME, messageName);}
@@ -48,6 +49,7 @@ public class MessageValue<V> implements Message.Value {
     public MessageValue(Message.Field field, V value) {
         this.field = field;
         this.value = value;
+        validate(field, value);
     }
 
     @Override
@@ -108,7 +110,7 @@ public class MessageValue<V> implements Message.Value {
                 case Address: writer.write(field, (Address) asAddress()); break;
                 case Number: writer.write(field, asNumber()); break;
                 case Text: writer.write(field, asText()); break;
-                //case Name: writer.write( (Name) field, asName()); break; //TODO solve this
+                case Name: writer.write(field, (Name) asName()); break;
                 case MessageName: writer.write(field, asMessageName()); break;
                 case Message: writer.write(field, asMessage()); break;
                 case Values: writer.write(field, asValues()); break;
@@ -118,6 +120,7 @@ public class MessageValue<V> implements Message.Value {
             }
         } catch (Exception e) {
             System.out.println("MessageValue.writeTo "+e.getMessage());
+            //e.printStackTrace();
         }
     }
 
@@ -127,6 +130,8 @@ public class MessageValue<V> implements Message.Value {
     }
 
     private static Message.Values iterableToValues(Iterable<Message.Value> values) {
+        if (values==null)
+            return () -> Collections.EMPTY_LIST;
         List<Message.Value> valuesListCopy = StreamSupport.stream(values.spliterator(), false).collect(Collectors.toList());
         return () -> valuesListCopy;
     }
@@ -135,4 +140,23 @@ public class MessageValue<V> implements Message.Value {
         List<Message.Value> valuesListCopy = values.collect(Collectors.toList());
         return () -> valuesListCopy;
     }
+
+    private void validate(Message.Field field, V value) {
+        switch (field.getFieldType()) {
+            case Address: validate(field, value, Address.class); break;
+            case Number: validate(field, value, Long.class); break;
+            case Text: validate(field, value, String.class); break;
+            case Name: validate(field, value, Name.class); break;
+            case MessageName: validate(field, value, Message.MessageName.class); break;
+            case Message: validate(field, value, MessageValueMessage.class); break;
+            case Values: validate(field, value, Message.Values.class); break;
+            default: //TODO the rest?
+        }
+    }
+
+    private void validate(Message.Field field, V value, Class cls) {
+        if (!cls.isInstance(value))
+            throw new ClassCastException(""+value+" is not type of "+field.getName());
+    }
+
 }

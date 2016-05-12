@@ -22,6 +22,7 @@ public interface RestProcessor {
         String getUser();
         Message.Value[] queryAsValues();
         RequestValue getValue(Message.Field field);
+        Optional<Address> getAlias();
     }
 
     interface Response {

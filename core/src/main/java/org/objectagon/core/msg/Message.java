@@ -53,6 +53,7 @@ public interface Message {
         default boolean sameField(Message.Value value) {
             return equals(value.getField());
         }
+
     }
 
     enum FieldType {
@@ -66,7 +67,7 @@ public interface Message {
         MessageName,
         Name,
         Password,
-        Values
+        Values;
     }
 
     interface Writer {

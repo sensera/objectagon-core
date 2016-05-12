@@ -30,11 +30,16 @@ public class ClassRestProcessor extends AbstractRestProcessor {
 
     @Override
     Task createActionTask(ServerCore.TestUser testUser, Request request, Response response) {
-        Optional<PathItem> pathItem = request.getPathItem(1);
-        if (!pathItem.isPresent())
-            throw new RuntimeException("Field ID not present!");
-        InstanceClass.InstanceClassIdentity instanceClassIdentity = pathItem.get().address(InstanceClass.INSTANCE_CLASS_IDENTITY);
-
+        InstanceClass.InstanceClassIdentity instanceClassIdentity = null;
+        if (request.getAlias().isPresent()) {
+            instanceClassIdentity = (InstanceClass.InstanceClassIdentity) request.getAlias().orElse(null);
+        }
+        if (instanceClassIdentity==null) {
+            Optional<PathItem> pathItem = request.getPathItem(1);
+            if (!pathItem.isPresent())
+                throw new RuntimeException("Field ID not present!");
+            instanceClassIdentity = pathItem.get().address(InstanceClass.INSTANCE_CLASS_IDENTITY);
+        }
         return instanceClassProtocolSendConsumer.consume(testUser.createInstanceClassProtocolSend(instanceClassIdentity), testUser, request, response).addSuccessAction(response::reply);
     }
 
