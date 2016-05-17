@@ -58,6 +58,7 @@ Future versions
 | /class/{id}/field             | List fields         | Create new field  | -               | -                |   
 | /class/{id}/relation          | Get relations       | Create new relation | -             | -                |   
 | /class/{id}/method            | Not supported yet   | -                 | -               | -                |   
+| /class/{id}/instance          | -                   | Create new instance | -             | -                |   
 
 ###### REST - Field
 
@@ -90,11 +91,11 @@ Future versions
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
 | /instance/                    | List instance       | -                 | -               | -                |   
 | /instance/{name}              | List instance       | Create new instance | -             | -                |   
-| /instance/{name}/{id}         | Get instance contents | -               | -               | Delete instance  |   
-| /instance/{name}/{id}/field/{name} | Get field value | Update field value | Add field value | Delete value   |   
-| /instance/{name}/{id}/relation/{name} | Get relations | -               | Add relation    | -                |   
-| /instance/{name}/{id}/relation/{name}/{id} | Get relation | -           | -               | Delete relation  |   
-| /instance/{name}/{id}/method  | Invokoe method      | -                 | Invoke method   | -                |   
+| /instance/{id}                | Get instance contents | -               | -               | Delete instance  |   
+| /instance/{id}/field/{name}   | Get field value     | Update field value | Add field value | Delete value   |   
+| /instance/{id}/relation/{name}| Get relations       | -                 | Add relation    | -                |   
+| /instance/{id}/relation/{id}  | Get relation        | -                 | -               | Delete relation  |   
+| /instance/{id}/method         | Invokoe method      | -                 | Invoke method   | -                |   
  
  
 ## Example

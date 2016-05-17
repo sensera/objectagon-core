@@ -23,7 +23,7 @@ mvn clean install exec:java -Dexec.mainClass="org.objectagon.core.rest.HttpServe
 se all server commands at: 
 core/src/main/org/objectagon/core/rest/README.md
 
-###### Start transaction add att to new session
+###### Start transaction and add to new session
 curl -i -X PUT http://localhost:9900/transaction/
 ###### Create a new class and store the class address in alias named "Item" 
 curl -i -X PUT http://localhost:9900/class?alias=Item

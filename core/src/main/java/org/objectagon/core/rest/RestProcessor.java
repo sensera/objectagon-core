@@ -46,6 +46,7 @@ public interface RestProcessor {
     interface RequestValue {
         <A extends Address> A address();
         <N extends Name> N name();
+        String text();
     }
 }
 

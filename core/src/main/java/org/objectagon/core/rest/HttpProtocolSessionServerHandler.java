@@ -412,5 +412,10 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                 return (N) RelationNameImpl.create(value);
             return (N) StandardName.name(value);
         }
+
+        @Override
+        public String text() {
+            return value;
+        }
     }
 }
