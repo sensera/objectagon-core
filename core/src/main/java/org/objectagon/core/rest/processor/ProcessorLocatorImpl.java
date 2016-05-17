@@ -1,6 +1,5 @@
 package org.objectagon.core.rest.processor;
 
-import lombok.AllArgsConstructor;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.RestProcessor;
@@ -135,7 +134,7 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
 
         LocatorResponse match(LocatorContext locatorContext) {
             if (!locatorContext.path().hasNext())
-                return new LocalLocatorResponse(Optional.ofNullable(restProcessorByOperation.get(locatorContext.operation())), locatorContext.getStoredFoundAlias());
+                return new LocalLocatorResponse(restProcessorByOperation.get(locatorContext.operation()), locatorContext.getStoredFoundAlias().orElse(null));
             String value = locatorContext.path().next();
             TreeItem treeItem = null;
             if (identity.isPresent()) {
@@ -159,19 +158,23 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
         }
     }
 
-    @AllArgsConstructor
     private static class LocalLocatorResponse implements LocatorResponse {
-        private Optional<RestProcessor> restProcessor;
-        private Optional<Address> matchingAlias;
+        private final RestProcessor restProcessor;
+        private final Address matchingAlias;
+
+        public LocalLocatorResponse(RestProcessor restProcessor, Address matchingAlias) {
+            this.restProcessor = restProcessor;
+            this.matchingAlias = matchingAlias;
+        }
 
         @Override
         public Optional<RestProcessor> restProcessor() {
-            return restProcessor;
+            return Optional.ofNullable(restProcessor);
         }
 
         @Override
         public Optional<Address> foundMatchingAlias() {
-            return matchingAlias;
+            return Optional.ofNullable(matchingAlias);
         }
     }
 

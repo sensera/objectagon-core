@@ -10,6 +10,7 @@ public enum StandardField implements Message.Field {
 
     ADDRESS("ADDRESS", Message.FieldType.Address),
     NAME("NAME", Message.FieldType.Name),
+    UNKNOWN("UNKNOWN", Message.FieldType.Any),
     MESSAGE_NAME("MESSAGE_NAME", Message.FieldType.MessageName),
     MESSAGE("MESSAGE", Message.FieldType.Message),
     VALUES("VALUES", Message.FieldType.Values),

@@ -1,9 +1,6 @@
 package org.objectagon.core.rest.util;
 
 import io.netty.buffer.ByteBuf;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -41,11 +38,19 @@ public class JsonBuilderImpl implements JsonBuilder {
         }
     }
 
-    @RequiredArgsConstructor
     private class LocalItem implements Item {
         private final int level;
-        @Setter String value;
+        String value;
         Map<String,List<LocalItem>> children = new HashMap<>();
+
+        @Override
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+        public LocalItem(int level) {
+            this.level = level;
+        }
 
         private LocalItem addChild(String name, LocalItem localItem) {
             List<LocalItem> items = children.get(name);
@@ -208,10 +213,12 @@ public class JsonBuilderImpl implements JsonBuilder {
         }
     }
 
-    @AllArgsConstructor
     private class LocalJson implements Json {
         private final byte[] data;
 
+        public LocalJson(byte[] data) {
+            this.data = data;
+        }
 
         @Override
         public long size() {

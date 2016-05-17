@@ -6,7 +6,6 @@ import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
-import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -15,7 +14,6 @@ import java.util.Optional;
  * Created by christian on 2016-03-04.
  */
 
-@Getter
 public class FieldDataImpl extends AbstractData<Field.FieldIdentity, StandardVersion> implements Field.FieldData {
 
     public static FieldDataImpl create(Field.FieldIdentity identity,
@@ -29,6 +27,26 @@ public class FieldDataImpl extends AbstractData<Field.FieldIdentity, StandardVer
     final private Field.FieldName name;
     final private Field.FieldType type;
     final private Optional<Message.Value> defaultValue;
+
+    @Override
+    public InstanceClass.InstanceClassIdentity getInstanceClassIdentity() {
+        return instanceClassIdentity;
+    }
+
+    @Override
+    public Field.FieldName getName() {
+        return name;
+    }
+
+    @Override
+    public Field.FieldType getType() {
+        return type;
+    }
+
+    @Override
+    public Optional<Message.Value> getDefaultValue() {
+        return defaultValue;
+    }
 
     FieldDataImpl(
             Field.FieldIdentity identity,

@@ -4,20 +4,31 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.RelationClass;
-import lombok.*;
 import org.objectagon.core.object.Relation;
 import org.objectagon.core.object.relationclass.RelationDirectionUtil;
+
+import java.util.Objects;
 
 /**
  * Created by christian on 2016-03-07.
  */
-@Value
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 public class RelationIdentityImpl extends StandardAddress implements Relation.RelationIdentity{
-    final RelationClass.RelationClassIdentity relationClassIdentity;
-    final Instance.InstanceIdentity instanceIdentityFrom;
-    final Instance.InstanceIdentity instanceIdentityTo;
+    private final RelationClass.RelationClassIdentity relationClassIdentity;
+    private final Instance.InstanceIdentity instanceIdentityFrom;
+    private final Instance.InstanceIdentity instanceIdentityTo;
+
+    @Override
+    public RelationClass.RelationClassIdentity getRelationClassIdentity() {
+        return relationClassIdentity;
+    }
+
+    public Instance.InstanceIdentity getInstanceIdentityFrom() {
+        return instanceIdentityFrom;
+    }
+
+    public Instance.InstanceIdentity getInstanceIdentityTo() {
+        return instanceIdentityTo;
+    }
 
     @Override
     public Instance.InstanceIdentity getInstanceIdentity(RelationClass.RelationDirection relationDirection) {
@@ -33,5 +44,30 @@ public class RelationIdentityImpl extends StandardAddress implements Relation.Re
         this.instanceIdentityFrom = instanceIdentityFrom;
         this.instanceIdentityTo = instanceIdentityTo;
         this.relationClassIdentity = relationClassIdentity;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RelationIdentityImpl)) return false;
+        if (!super.equals(o)) return false;
+        RelationIdentityImpl that = (RelationIdentityImpl) o;
+        return Objects.equals(getRelationClassIdentity(), that.getRelationClassIdentity()) &&
+                Objects.equals(instanceIdentityFrom, that.instanceIdentityFrom) &&
+                Objects.equals(instanceIdentityTo, that.instanceIdentityTo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), getRelationClassIdentity(), instanceIdentityFrom, instanceIdentityTo);
+    }
+
+    @Override
+    public String toString() {
+        return "RelationIdentityImpl{" +
+                "relationClassIdentity=" + relationClassIdentity +
+                ", instanceIdentityFrom=" + instanceIdentityFrom +
+                ", instanceIdentityTo=" + instanceIdentityTo +
+                "} " + super.toString();
     }
 }

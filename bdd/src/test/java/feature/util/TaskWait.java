@@ -1,6 +1,5 @@
 package feature.util;
 
-import lombok.RequiredArgsConstructor;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -13,7 +12,6 @@ import org.objectagon.core.task.Task;
 /**
  * Created by christian on 2016-03-17.
  */
-@RequiredArgsConstructor(staticName = "create")
 public class TaskWait {
     private final Task task;
     private boolean completed = false;
@@ -21,6 +19,14 @@ public class TaskWait {
     private Iterable<Message.Value> values;
     private StandardProtocol.ErrorClass errorClass;
     private StandardProtocol.ErrorKind errorKind;
+
+    private TaskWait(Task task) {
+        this.task = task;
+    }
+
+    public static TaskWait create(Task task) {
+        return new TaskWait(task);
+    }
 
     public Message startAndWait(long timeout) throws UserException {
         task.addFailedAction(this::failed)

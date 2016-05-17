@@ -11,7 +11,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import lombok.RequiredArgsConstructor;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Address;
@@ -338,12 +337,17 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         ctx.close();
     }
 
-    @RequiredArgsConstructor
     private static class LocalLocatorContext implements ProcessorLocator.LocatorContext {
         private final Iterator<String> path;
         private final RestProcessor.Operation operation;
         private final ServerCore.TestUser testUser;
         private Address storedFoundAlias;
+
+        public LocalLocatorContext(Iterator<String> path, RestProcessor.Operation operation, ServerCore.TestUser testUser) {
+            this.path = path;
+            this.operation = operation;
+            this.testUser = testUser;
+        }
 
         @Override
         public Iterator<String> path() {

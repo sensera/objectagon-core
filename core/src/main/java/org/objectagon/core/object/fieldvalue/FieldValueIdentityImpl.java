@@ -1,16 +1,14 @@
 package org.objectagon.core.object.fieldvalue;
 
-import lombok.ToString;
+import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
 import org.objectagon.core.object.Field;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.Server;
 import org.objectagon.core.object.FieldValue;
+import org.objectagon.core.object.Instance;
 
 /**
  * Created by christian on 2016-02-28.
  */
-@ToString(callSuper = true)
 public class FieldValueIdentityImpl extends StandardAddress implements FieldValue.FieldValueIdentity {
 
     private Instance.InstanceIdentity instanceIdentity;
@@ -27,5 +25,13 @@ public class FieldValueIdentityImpl extends StandardAddress implements FieldValu
         super(serverId, timestamp, addressId);
         this.instanceIdentity = instanceIdentity;
         this.fieldIdentity = fieldIdentity;
+    }
+
+    @Override
+    public String toString() {
+        return "FieldValueIdentityImpl{" +
+                "instanceIdentity=" + instanceIdentity +
+                ", fieldIdentity=" + fieldIdentity +
+                "} " + super.toString();
     }
 }

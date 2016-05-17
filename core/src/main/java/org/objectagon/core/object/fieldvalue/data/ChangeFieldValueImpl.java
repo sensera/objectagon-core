@@ -10,10 +10,13 @@ import java.util.Optional;
 /**
  * Created by christian on 2016-04-18.
  */
-@lombok.Data
 public class ChangeFieldValueImpl implements FieldValue.ChangeFieldValue {
     private final FieldValue.FieldValueData fieldValueData;
     private Optional<Message.Value> value = Optional.empty();
+
+    public ChangeFieldValueImpl(FieldValue.FieldValueData fieldValueData) {
+        this.fieldValueData = fieldValueData;
+    }
 
     @Override
     public FieldValue.ChangeFieldValue setValue(Message.Value value) {

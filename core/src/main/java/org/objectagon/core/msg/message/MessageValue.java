@@ -1,6 +1,5 @@
 package org.objectagon.core.msg.message;
 
-import lombok.EqualsAndHashCode;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -8,6 +7,7 @@ import org.objectagon.core.msg.field.StandardField;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -18,7 +18,6 @@ import static java.util.Arrays.asList;
 /**
  * Created by christian on 2016-02-23.
  */
-@EqualsAndHashCode
 public class MessageValue<V> implements Message.Value {
 
     public static Message.Value text(Message.Field field, String value) { return new MessageValue<>(field, value);}
@@ -41,7 +40,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value values(Message.Value... values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> asList(values));}
     public static Message.Value values(Message.Field field, Message.Value... values) { return new MessageValue<Message.Values>(field, () -> asList(values));}
     public static Message.Value values(Message.Field field, Iterable<Message.Value> values) { return new MessageValue<Message.Values>(field, iterableToValues(values));}
-    public static Message.Value empty() {return UnknownValue.create(StandardField.NAME);}
+    public static Message.Value empty() {return UnknownValue.create(StandardField.UNKNOWN);}
 
     Message.Field field;
     V value;
@@ -125,8 +124,24 @@ public class MessageValue<V> implements Message.Value {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MessageValue)) return false;
+        MessageValue<?> that = (MessageValue<?>) o;
+        return Objects.equals(getValue(), that.getValue());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getValue());
+    }
+
+    @Override
     public String toString() {
-        return field.getName()+" "+value;
+        return "MessageValue{" +
+                "field=" + field +
+                ", value=" + value +
+                '}';
     }
 
     private static Message.Values iterableToValues(Iterable<Message.Value> values) {

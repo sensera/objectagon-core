@@ -302,11 +302,59 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
         }
     }
 
-    @lombok.Data(staticConstructor = "create")
     private static class ReceiverAddressConfigurationParameters implements Receiver.AddressConfigurationParameters {
         private final Server.ServerId serverId;
         private final Long id;
         private final Long timeStamp;
+
+        @Override
+        public Server.ServerId getServerId() {
+            return serverId;
+        }
+
+        @Override
+        public Long getId() {
+            return id;
+        }
+
+        @Override
+        public Long getTimeStamp() {
+            return timeStamp;
+        }
+
+        private ReceiverAddressConfigurationParameters(Server.ServerId serverId, Long id, Long timeStamp) {
+            this.serverId = serverId;
+            this.id = id;
+            this.timeStamp = timeStamp;
+        }
+
+        public static ReceiverAddressConfigurationParameters create(Server.ServerId serverId, Long id, Long timeStamp) {
+            return new ReceiverAddressConfigurationParameters(serverId, id, timeStamp);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ReceiverAddressConfigurationParameters)) return false;
+            ReceiverAddressConfigurationParameters that = (ReceiverAddressConfigurationParameters) o;
+            return Objects.equals(getServerId(), that.getServerId()) &&
+                    Objects.equals(getId(), that.getId()) &&
+                    Objects.equals(getTimeStamp(), that.getTimeStamp());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getServerId(), getId(), getTimeStamp());
+        }
+
+        @Override
+        public String toString() {
+            return "ReceiverAddressConfigurationParameters{" +
+                    "serverId=" + serverId +
+                    ", id=" + id +
+                    ", timeStamp=" + timeStamp +
+                    '}';
+        }
     }
 
 

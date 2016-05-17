@@ -2,12 +2,10 @@ package org.objectagon.core.msg.protocol;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Protocol;
-import lombok.ToString;
 
 /**
  * Created by christian on 2016-01-26.
  */
-@ToString
 public class ProtocolNameStandardAddress extends ProtocolAddressImpl implements Protocol.SenderAddress {
 
     private final long timestamp;
@@ -28,5 +26,13 @@ public class ProtocolNameStandardAddress extends ProtocolAddressImpl implements 
                     && addressId == protocolNameStandardAddress.addressId;
         }
         return super.equals(o);
+    }
+
+    @Override
+    public String toString() {
+        return "ProtocolNameStandardAddress{" +
+                "timestamp=" + timestamp +
+                ", addressId=" + addressId +
+                "} " + super.toString();
     }
 }

@@ -1,9 +1,5 @@
 package org.objectagon.core.storage.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -74,12 +70,33 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
                 '}';
     }
 
-    @AllArgsConstructor
     private class TransactionVersionNodeImpl implements TransactionVersionNode<V> {
-        @Getter private final V version;
-        @Getter private final MergeStrategy mergeStrategy;
-        @Getter private final Transaction transaction;
+        private final V version;
+        private final MergeStrategy mergeStrategy;
+        private final Transaction transaction;
         private final Optional<TransactionVersionNodeImpl> nextVersion;
+
+        @Override
+        public V getVersion() {
+            return version;
+        }
+
+        @Override
+        public MergeStrategy getMergeStrategy() {
+            return mergeStrategy;
+        }
+
+        @Override
+        public Transaction getTransaction() {
+            return transaction;
+        }
+
+        public TransactionVersionNodeImpl(V version, MergeStrategy mergeStrategy, Transaction transaction, Optional<TransactionVersionNodeImpl> nextVersion) {
+            this.version = version;
+            this.mergeStrategy = mergeStrategy;
+            this.transaction = transaction;
+            this.nextVersion = nextVersion;
+        }
 
         @Override
         public Optional<TransactionVersionNode<V>> getNextVersion() {
@@ -118,14 +135,27 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
     }
 
 
-    @RequiredArgsConstructor
+    //@RequiredArgsConstructor
     private static class DataVersionsChange<I extends Identity, V extends Version> implements ChangeDataVersion<I,V>, Change<I,V> {
         final private I identity;
-        @Setter private long versionCounter = 0;
+        private long versionCounter = 0;
         final private NextVersionCounter<V> nextVersionCounter;
-        @Setter private V dataVersion;
+        private V dataVersion;
 
         private DataVersionsChangeNode root;
+
+        public void setVersionCounter(long versionCounter) {
+            this.versionCounter = versionCounter;
+        }
+
+        public void setDataVersion(V dataVersion) {
+            this.dataVersion = dataVersion;
+        }
+
+        public DataVersionsChange(I identity, NextVersionCounter<V> nextVersionCounter) {
+            this.identity = identity;
+            this.nextVersionCounter = nextVersionCounter;
+        }
 
         @Override
         public ChangeDataVersion<I, V> dataVersion(V dataVersion) throws UserException {
@@ -218,12 +248,55 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         }
 
         class DataVersionsChangeNode implements TransactionVersionNode<V> {   //TODO needs refactor extract linked list func into other class and extend from that
-            @Getter @Setter V version;
-            @Getter @Setter MergeStrategy mergeStrategy;
-            @Getter @Setter Transaction transaction;
-            @Getter @Setter Optional<DataVersionsChangeNode> prevVersion = Optional.empty();
-            @Setter Optional<DataVersionsChangeNode> nextVersion = Optional.empty();
+            V version;
+            MergeStrategy mergeStrategy;
+            Transaction transaction;
+            Optional<DataVersionsChangeNode> prevVersion = Optional.empty();
+            Optional<DataVersionsChangeNode> nextVersion = Optional.empty();
             boolean remove = false;
+
+            @Override
+            public V getVersion() {
+                return version;
+            }
+
+            @Override
+            public MergeStrategy getMergeStrategy() {
+                return mergeStrategy;
+            }
+
+            @Override
+            public Transaction getTransaction() {
+                return transaction;
+            }
+
+            public Optional<DataVersionsChangeNode> getPrevVersion() {
+                return prevVersion;
+            }
+
+            public boolean isRemove() {
+                return remove;
+            }
+
+            public void setVersion(V version) {
+                this.version = version;
+            }
+
+            public void setMergeStrategy(MergeStrategy mergeStrategy) {
+                this.mergeStrategy = mergeStrategy;
+            }
+
+            public void setTransaction(Transaction transaction) {
+                this.transaction = transaction;
+            }
+
+            public void setPrevVersion(Optional<DataVersionsChangeNode> prevVersion) {
+                this.prevVersion = prevVersion;
+            }
+
+            public void setNextVersion(Optional<DataVersionsChangeNode> nextVersion) {
+                this.nextVersion = nextVersion;
+            }
 
             boolean hasTransaction(Transaction transaction) {
                 return Objects.equals(transaction, this.transaction);
@@ -287,9 +360,12 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             }
         }
 
-        @lombok.Data
         private class NodeFinder {
             final Predicate<DataVersionsChangeNode> find;
+
+            public NodeFinder(Predicate<DataVersionsChangeNode> find) {
+                this.find = find;
+            }
 
             public Optional<DataVersionsChangeNode> findNodeFromRoot(DataVersionsChangeNode root) {
                 Optional<DataVersionsChangeNode> workingWithNode = Optional.ofNullable(root);
@@ -301,6 +377,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
                 }
                 return Optional.empty();
             }
+
         }
     }
 

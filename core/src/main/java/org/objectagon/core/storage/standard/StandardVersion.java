@@ -1,16 +1,14 @@
 package org.objectagon.core.storage.standard;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.VolatileNumberValue;
 import org.objectagon.core.storage.Version;
 
+import java.util.Objects;
+
 /**
  * Created by christian on 2015-11-26.
  */
-@EqualsAndHashCode
-@ToString
 public class StandardVersion implements Version {
 
     public static StandardVersion create(Long version) {
@@ -40,4 +38,23 @@ public class StandardVersion implements Version {
         return curentVersion -> curentVersion.nextVersion();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StandardVersion)) return false;
+        StandardVersion that = (StandardVersion) o;
+        return Objects.equals(version, that.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(version);
+    }
+
+    @Override
+    public String toString() {
+        return "StandardVersion{" +
+                "version=" + version +
+                '}';
+    }
 }

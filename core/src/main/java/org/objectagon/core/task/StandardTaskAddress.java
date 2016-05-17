@@ -1,14 +1,18 @@
 package org.objectagon.core.task;
 
-import lombok.Getter;
 import org.objectagon.core.Server;
 
 /**
  * Created by christian on 2016-04-10.
  */
 public class StandardTaskAddress extends StandardTaskBuilderAddress implements Task.TaskAddress {
-    @Getter private final Task.TaskName name;
+    private final Task.TaskName name;
     private final long taskSequenceId;
+
+    @Override
+    public Task.TaskName getName() {
+        return name;
+    }
 
     public StandardTaskAddress(Server.ServerId serverId, long timestamp, long addressId, Task.TaskName name, long taskSequenceId) {
         super(serverId, timestamp, addressId);

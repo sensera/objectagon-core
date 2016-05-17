@@ -1,6 +1,5 @@
 package org.objectagon.core.object.fieldvalue.data;
 
-import lombok.Getter;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.Field;
@@ -14,7 +13,6 @@ import java.util.Arrays;
 /**
  * Created by christian on 2016-03-04.
  */
-@Getter
 public class FieldValueDataImpl extends AbstractData<FieldValue.FieldValueIdentity, StandardVersion> implements FieldValue.FieldValueData {
 
     public static FieldValue.FieldValueData create(FieldValue.FieldValueIdentity fieldValueIdentity, StandardVersion standardVersion, Message.Value value) {
@@ -28,6 +26,21 @@ public class FieldValueDataImpl extends AbstractData<FieldValue.FieldValueIdenti
     private Instance.InstanceIdentity instanceIdentity;
     private Field.FieldIdentity fieldIdentity;
     private Message.Value value;
+
+    @Override
+    public Instance.InstanceIdentity getInstanceIdentity() {
+        return instanceIdentity;
+    }
+
+    @Override
+    public Field.FieldIdentity getFieldIdentity() {
+        return fieldIdentity;
+    }
+
+    @Override
+    public Message.Value getValue() {
+        return value;
+    }
 
     FieldValueDataImpl(
             Instance.InstanceIdentity instanceIdentity,

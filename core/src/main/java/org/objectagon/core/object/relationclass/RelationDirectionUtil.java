@@ -1,6 +1,5 @@
 package org.objectagon.core.object.relationclass;
 
-import lombok.Data;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
@@ -16,10 +15,17 @@ import java.util.function.Supplier;
 /**
  * Created by christian on 2016-05-01.
  */
-@Data(staticConstructor = "create")
 public class RelationDirectionUtil {
 
     public final RelationClass.RelationDirection relationDirection;
+
+    private RelationDirectionUtil(RelationClass.RelationDirection relationDirection) {
+        this.relationDirection = relationDirection;
+    }
+
+    public static RelationDirectionUtil create(RelationClass.RelationDirection relationDirection) {
+        return new RelationDirectionUtil(relationDirection);
+    }
 
     public InstanceClass.InstanceClassIdentity getInstanceClassIdentity(
             Supplier<InstanceClass.InstanceClassIdentity> instanceClassIdentityFrom,

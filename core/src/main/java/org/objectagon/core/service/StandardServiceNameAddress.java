@@ -1,6 +1,5 @@
 package org.objectagon.core.service;
 
-import lombok.ToString;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
 
@@ -10,7 +9,6 @@ import java.util.Objects;
  * Created by christian on 2016-03-07.
  */
 
-@ToString(callSuper = true)
 public class StandardServiceNameAddress extends StandardAddress implements Service.ServiceName {
     Service.ServiceName name;
 
@@ -47,5 +45,12 @@ public class StandardServiceNameAddress extends StandardAddress implements Servi
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), name);
+    }
+
+    @Override
+    public String toString() {
+        return "StandardServiceNameAddress{" +
+                "name=" + name +
+                "} " + super.toString();
     }
 }

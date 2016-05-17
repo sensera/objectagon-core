@@ -15,12 +15,15 @@ import java.util.stream.Collectors;
 /**
  * Created by christian on 2016-03-29.
  */
-@lombok.Data
 public class TransactionDataChangeImpl implements TransactionManager.TransactionDataChange {
 
     private final TransactionManager.TransactionData transactionData;
     private List<Consumer<List<Identity>>> changes = new ArrayList<>();
     private Optional<Transaction> extendsTransaction = Optional.empty();
+
+    public TransactionDataChangeImpl(TransactionManager.TransactionData transactionData) {
+        this.transactionData = transactionData;
+    }
 
     @Override
     public TransactionManager.TransactionDataChange add(Identity identity) {

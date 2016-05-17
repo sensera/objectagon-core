@@ -1,6 +1,5 @@
 package org.objectagon.core.task;
 
-import lombok.Data;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.composer.ResolveTargetComposer;
@@ -308,16 +307,48 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         }
     }
 
-    @Data(staticConstructor = "hook")
     private static class HookConfig implements Receiver.NamedConfiguration {
         private final Hook hook;
+
+        public Hook getHook() {
+            return hook;
+        }
+
+        private HookConfig(Hook hook) {
+            this.hook = hook;
+        }
+
+        public static HookConfig hook(Hook hook) {
+            return new HookConfig(hook);
+        }
     }
 
-    @Data(staticConstructor = "address")
     public static class TaskAddressConfigurationParameters implements Receiver.NamedConfiguration {
         private final TaskBuilderAddress taskBuilderAddress;
         private final Task.TaskName name;
         private final long taskSequenceId;
+
+        public TaskBuilderAddress getTaskBuilderAddress() {
+            return taskBuilderAddress;
+        }
+
+        public Task.TaskName getName() {
+            return name;
+        }
+
+        public long getTaskSequenceId() {
+            return taskSequenceId;
+        }
+
+        private TaskAddressConfigurationParameters(TaskBuilderAddress taskBuilderAddress, Task.TaskName name, long taskSequenceId) {
+            this.taskBuilderAddress = taskBuilderAddress;
+            this.name = name;
+            this.taskSequenceId = taskSequenceId;
+        }
+
+        public static TaskAddressConfigurationParameters address(TaskBuilderAddress taskBuilderAddress, Task.TaskName name, long taskSequenceId) {
+            return new TaskAddressConfigurationParameters(taskBuilderAddress, name, taskSequenceId);
+        }
     }
 
 }

@@ -1,6 +1,5 @@
 package org.objectagon.core.utils;
 
-import lombok.Data;
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
@@ -10,14 +9,27 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.MessageValue;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
  * Created by christian on 2016-04-03.
  */
-@Data(staticConstructor = "finder")
+//@Data(staticConstructor = "finder")
 public class FindNamedConfiguration {
+    public static FindNamedConfiguration finder(Receiver.Configurations[] configurations) {
+        return new FindNamedConfiguration(configurations);
+    }
+
     private final Receiver.Configurations[] configurations;
+
+    public Receiver.Configurations[] getConfigurations() {
+        return configurations;
+    }
+
+    private FindNamedConfiguration(Receiver.Configurations[] configurations) {
+        this.configurations = configurations;
+    }
 
     public <C extends Receiver.NamedConfiguration> C getConfigurationByName(Name name) {
         for (Receiver.Configurations configurations : this.configurations) {
@@ -45,5 +57,25 @@ public class FindNamedConfiguration {
     @FunctionalInterface
     public interface CreateAddress<A extends Address> {
         A create(Server.ServerId serverId, long timestamp, long addressId);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FindNamedConfiguration)) return false;
+        FindNamedConfiguration that = (FindNamedConfiguration) o;
+        return Arrays.equals(getConfigurations(), that.getConfigurations());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(getConfigurations());
+    }
+
+    @Override
+    public String toString() {
+        return "FindNamedConfiguration{" +
+                "configurations=" + Arrays.toString(configurations) +
+                '}';
     }
 }

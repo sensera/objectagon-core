@@ -1,6 +1,5 @@
 package feature.util;
 
-import lombok.Data;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
@@ -15,9 +14,16 @@ import java.util.stream.Stream;
  * Created by christian on 2016-04-04.
  */
 
-@Data(staticConstructor = "create")
 public class RelationManager {
     private final TestCore.TestUser developer;
+
+    private RelationManager(TestCore.TestUser developer) {
+        this.developer = developer;
+    }
+
+    public static RelationManager create(TestCore.TestUser developer) {
+        return new RelationManager(developer);
+    }
 
     private Message taskWait(Task task, AquireValue... aquireValues) throws UserException {
         Message message = TaskWait.create(task).startAndWait(TestCore.timeout);

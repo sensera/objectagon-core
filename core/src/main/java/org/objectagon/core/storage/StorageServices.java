@@ -1,7 +1,5 @@
 package org.objectagon.core.storage;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.name.StandardName;
@@ -24,12 +22,14 @@ import org.objectagon.core.task.TaskBuilder;
 /**
  * Created by christian on 2016-03-17.
  */
-@RequiredArgsConstructor(staticName = "create")
-@Getter
 public class StorageServices {
     public static Name SEARCH_NAME_CONFIG = StandardName.name("SEARCH_NAME_CONFIG");
 
     public static Name SEARCH_NAME_EVENT = StandardName.name("SEARCH_NAME_EVENT");
+
+    public static StorageServices create(Server server) {
+        return new StorageServices(server);
+    }
 
     enum InitTasks implements Task.TaskName {
         InitStorageServicesTasks,
@@ -41,6 +41,26 @@ public class StorageServices {
     Service.ServiceName persistenceServiceName;
     Service.ServiceName transactionServiceName;
     Service.ServiceName searchServiceName;
+
+    public Server getServer() {
+        return server;
+    }
+
+    public Service.ServiceName getPersistenceServiceName() {
+        return persistenceServiceName;
+    }
+
+    public Service.ServiceName getTransactionServiceName() {
+        return transactionServiceName;
+    }
+
+    public Service.ServiceName getSearchServiceName() {
+        return searchServiceName;
+    }
+
+    private StorageServices(Server server) {
+        this.server = server;
+    }
 
     public StorageServices registerAt() {
         PersistenceService.registerAt(server);

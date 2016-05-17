@@ -1,7 +1,5 @@
 package org.objectagon.core.utils;
 
-import lombok.Data;
-
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -147,11 +145,28 @@ public class FormatterImpl implements Formatter {
         }
     }
 
-    @Data
     private static class Column {
         private final ColumnType columnType;
         private final int width;
         private final boolean autoHide;
+
+        public ColumnType getColumnType() {
+            return columnType;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public boolean isAutoHide() {
+            return autoHide;
+        }
+
+        public Column(ColumnType columnType, int width, boolean autoHide) {
+            this.columnType = columnType;
+            this.width = width;
+            this.autoHide = autoHide;
+        }
 
         void print(StringBuffer sb, ValueImpl value, DateTimeFormatter timeformat) {
             switch (columnType) {
@@ -191,19 +206,68 @@ public class FormatterImpl implements Formatter {
             return output;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Column)) return false;
+            Column column = (Column) o;
+            return getWidth() == column.getWidth() &&
+                    isAutoHide() == column.isAutoHide() &&
+                    getColumnType() == column.getColumnType();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getColumnType(), getWidth(), isAutoHide());
+        }
+
+        @Override
+        public String toString() {
+            return "Column{" +
+                    "columnType=" + columnType +
+                    ", width=" + width +
+                    ", autoHide=" + autoHide +
+                    '}';
+        }
     }
 
     private static String levelToString(Level level) {
         return level.name();
     }
 
-    @Data
     private static class LevelColor {
         private final Level level;
         private final String color;
 
+        public LevelColor(Level level, String color) {
+            this.level = level;
+            this.color = color;
+        }
+
         public void put(Map<Level, String> map) {
             map.put(level, color);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof LevelColor)) return false;
+            LevelColor that = (LevelColor) o;
+            return level == that.level &&
+                    Objects.equals(color, that.color);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(level, color);
+        }
+
+        @Override
+        public String toString() {
+            return "LevelColor{" +
+                    "level=" + level +
+                    ", color='" + color + '\'' +
+                    '}';
         }
     }
 }
