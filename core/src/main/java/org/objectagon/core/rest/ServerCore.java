@@ -303,6 +303,16 @@ public class ServerCore {
             return searchServiceProtocol.createSend(() -> StandardComposer.create(this, storageServices.getSearchServiceName(), headers()));
         }
 
+        public TransactionManagerProtocol.Send createTransactionManagerProtocol() {
+            return createTransactionManagerProtocol(transaction.get());
+        }
+
+        public TransactionManagerProtocol.Send createTransactionManagerProtocol(Transaction transaction) {
+            TransactionManagerProtocol transactionManagerProtocol = server.createReceiver(TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL);
+            return transactionManagerProtocol.createSend(() -> StandardComposer.create(this, transaction, headers()));
+        }
+
+
         public Task createTransactionTask() {
             TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
             TaskBuilder.Builder<Task> builder = taskBuilder.protocol(TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL,

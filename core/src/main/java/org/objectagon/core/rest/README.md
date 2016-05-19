@@ -24,7 +24,7 @@ This REST api is divided into several groups:
 
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
-| /session/                     | Get session details | Create new transaction | -          | -                |   
+| /session/                     | Get session details | Create new sessoin | -              | -                |   
 | /session/login                | -                   | -                 | Login session   | -                |   
 | /session/logout               | -                   | -                 | Logout session  | -                |   
 | /session/transaction          | List transactions   | Create new Transaction | Update transaction | -        |   
@@ -35,11 +35,12 @@ This REST api is divided into several groups:
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
 | /transaction/                 | List transactions   | Create new transaction | -          | -                |   
-| /transaction/{id}             | Get transaction contents | -            | Update transaction | -             |   
+| /transaction/commit           | -                   | Commit session trans | -            | -                |   
+| /transaction/rollback         | -                   | Rollback session trans | -          | -                |   
+| /transaction/{id}             | Get contents        | -                 | Update          | Remove           |   
 | /transaction/{id}/extend      | -                   | Create new transaction| -           | -                |   
-| /transaction/{id}/commit      | Commit transaction  | -                 | -               | -                |   
-| /transaction/{id}/rollback    | Rollback transaction | -                | -               | -                |   
-| /transaction/{id}/remove      | Remove transaction  | -                 | -               | -                |   
+| /transaction/{id}/commit      | -                   | -                 | Commit          | -                |   
+| /transaction/{id}/rollback    | -                   | -                 | Rollback        | -                |   
 
 ###### REST - Meta
 Future versions
@@ -89,8 +90,8 @@ Future versions
 
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
-| /instance/                    | List instance       | -                 | -               | -                |   
-| /instance/{name}              | List instance       | Create new instance | -             | -                |   
+| /instance/                    | List instances      | -                 | -               | -                |   
+| /instance/{name}              | List instances      | Create new instance | -             | -                |   
 | /instance/{id}                | Get instance contents | -               | -               | Delete instance  |   
 | /instance/{id}/field/{name}   | Get field value     | Update field value | Add field value | Delete value   |   
 | /instance/{id}/relation/{name}| Get relations       | -                 | Add relation    | -                |   

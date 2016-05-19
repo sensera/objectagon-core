@@ -54,6 +54,14 @@ public interface Message {
             return equals(value.getField());
         }
 
+        default Value createValueFromString(String value) {
+            switch (getFieldType()) {
+                case Text: return MessageValue.text(this, value);
+                case Number: return MessageValue.number(this, Long.parseLong(value));
+                default:
+                    throw new SevereError(ErrorClass.FIELD, ErrorKind.TEXT_CONVERT_NOT_SUPPORTED_BY_FIELD);
+            }
+        }
     }
 
     enum FieldType {

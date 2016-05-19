@@ -47,6 +47,7 @@ public interface RestProcessor {
         <A extends Address> A address();
         <N extends Name> N name();
         String text();
+        Message.Value value();
     }
 }
 

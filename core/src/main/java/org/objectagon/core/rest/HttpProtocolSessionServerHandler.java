@@ -417,5 +417,10 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         public String text() {
             return value;
         }
+
+        @Override
+        public Message.Value value() {
+            return field.createValueFromString(value);
+        }
     }
 }

@@ -9,7 +9,7 @@ import java.util.Optional;
  * Created by christian on 2016-02-26.
  */
 public interface Transaction extends Identity {
-    Message.Field TRANSACTION = NamedField.address("Transaction");
-    Message.Field EXTENDS = NamedField.address("Extends");
+    Message.Field TRANSACTION = NamedField.address("TRANSACTION");
+    Message.Field EXTENDS = NamedField.address("EXTENDS");
     Optional<Transaction> extendsTransaction();
 }

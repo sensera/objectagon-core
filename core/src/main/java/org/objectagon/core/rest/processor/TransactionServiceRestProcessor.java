@@ -13,11 +13,6 @@ public class TransactionServiceRestProcessor extends AbstractRestProcessor {
         locatorBuilder.patternBuilder(
                 new TransactionServiceRestProcessor( ((testUser, request, response) -> testUser.createTransactionTask()))
         ).add("transaction").setOperation(Operation.SaveNew);
-/*
-        locatorBuilder.patternBuilder(
-                new TransactionServiceRestProcessor( ((testUser, request, response) -> testUser.commitTransaction()))
-        ).add("transaction").add("commit").setOperation(Operation.UpdateExecute);
-*/
     }
 
     TransactionRestProcesssorTaskCreator transactionRestProcesssorTaskCreator;

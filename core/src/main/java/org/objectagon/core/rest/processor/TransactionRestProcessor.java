@@ -2,7 +2,7 @@ package org.objectagon.core.rest.processor;
 
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.ServerCore;
-import org.objectagon.core.storage.EntityServiceProtocol;
+import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.TransactionManagerProtocol;
 import org.objectagon.core.task.Task;
 
@@ -12,37 +12,39 @@ import org.objectagon.core.task.Task;
 public class TransactionRestProcessor extends AbstractRestProcessor {
 
     public static void attachToLocator(ProcessorLocator.LocatorBuilder locatorBuilder) {
-/*
         locatorBuilder.patternBuilder(
-                new TransactionRestProcessor( ((send, testUser, request, response) -> send.create(request.queryAsValues())))
-        ).add("transaction").setOperation(Operation.SaveNew);
-*/
+                new TransactionRestProcessor(true, (send, testUser, request, response) -> send.commit())
+        ).add("transaction").add("commit").setOperation(Operation.UpdateExecute);
+        locatorBuilder.patternBuilder(
+                new TransactionRestProcessor(true,  (send, testUser, request, response) -> send.rollback())
+        ).add("transaction").add("rollback").setOperation(Operation.UpdateExecute);
+        locatorBuilder.patternBuilder(
+                new TransactionRestProcessor(true,  (send, testUser, request, response) -> send.commit())
+        ).add("transaction").addIdentity().add("commit").setOperation(Operation.UpdateExecute);
+        locatorBuilder.patternBuilder(
+                new TransactionRestProcessor(true,  (send, testUser, request, response) -> send.rollback())
+        ).add("transaction").addIdentity().add("rollback").setOperation(Operation.UpdateExecute);
     }
 
+    boolean transaction;
     TransactionRestProcesssorTaskCreator transactionRestProcesssorTaskCreator;
 
-    public TransactionRestProcessor(TransactionRestProcesssorTaskCreator transactionRestProcesssorTaskCreator) {
+    public TransactionRestProcessor(boolean transaction, TransactionRestProcesssorTaskCreator transactionRestProcesssorTaskCreator) {
+        this.transaction = transaction;
         this.transactionRestProcesssorTaskCreator = transactionRestProcesssorTaskCreator;
     }
 
-    private EntityServiceProtocol.Send getEntityServiceProtocol(ServerCore.TestUser testUser) {
-        throw new RuntimeException("Not implemented!");
-/*
-        testUser.createTransaction()
-        switch (entityType) {
-            case Class: return testUser.createInstanceClassEntityServiceProtocol();
-            default: throw new RuntimeException("Internal error");
-        }
-*/
+    private TransactionManagerProtocol.Send getTransactionManagerProtocol(ServerCore.TestUser testUser, Request request) {
+        if (!transaction)
+            return testUser.createTransactionManagerProtocol();
+        Transaction transaction = request.getValue(Transaction.TRANSACTION).address();
+        return testUser.createTransactionManagerProtocol(transaction);
     }
 
     @Override
     Task createActionTask(ServerCore.TestUser testUser, Request request, Response response) {
-        throw new RuntimeException("Not implemented!");
-/*
-        return transactionRestProcesssorTaskCreator.consume(getEntityServiceProtocol(testUser), testUser, request, response)
+        return transactionRestProcesssorTaskCreator.consume(getTransactionManagerProtocol(testUser, request), testUser, request, response)
                 .addSuccessAction(response::reply);
-*/
     }
 
     interface TransactionRestProcesssorTaskCreator {
