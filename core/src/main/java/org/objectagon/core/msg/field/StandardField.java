@@ -8,13 +8,13 @@ import org.objectagon.core.msg.message.FieldNameImpl;
  */
 public enum StandardField implements Message.Field {
 
-    ADDRESS("ADDRESS", Message.FieldType.Address),
-    NAME("NAME", Message.FieldType.Name),
-    UNKNOWN("UNKNOWN", Message.FieldType.Any),
-    MESSAGE_NAME("MESSAGE_NAME", Message.FieldType.MessageName),
-    MESSAGE("MESSAGE", Message.FieldType.Message),
-    VALUES("VALUES", Message.FieldType.Values),
-    SESSION_ID("SESSION_ID", Message.FieldType.Number),
+    ADDRESS("address", Message.FieldType.Address),
+    NAME("name", Message.FieldType.Name),
+    UNKNOWN("unknown", Message.FieldType.Any),
+    MESSAGE_NAME("messageName", Message.FieldType.MessageName),
+    MESSAGE("message", Message.FieldType.Message),
+    VALUES("values", Message.FieldType.Values),
+    SESSION_ID("sessionId", Message.FieldType.Number),
 
     ERROR_DESCRIPTION("ERROR_SEVERITY", Message.FieldType.Text),
     ERROR_KIND("ERROR_KIND", Message.FieldType.Text),

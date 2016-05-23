@@ -60,6 +60,7 @@ Future versions
 | /class/{id}/relation          | Get relations       | Create new relation | -             | -                |   
 | /class/{id}/method            | Not supported yet   | -                 | -               | -                |   
 | /class/{id}/instance          | -                   | Create new instance | -             | -                |   
+| /class/{id}/instance/{name}   | get instanceAlias   | Create new alias  | -               | remove alias     |
 
 ###### REST - Field
 
@@ -105,6 +106,7 @@ curl -i -X PUT http://localhost:9900/transaction/
 curl -i -X PUT http://localhost:9900/class?alias=Item
 curl -i -X POST http://localhost:9900/class/Item/name?INSTANCE_CLASS_NAME=Item
 curl -i -X GET http://localhost:9900/class/Item/name?INSTANCE_CLASS_NAME=Item
+
 
 
 

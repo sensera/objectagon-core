@@ -17,11 +17,11 @@ public interface RelationClass extends Entity<RelationClass.RelationClassIdentit
 
     EntityName ENTITY_NAME = EntityName.create("RELATION_CLASS");
 
-    Message.Field RELATION_CLASS_IDENTITY = NamedField.address("RELATION_CLASS_IDENTITY");
-    Message.Field INSTANCE_CLASS_FROM = NamedField.address("INSTANCE_CLASS_FROM");
-    Message.Field INSTANCE_CLASS_TO = NamedField.address("INSTANCE_CLASS_TO");
-    Message.Field RELATION_NAME = NamedField.name("RELATION_NAME");
-    Message.Field RELATION_TYPE = NamedField.text("RELATION_TYPE");
+    Message.Field RELATION_CLASS_IDENTITY = NamedField.address("relationClassId");
+    Message.Field INSTANCE_CLASS_FROM = NamedField.address("instanceClassFrom");
+    Message.Field INSTANCE_CLASS_TO = NamedField.address("instanceClassTo");
+    Message.Field RELATION_NAME = NamedField.name("relationName");
+    Message.Field RELATION_TYPE = NamedField.text("relationType");
 
     Data.Type DATA_TYPE = DataType.create("RELATION_CLASS");
 

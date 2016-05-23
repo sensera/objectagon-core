@@ -1,6 +1,7 @@
 package org.objectagon.core.object;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
@@ -12,8 +13,9 @@ import org.objectagon.core.task.Task;
 public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Send, Protocol.Reply> {
 
     ProtocolName INSTANCE_CLASS_PROTOCOL = new ProtocolNameImpl("INSTANCE_CLASS_PROTOCOL");
-    Message.Field FIELDS = NamedField.values("FIELDS");
-    Message.Field RELATIONS = NamedField.values("RELATIONS");
+    Message.Field ALIAS_NAME = NamedField.name("aliasName");
+    Message.Field FIELDS = NamedField.values("fields");
+    Message.Field RELATIONS = NamedField.values("relations");
 
     Internal createInternal(CreateSendParam createSendParam);
 
@@ -25,7 +27,7 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         GET_NAME,
         SET_NAME,
         ADD_RELATION,
-        SET_RELATION
+        ADD_INSTANCE_ALIAS, GET_INSTANCE_BY_ALIAS, REMOVE_INSTANCE_ALIAS, SET_RELATION
     }
 
     interface Send extends Protocol.Send {
@@ -34,6 +36,9 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         Task createInstance();
         Task getName();
         Task setName(InstanceClass.InstanceClassName instanceClassName);
+        Task addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name aliasName);
+        Task removeInstanceAlias(Name aliasName);
+        Task getInstanceByAlias(Name aliasName);
     }
 
     interface Internal extends Protocol.Send {

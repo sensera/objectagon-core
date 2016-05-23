@@ -19,7 +19,7 @@ public interface Instance extends Entity<Instance.InstanceIdentity, Instance.Ins
 
     EntityName ENTITY_NAME = EntityName.create("INSTANCE");
 
-    Message.Field INSTANCE_IDENTITY = NamedField.address("INSTANCE_IDENTITY");
+    Message.Field INSTANCE_IDENTITY = NamedField.address("instanceId");
 
     Data.Type DATA_TYPE = DataType.create("INSTANCE");
 

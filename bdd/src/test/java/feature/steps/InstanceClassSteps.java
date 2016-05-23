@@ -4,6 +4,7 @@ import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
+import cucumber.api.java.en.When;
 import feature.util.InstanceClassManager;
 import feature.util.TestCore;
 import org.objectagon.core.exception.UserException;
@@ -45,4 +46,9 @@ public class InstanceClassSteps {
     }
 
 
+    @When("^I add type (.*) instance alias (.*) for instance named: (.*)$")
+    public void iAddInstanceClassItemInstanceAliasITEM_ALIASForInstanceNamedITEM(String typeName, String instanceAliasName, String instanceName) throws Throwable {
+        InstanceClassManager mgr = InstanceClassManager.create(testCore.createTestUser("Developer"));
+        mgr.setInstanceClassInstanceAliasName(testCore.getNamedAddress(typeName), instanceAliasName, testCore.getNamedAddress(instanceName));
+    }
 }

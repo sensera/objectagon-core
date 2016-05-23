@@ -11,6 +11,7 @@ import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -20,11 +21,11 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
 
     EntityName ENTITY_NAME = EntityName.create("INSTACE_CLASS");
 
-    Message.Field INSTANCE_CLASS_IDENTITY = NamedField.address("INSTANCE_CLASS_IDENTITY");
-    Message.Field INSTANCE_CLASS_NAME = NamedField.name("INSTANCE_CLASS_NAME");
+    Message.Field INSTANCE_CLASS_IDENTITY = NamedField.address("instanceClassId");
+    Message.Field INSTANCE_CLASS_NAME = NamedField.name("InstanceClasName");
 
-    Message.Field FIELDS = NamedField.values("FIELDS");
-    Message.Field RELATIONS = NamedField.values("RELATIONS");
+    Message.Field FIELDS = NamedField.values("fields");
+    Message.Field RELATIONS = NamedField.values("relations");
 
     Data.Type DATA_TYPE = DataType.create("INSTANCE_CLASS");
 
@@ -40,6 +41,7 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
         Stream<Field.FieldIdentity> getFields();
         Stream<RelationClass.RelationClassIdentity> getRelations();
         InstanceClassName getName();
+        Optional<Instance.InstanceIdentity> getInstanceByAliasName(Name alias);
     }
 
     interface ChangeInstanceClass extends Data.Change<InstanceClass.InstanceClassIdentity,StandardVersion> {
@@ -48,6 +50,8 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
         ChangeInstanceClass removeField(Field.FieldIdentity fieldIdentity);
         ChangeInstanceClass removeRelation(RelationClass.RelationClassIdentity relationClassIdentity);
         ChangeInstanceClass setName(InstanceClassName instanceClassName);
+        ChangeInstanceClass addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name alias);
+        ChangeInstanceClass removeInstanceAlias(Name instanceAlias);
     }
 
 }

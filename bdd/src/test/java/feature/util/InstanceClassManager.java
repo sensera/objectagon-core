@@ -5,7 +5,9 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.object.Field;
+import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
@@ -86,6 +88,13 @@ public class InstanceClassManager {
                 message -> developer.setValue(RelationClass.RELATION_CLASS_IDENTITY, message.getValue(StandardField.ADDRESS))
         );
         return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
+    }
+
+    public void setInstanceClassInstanceAliasName(InstanceClass.InstanceClassIdentity instanceClassIdentity, String instanceAliasName, Instance.InstanceIdentity instanceIdentity) throws UserException {
+        taskWait(
+                developer.createInstanceClassProtocolSend(instanceClassIdentity).addInstanceAlias(instanceIdentity, StandardName.name(instanceAliasName))
+        );
+
     }
 
     @FunctionalInterface

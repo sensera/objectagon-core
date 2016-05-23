@@ -1,9 +1,11 @@
 package org.objectagon.core.rest.processor;
 
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.message.NamedField;
+import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.RelationClass;
@@ -42,6 +44,21 @@ public class ClassRestProcessor extends AbstractRestProcessor {
                 new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.createInstance()
                         .addSuccessAction(createCatchAndStoreAddressToAlias(testUser,request))))
         ).add("class").addIdentity().add("instance").setOperation(Operation.UpdateExecute);
+
+        locatorBuilder.patternBuilder(
+                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> {
+                    Instance.InstanceIdentity instanceIdentity = request.getValue(Instance.INSTANCE_IDENTITY).address();
+                    Name instanceAlias = request.getPathItem(3).get().name(StandardField.NAME);
+                    return instanceClassProtocolSend.addInstanceAlias(instanceIdentity, instanceAlias);
+                }))
+        ).add("class").addIdentity().add("instance").addName().setOperation(Operation.SaveNew);
+
+        locatorBuilder.patternBuilder(
+                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> {
+                    Name instanceAlias = request.getPathItem(3).get().name(StandardField.NAME);
+                    return instanceClassProtocolSend.getInstanceByAlias(instanceAlias);
+                }))
+        ).add("class").addIdentity().add("instance").addName().setOperation(Operation.UpdateExecute);
     }
 
     InstanceClassProtocolSendConsumer instanceClassProtocolSendConsumer;

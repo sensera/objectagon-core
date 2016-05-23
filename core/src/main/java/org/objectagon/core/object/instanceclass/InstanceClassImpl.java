@@ -1,6 +1,10 @@
 package org.objectagon.core.object.instanceclass;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
@@ -93,7 +97,28 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                 .trigger(InstanceClassProtocol.MessageName.GET_NAME, read(this::getName))
                 .trigger(InstanceClassProtocol.MessageName.SET_NAME, write(this::<ChangeInstanceClass>setName))
                 .trigger(InstanceClassProtocol.MessageName.CREATE_INSTANCE, this::createInstance)
+                .trigger(InstanceClassProtocol.MessageName.GET_INSTANCE_BY_ALIAS, read(this::getInstanceByAlias))
+                .trigger(InstanceClassProtocol.MessageName.ADD_INSTANCE_ALIAS, write(this::<ChangeInstanceClass>addInstanceAlias))
+                .trigger(InstanceClassProtocol.MessageName.REMOVE_INSTANCE_ALIAS, write(this::<ChangeInstanceClass>removeInstanceAlias))
                 .orElse(w -> super.handle(w));
+    }
+
+    private void getInstanceByAlias(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) throws UserException {
+        Name instanceAlias = instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME).asName();
+        instanceClassWorker.replyWithParam(MessageValue.address(Instance.INSTANCE_IDENTITY,
+                instanceClassData.getInstanceByAliasName(instanceAlias)
+                        .orElseThrow(() -> new UserException(ErrorClass.INSTANCE_CLASS, ErrorKind.INSTANCE_NOT_FOUND, instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME)))));
+    }
+
+    private void addInstanceAlias(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+        Name instanceAlias = instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME).asName();
+        Instance.InstanceIdentity instanceIdentity = instanceClassWorker.getValue(Instance.INSTANCE_IDENTITY).asAddress();
+        changeInstanceClass.addInstanceAlias(instanceIdentity, instanceAlias);
+    }
+
+    private void removeInstanceAlias(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+        Name instanceAlias = instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME).asName();
+        changeInstanceClass.removeInstanceAlias(instanceAlias);
     }
 
     private void getName(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {

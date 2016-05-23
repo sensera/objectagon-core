@@ -1,10 +1,12 @@
 package org.objectagon.core.object.instanceclass;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
+import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.RelationClass;
@@ -62,6 +64,21 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
         @Override
         public Task setName(InstanceClass.InstanceClassName name) {
             return task(MessageName.SET_NAME, send -> send.send(MessageName.SET_NAME, name(InstanceClass.INSTANCE_CLASS_NAME, name)));
+        }
+
+        @Override
+        public Task addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name aliasName) {
+            return task(MessageName.ADD_INSTANCE_ALIAS, send -> send.send(MessageName.ADD_INSTANCE_ALIAS, address(Instance.INSTANCE_IDENTITY,instanceIdentity), name(ALIAS_NAME, aliasName)));
+        }
+
+        @Override
+        public Task removeInstanceAlias(Name aliasName) {
+            return task(MessageName.REMOVE_INSTANCE_ALIAS, send -> send.send(MessageName.REMOVE_INSTANCE_ALIAS, name(ALIAS_NAME, aliasName)));
+        }
+
+        @Override
+        public Task getInstanceByAlias(Name aliasName) {
+            return task(MessageName.GET_INSTANCE_BY_ALIAS, send -> send.send(MessageName.GET_INSTANCE_BY_ALIAS, name(ALIAS_NAME, aliasName)));
         }
     }
 
