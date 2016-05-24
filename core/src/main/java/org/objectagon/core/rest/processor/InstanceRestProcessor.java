@@ -16,31 +16,39 @@ public class InstanceRestProcessor extends AbstractRestProcessor {
         //Field
         locatorBuilder.patternBuilder(
                 new InstanceRestProcessor(((send, testUser, request, response) -> {
-                    Field.FieldIdentity address = request.getPathItem(4).get().address(Field.FIELD_IDENTITY);
+                    Field.FieldIdentity address = request.getPathItem(3).get().address(Field.FIELD_IDENTITY);
                     return send.setValue(address, request.getValue(FieldValue.VALUE).value());
                 }))
-        ).add("instance").addIdentity().add("field").addIdentity().setOperation(Operation.UpdateExecute);
+        ).add("instance").addIdentity("instanceId").add("field").addIdentity("fieldId").setOperation(Operation.UpdateExecute);
         locatorBuilder.patternBuilder(
                 new InstanceRestProcessor(((send, testUser, request, response) -> {
-                    Field.FieldIdentity address = request.getPathItem(4).get().address(Field.FIELD_IDENTITY);
+                    Field.FieldIdentity address = request.getPathItem(3).get().address(Field.FIELD_IDENTITY);
                     return send.getValue(address);
                 }))
-        ).add("instance").addIdentity().add("field").addIdentity().setOperation(Operation.Get);
+        ).add("instance").addIdentity("instanceId").add("field").addIdentity("fieldId").setOperation(Operation.Get);
 
 
         //Relation
         locatorBuilder.patternBuilder(
                 new InstanceRestProcessor(((send, testUser, request, response) -> {
-                    RelationClass.RelationClassIdentity address = request.getPathItem(4).get().address(RelationClass.RELATION_CLASS_IDENTITY);
-                    return send.addRelation(address, request.getValue(Instance.INSTANCE_IDENTITY).address());
+                    RelationClass.RelationClassIdentity relationClassIdentity = request.getPathItem(3).get().address(RelationClass.RELATION_CLASS_IDENTITY);
+                    return send.addRelation(relationClassIdentity, request.getValue(Instance.INSTANCE_IDENTITY).address());
                 }))
-        ).add("instance").addIdentity().add("relation").addIdentity().setOperation(Operation.UpdateExecute);
+        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationId").setOperation(Operation.UpdateExecute);
         locatorBuilder.patternBuilder(
                 new InstanceRestProcessor(((send, testUser, request, response) -> {
-                    RelationClass.RelationClassIdentity address = request.getPathItem(4).get().address(RelationClass.RELATION_CLASS_IDENTITY);
+                    RelationClass.RelationClassIdentity relationClassIdentity = request.getPathItem(3).get().address(RelationClass.RELATION_CLASS_IDENTITY);
+                    Instance.InstanceIdentity instanceIdentity = request.getPathItem(4).get().address(Instance.INSTANCE_IDENTITY);
+                    return send.addRelation(relationClassIdentity, instanceIdentity);
+                }))
+        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationId").addIdentity("instanceId").setOperation(Operation.UpdateExecute);
+
+        locatorBuilder.patternBuilder(
+                new InstanceRestProcessor(((send, testUser, request, response) -> {
+                    RelationClass.RelationClassIdentity address = request.getPathItem(3).get().address(RelationClass.RELATION_CLASS_IDENTITY);
                     return send.getRelation(address);
                 }))
-        ).add("instance").addIdentity().add("relation").addIdentity().setOperation(Operation.Get);
+        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationId").setOperation(Operation.Get);
     }
 
     InstanceProtocolSendConsumer instanceProtocolSendConsumer;
@@ -51,16 +59,10 @@ public class InstanceRestProcessor extends AbstractRestProcessor {
 
     @Override
     Task createActionTask(ServerCore.TestUser testUser, Request request, Response response) {
-        Instance.InstanceIdentity instanceIdentity = null;
-        if (request.getAlias().isPresent()) {
-            instanceIdentity = (Instance.InstanceIdentity) request.getAlias().orElse(null);
-        }
-        if (instanceIdentity==null) {
-            Optional<PathItem> pathItem = request.getPathItem(1);
-            if (!pathItem.isPresent())
-                throw new RuntimeException("Field ID not present!");
-            instanceIdentity = pathItem.get().address(Instance.INSTANCE_IDENTITY);
-        }
+        Optional<PathItem> pathItem = request.getPathItem(1);
+        if (!pathItem.isPresent())
+            throw new RuntimeException("Field ID not present!");
+        Instance.InstanceIdentity instanceIdentity = pathItem.get().address(Instance.INSTANCE_IDENTITY);
         return instanceProtocolSendConsumer.consume(testUser.createInstanceProtocolSend(instanceIdentity), testUser, request, response).addSuccessAction(response::reply);
     }
 

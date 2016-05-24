@@ -96,6 +96,7 @@ Future versions
 | /instance/{id}                | Get instance contents | -               | -               | Delete instance  |   
 | /instance/{id}/field/{name}   | Get field value     | Update field value | Add field value | Delete value   |   
 | /instance/{id}/relation/{name}| Get relations       | -                 | Add relation    | -                |   
+| /instance/{id}/relation/{name}/| Get relations       | -                 | Add relation    | -                |
 | /instance/{id}/relation/{id}  | Get relation        | -                 | -               | Delete relation  |   
 | /instance/{id}/method         | Invokoe method      | -                 | Invoke method   | -                |   
  

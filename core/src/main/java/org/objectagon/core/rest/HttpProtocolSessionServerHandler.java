@@ -120,17 +120,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
             try {
                 String[] splittedPath = path.length() == 0 ? new String[0] : path.substring(1).split("/");
                 List<RestProcessor.PathItem> pathItems = new ArrayList<>();
-                Stream.of(splittedPath).forEach(s -> pathItems.add(new RestProcessor.PathItem() {
-                    @Override
-                    public <A extends Address> A address(Message.Field field) {
-                        return new RestProcessorRequestValue(field, s).address();
-                    }
-
-                    @Override
-                    public <N extends Name> N name(Message.Field field) {
-                        return new RestProcessorRequestValue(field, s).name();
-                    }
-                }));
+                Stream.of(splittedPath).forEach(s -> pathItems.add(new LocalPathItem(s)));
                 final RestProcessor.Operation operation = translate(((HttpRequest) msg).getMethod());
 
                 ProcessorLocator.LocatorResponse locatorResponse = locator.match(new LocalLocatorContext(Arrays.asList(splittedPath).iterator(), operation, serverCore.createTestUser("test") ));
@@ -143,8 +133,12 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
                     @Override
                     public Optional<RestProcessor.PathItem> getPathItem(int index) {
+                        RestProcessor.PathItem pathItem1 = pathItems.get(index);
                         try {
-                            return Optional.of(pathItems.get(index));
+                            RestProcessor.PathItem pathItem = locatorResponse.foundMatchingAlias(index)
+                                    .map(address -> createAddressPathItem(address))
+                                    .orElse(pathItem1);
+                            return Optional.of(pathItem);
                         } catch (Exception e) {
                             return Optional.empty();
                         }
@@ -172,10 +166,6 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                         return new RestProcessorRequestValue(field, param);
                     }
 
-                    @Override
-                    public Optional<Address> getAlias() {
-                        return locatorResponse.foundMatchingAlias();
-                    }
                 };
                 match.ifPresent(restProcessor -> restProcessor.process(serverCore, req, this));
                 match.orElseThrow(() -> new RuntimeException("No match for path '"+path+"'"));
@@ -341,7 +331,8 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         private final Iterator<String> path;
         private final RestProcessor.Operation operation;
         private final ServerCore.TestUser testUser;
-        private Address storedFoundAlias;
+        private Map<Integer,Address> storedFoundAlias = new HashMap<>();
+        private int level = 0;
 
         public LocalLocatorContext(Iterator<String> path, RestProcessor.Operation operation, ServerCore.TestUser testUser) {
             this.path = path;
@@ -365,13 +356,19 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         }
 
         @Override
-        public Optional<Address> getStoredFoundAlias() {
-            return Optional.ofNullable(storedFoundAlias);
+        public Stream<Entry<Integer, Address>> getStoredFoundAlias() {
+            return storedFoundAlias.entrySet().stream();
         }
 
         @Override
         public void foundAlias(String value, Address foundAlias) {
-            this.storedFoundAlias = foundAlias;
+            this.storedFoundAlias.put(level,foundAlias);
+        }
+
+        @Override
+        public ProcessorLocator.LocatorContext next() {
+            level++;
+            return this;
         }
     }
 
@@ -386,20 +383,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
         @Override
         public <A extends Address> A address() {
-            String[] splittedAddress = value.split("-");
-            long timestamp = Long.parseLong(splittedAddress[0]);
-            long addressId = Long.parseLong(splittedAddress[1]);
-            if (Field.FIELD_IDENTITY.equals(field))
-                return (A) new FieldIdentityImpl(null, serverCore.serverId, timestamp, addressId);
-            if (RelationClass.RELATION_CLASS_IDENTITY.equals(field))
-                return (A) new RelationClassIdentityImpl(null, null, null, serverCore.serverId, timestamp, addressId);
-            if (Relation.RELATION_IDENTITY.equals(field))
-                return (A) new RelationIdentityImpl(null, null, null, serverCore.serverId, timestamp, addressId);
-            if (InstanceClass.INSTANCE_CLASS_IDENTITY.equals(field))
-                return (A) new InstanceClassIdentityImpl(serverCore.serverId, timestamp, addressId);
-            if (Instance.INSTANCE_IDENTITY.equals(field))
-                return (A) new InstanceIdentityImpl(null, serverCore.serverId, timestamp, addressId);
-            return (A) StandardAddress.standard(serverCore.serverId, timestamp, addressId);
+            return createAddressFromText(value, field);
         }
 
         @Override
@@ -423,4 +407,60 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
             return field.createValueFromString(value);
         }
     }
+
+    private class LocalPathItem implements RestProcessor.PathItem {
+        private final String s;
+
+        public LocalPathItem(String s) {
+            this.s = s;
+        }
+
+        @Override
+        public <A extends Address> A address(Message.Field field) {
+            return new RestProcessorRequestValue(field, s).address();
+        }
+
+        @Override
+        public <N extends Name> N name(Message.Field field) {
+            return new RestProcessorRequestValue(field, s).name();
+        }
+    }
+
+    private RestProcessor.PathItem createAddressPathItem(Address address) { return new AddressPathItem(address);}
+
+    private class AddressPathItem implements RestProcessor.PathItem {
+        private final Address address;
+
+        public AddressPathItem(Address address) {
+            this.address = address;
+        }
+
+        @Override
+        public <A extends Address> A address(Message.Field field) {
+            return (A) address;
+        }
+
+        @Override
+        public <N extends Name> N name(Message.Field field) {
+            throw new RuntimeException("Not supported");
+        }
+    }
+
+    private <A extends Address> A createAddressFromText(String value, Message.Field field) {
+        String[] splittedAddress = value.split("-");
+        long timestamp = Long.parseLong(splittedAddress[0]);
+        long addressId = Long.parseLong(splittedAddress[1]);
+        if (Field.FIELD_IDENTITY.equals(field))
+            return (A) new FieldIdentityImpl(null, serverCore.serverId, timestamp, addressId);
+        if (RelationClass.RELATION_CLASS_IDENTITY.equals(field))
+            return (A) new RelationClassIdentityImpl(null, null, null, serverCore.serverId, timestamp, addressId);
+        if (Relation.RELATION_IDENTITY.equals(field))
+            return (A) new RelationIdentityImpl(null, null, null, serverCore.serverId, timestamp, addressId);
+        if (InstanceClass.INSTANCE_CLASS_IDENTITY.equals(field))
+            return (A) new InstanceClassIdentityImpl(serverCore.serverId, timestamp, addressId);
+        if (Instance.INSTANCE_IDENTITY.equals(field))
+            return (A) new InstanceIdentityImpl(null, serverCore.serverId, timestamp, addressId);
+        return (A) StandardAddress.standard(serverCore.serverId, timestamp, addressId);
+    }
+
 }

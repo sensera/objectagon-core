@@ -16,10 +16,10 @@ public class FieldRestProcessor extends AbstractRestProcessor {
     public static void attachToLocator(ProcessorLocator.LocatorBuilder locatorBuilder) {
         locatorBuilder.patternBuilder(
                 new FieldRestProcessor(((fieldProtocolSend, testUser, request, response) -> fieldProtocolSend.setName(request.getValue(Field.FIELD_NAME).name())))
-        ).add("field").addIdentity().add("name").setOperation(Operation.UpdateExecute);
+        ).add("field").addIdentity("fieldId").add("name").setOperation(Operation.UpdateExecute);
         locatorBuilder.patternBuilder(
                 new FieldRestProcessor(((fieldProtocolSend, testUser, request, response) -> fieldProtocolSend.getName()))
-        ).add("field").addIdentity().add("name").setOperation(Operation.Get);
+        ).add("field").addIdentity("fieldId").add("name").setOperation(Operation.Get);
     }
 
     FieldProtocolSendConsumer instanceClassProtocolSendConsumer;

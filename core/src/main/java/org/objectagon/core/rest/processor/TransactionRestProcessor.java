@@ -20,10 +20,10 @@ public class TransactionRestProcessor extends AbstractRestProcessor {
         ).add("transaction").add("rollback").setOperation(Operation.UpdateExecute);
         locatorBuilder.patternBuilder(
                 new TransactionRestProcessor(true,  (send, testUser, request, response) -> send.commit())
-        ).add("transaction").addIdentity().add("commit").setOperation(Operation.UpdateExecute);
+        ).add("transaction").addIdentity("transactionId").add("commit").setOperation(Operation.UpdateExecute);
         locatorBuilder.patternBuilder(
                 new TransactionRestProcessor(true,  (send, testUser, request, response) -> send.rollback())
-        ).add("transaction").addIdentity().add("rollback").setOperation(Operation.UpdateExecute);
+        ).add("transaction").addIdentity("transactionId").add("rollback").setOperation(Operation.UpdateExecute);
     }
 
     boolean transaction;

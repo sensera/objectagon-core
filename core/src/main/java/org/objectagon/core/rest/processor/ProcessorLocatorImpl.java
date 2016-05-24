@@ -6,6 +6,7 @@ import org.objectagon.core.rest.RestProcessor;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Created by christian on 2016-05-05.
@@ -77,8 +78,8 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
         }
 
         @Override
-        public PatternBuilder addIdentity() {
-            patterns.add(PatternBuilder::addIdentity);
+        public PatternBuilder addIdentity(String alias) {
+            patterns.add((patternBuilder) -> patternBuilder.addIdentity(alias));
             return this;
         }
     }
@@ -123,7 +124,7 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
                 }
 
                 @Override
-                public PatternBuilder addIdentity() {
+                public PatternBuilder addIdentity(String alias) {
                     if (!identity.isPresent())
                         identity = Optional.of(new TreeItem());
                     identity.ifPresent(treeItem -> treeItem.build(buildTreeIterator, restProcessor, operation));
@@ -134,7 +135,7 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
 
         LocatorResponse match(LocatorContext locatorContext) {
             if (!locatorContext.path().hasNext())
-                return new LocalLocatorResponse(restProcessorByOperation.get(locatorContext.operation()), locatorContext.getStoredFoundAlias().orElse(null));
+                return new LocalLocatorResponse(restProcessorByOperation.get(locatorContext.operation()), locatorContext.getStoredFoundAlias());
             String value = locatorContext.path().next();
             TreeItem treeItem = null;
             if (identity.isPresent()) {
@@ -154,17 +155,17 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
             }
             if (treeItem==null)
                 throw new RuntimeException("Cannot find '"+value+"'");
-            return treeItem.match(locatorContext);
+            return treeItem.match(locatorContext.next());
         }
     }
 
     private static class LocalLocatorResponse implements LocatorResponse {
         private final RestProcessor restProcessor;
-        private final Address matchingAlias;
+        private final Map<Integer,Address> matchingAlias = new HashMap<>();
 
-        public LocalLocatorResponse(RestProcessor restProcessor, Address matchingAlias) {
+        public LocalLocatorResponse(RestProcessor restProcessor, Stream<Map.Entry<Integer,Address>> matchingAlias) {
             this.restProcessor = restProcessor;
-            this.matchingAlias = matchingAlias;
+            matchingAlias.forEach(integerAddressEntry -> this.matchingAlias.put(integerAddressEntry.getKey(), integerAddressEntry.getValue()));
         }
 
         @Override
@@ -173,8 +174,8 @@ public class ProcessorLocatorImpl implements ProcessorLocator {
         }
 
         @Override
-        public Optional<Address> foundMatchingAlias() {
-            return Optional.ofNullable(matchingAlias);
+        public Optional<Address> foundMatchingAlias(int index) {
+            return Optional.ofNullable(matchingAlias.get(index));
         }
     }
 
