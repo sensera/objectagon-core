@@ -58,6 +58,7 @@ Future versions
 | /class/{id}/name              | Get class name      | -                 | Set class name  | -                |   
 | /class/{id}/field             | List fields         | Create new field  | -               | -                |   
 | /class/{id}/relation          | Get relations       | Create new relation | -             | -                |   
+| /class/{id}/relation/{classId} |                    | Create new relation | -             | -                |   
 | /class/{id}/method            | Not supported yet   | -                 | -               | -                |   
 | /class/{id}/instance          | -                   | Create new instance | -             | -                |   
 | /class/{id}/instance/{name}   | get instanceAlias   | Create new alias  | -               | remove alias     |
@@ -95,19 +96,10 @@ Future versions
 | /instance/{name}              | List instances      | Create new instance | -             | -                |   
 | /instance/{id}                | Get instance contents | -               | -               | Delete instance  |   
 | /instance/{id}/field/{name}   | Get field value     | Update field value | Add field value | Delete value   |   
-| /instance/{id}/relation/{name}| Get relations       | -                 | Add relation    | -                |   
-| /instance/{id}/relation/{name}/| Get relations       | -                 | Add relation    | -                |
+| /instance/{id}/relation/{relationId}| Get relation  | -                 | Add relation    | -                |   
+| /instance/{id}/relation/{relationId}/{instanceId}|  | -                 | Add relation    | -                |
 | /instance/{id}/relation/{id}  | Get relation        | -                 | -               | Delete relation  |   
 | /instance/{id}/method         | Invokoe method      | -                 | Invoke method   | -                |   
  
  
-## Example
-
-curl -i -X PUT http://localhost:9900/transaction/
-curl -i -X PUT http://localhost:9900/class?alias=Item
-curl -i -X POST http://localhost:9900/class/Item/name?INSTANCE_CLASS_NAME=Item
-curl -i -X GET http://localhost:9900/class/Item/name?INSTANCE_CLASS_NAME=Item
-
-
-
 

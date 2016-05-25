@@ -1,5 +1,9 @@
 package org.objectagon.core.rest.processor;
 
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.object.*;
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.ServerCore;
@@ -34,14 +38,15 @@ public class InstanceRestProcessor extends AbstractRestProcessor {
                     RelationClass.RelationClassIdentity relationClassIdentity = request.getPathItem(3).get().address(RelationClass.RELATION_CLASS_IDENTITY);
                     return send.addRelation(relationClassIdentity, request.getValue(Instance.INSTANCE_IDENTITY).address());
                 }))
-        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationId").setOperation(Operation.UpdateExecute);
+        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationClassId").setOperation(Operation.UpdateExecute);
+
         locatorBuilder.patternBuilder(
                 new InstanceRestProcessor(((send, testUser, request, response) -> {
                     RelationClass.RelationClassIdentity relationClassIdentity = request.getPathItem(3).get().address(RelationClass.RELATION_CLASS_IDENTITY);
                     Instance.InstanceIdentity instanceIdentity = request.getPathItem(4).get().address(Instance.INSTANCE_IDENTITY);
                     return send.addRelation(relationClassIdentity, instanceIdentity);
                 }))
-        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationId").addIdentity("instanceId").setOperation(Operation.UpdateExecute);
+        ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationClassId").addIdentity("instanceId").setOperation(Operation.SaveNew);
 
         locatorBuilder.patternBuilder(
                 new InstanceRestProcessor(((send, testUser, request, response) -> {
@@ -68,6 +73,19 @@ public class InstanceRestProcessor extends AbstractRestProcessor {
 
     interface InstanceProtocolSendConsumer {
         Task consume(InstanceProtocol.Send instanceProtocolSend, ServerCore.TestUser testUser, Request request, Response response);
+    }
+
+
+    private static Task.SuccessAction createCatchAndStoreAddressToAlias(ServerCore.TestUser testUser, Request request) {
+        return (messageName, values) -> {
+            MessageValueFieldUtil.create(request.queryAsValues())
+                    .getValueByFieldOption(NamedField.text("alias"))
+                    .ifPresent(value -> {
+                        Message.Value address = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS);
+                        System.out.println("ClassRestProcessor.createCatchAndStoreAddressToAlias store alias(" + value.asText() + ") value " + address);
+                        testUser.setValue(NamedField.text(value.asText()), address);
+                    });
+        };
     }
 
 

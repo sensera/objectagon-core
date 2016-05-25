@@ -166,6 +166,14 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                         return new RestProcessorRequestValue(field, param);
                     }
 
+                    @Override
+                    public Optional<RestProcessor.RequestValue> getValueOptional(Message.Field field) {
+                        String param = params.get(field.getName().toString());
+                        if (param==null)
+                            return Optional.empty();
+                        return Optional.of(new RestProcessorRequestValue(field, param));
+                    }
+
                 };
                 match.ifPresent(restProcessor -> restProcessor.process(serverCore, req, this));
                 match.orElseThrow(() -> new RuntimeException("No match for path '"+path+"'"));

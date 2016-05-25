@@ -41,9 +41,20 @@ public class ClassRestProcessor extends AbstractRestProcessor {
         ).add("class").addIdentity("classId").add("relation").setOperation(Operation.UpdateExecute);
 
         locatorBuilder.patternBuilder(
+                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> {
+                    RelationClass.RelationType type = request.getValueOptional(RelationClass.RELATION_TYPE)
+                            .map(requestValue -> RelationClass.RelationType.valueOf(requestValue.text()))
+                            .orElse(RelationClass.RelationType.ASSOCIATION);
+                    InstanceClass.InstanceClassIdentity relatedClass = request.getPathItem(3).get().address(InstanceClass.INSTANCE_CLASS_IDENTITY);
+                    return instanceClassProtocolSend.addRelation(type,relatedClass)
+                            .addSuccessAction(createCatchAndStoreAddressToAlias(testUser, request));
+                }))
+        ).add("class").addIdentity("classId").add("relation").addIdentity("classId").setOperation(Operation.SaveNew);
+
+        locatorBuilder.patternBuilder(
                 new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.createInstance()
                         .addSuccessAction(createCatchAndStoreAddressToAlias(testUser,request))))
-        ).add("class").addIdentity("classId").add("instance").setOperation(Operation.UpdateExecute);
+        ).add("class").addIdentity("classId").add("instance").setOperation(Operation.SaveNew);
 
         locatorBuilder.patternBuilder(
                 new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> {
