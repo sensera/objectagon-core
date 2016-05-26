@@ -8,6 +8,12 @@ The implementation principles are focused on just relaying requests direct to th
 URL request are translated into witch protocol to use and what parameters to send. 
 URL responses are message response values translated directly to json.
 
+## Alias
+
+Alias is a current solution to address a problem with not wanting to be forced to use a program to create a model/structure.
+By adding parameter *alias* equals a unique name the address in the reply will also be stored in an key/value store for aliases.
+This alias can then be used in future queries and replace the {id} address.
+
 ## Disposition
 
 This REST api is divided into several groups: 

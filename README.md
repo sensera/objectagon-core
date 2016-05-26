@@ -27,17 +27,23 @@ core/src/main/java/org/objectagon/core/rest/README.md
 **Start new transaction add att to session**
 curl -i -X PUT http://localhost:9900/transaction/
 
+
 **Skapa en typ och koppla den skapade typens id till alias *Item***
 curl -i -X PUT http://localhost:9900/class?alias=Item
 
-**Sätt namn på typ till *Item* och använd alis *Item* i stället för address**
-curl -i -X POST http://localhost:9900/class/Item/name?InstanceClassName=Item
+**Lägg till fält på Item**
+curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
+curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
 
-**Hämta namnet på typen via alias *Item*** 
-curl -i -X GET http://localhost:9900/class/Item/name
 
 **Skapa en typ och koppla den skapade typens id till alias *Order***
 curl -i -X PUT http://localhost:9900/class?alias=Order
+
+**Lägg till fält på Order**
+curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
+curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
+curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
+
 
 **Skapa en relationstyp (mellan Order och Item) och koppla den skapade relationstypen till alias *OrderItem***
 curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
@@ -49,6 +55,14 @@ curl -i -X PUT http://localhost:9900/class/Order/instance?alias=Order1
 **Skapa en instans av Item och koppla till alias *Item1***
 curl -i -X PUT http://localhost:9900/class/Item/instance?alias=Item1
 
+
+**Sätt värden på fälten**
+curl -i -X POST http://localhost:9900/instance/Item1/field/ItemName?value=Hubbabubba
+curl -i -X POST http://localhost:9900/instance/Item1/field/ItemNumber?value=67897
+curl -i -X POST http://localhost:9900/instance/Order1/field/OrderNumber?value=44343
+curl -i -X POST http://localhost:9900/instance/Order1/field/CustomerName?value=Hubba%20AB
+curl -i -X POST http://localhost:9900/instance/Order1/field/CustomerAddress?value=Gone%20Street%201
+
 **Lägg till en relation från Order1 to Item1**
 curl -i -X PUT http://localhost:9900/instance/Order1/relation/OrderItem/Item1
 
@@ -58,11 +72,23 @@ curl -i -X GET http://localhost:9900/instance/Order1/relation/OrderItem
 **Hämta relation *OrderItem* från **Item1***
 curl -i -X GET http://localhost:9900/instance/Item1/relation/OrderItem
 
+**Hämta värden från fälten**
+curl -i -X GET http://localhost:9900/instance/Item1/field/ItemName
+curl -i -X GET http://localhost:9900/instance/Item1/field/ItemNumber
+curl -i -X GET http://localhost:9900/instance/Order1/field/OrderNumber
+curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerName
+curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerAddress
+
+
 // ---
 curl -i -X PUT http://localhost:9900/transaction/
 curl -i -X PUT http://localhost:9900/class?alias=Item
-curl -i -X POST http://localhost:9900/class/Item/name?InstanceClasName=Item
+curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
+curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
 curl -i -X PUT http://localhost:9900/class?alias=Order
+curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
+curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
+curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
 curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
 curl -i -X PUT http://localhost:9900/class/Order/instance?alias=Order1
 curl -i -X PUT http://localhost:9900/class/Item/instance?alias=Item1

@@ -31,7 +31,7 @@ public class ClassRestProcessor extends AbstractRestProcessor {
         locatorBuilder.patternBuilder(
                 new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.addField()
                         .addSuccessAction(createCatchAndStoreAddressToAlias(testUser,request))))
-        ).add("class").addIdentity("classId").add("field").setOperation(Operation.UpdateExecute);
+        ).add("class").addIdentity("classId").add("field").setOperation(Operation.SaveNew);
 
         locatorBuilder.patternBuilder(
                 new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> instanceClassProtocolSend.addRelation(
