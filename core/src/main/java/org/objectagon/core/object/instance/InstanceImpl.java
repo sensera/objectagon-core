@@ -25,6 +25,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.objectagon.core.object.fieldvalue.FieldValueUtil.findField;
+import static org.objectagon.core.object.fieldvalue.RelationUtil.findRelation;
+import static org.objectagon.core.object.fieldvalue.RelationUtil.getDirection;
 import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 
@@ -79,6 +81,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                 .trigger(InstanceProtocol.MessageName.SET_RELATION, write(this::addRelation))
                 .trigger(InstanceProtocol.MessageName.REMOVE_RELATION, read(this::removeRelation))
                 .trigger(InstanceProtocol.MessageName.DROP_RELATION, write(this::dropRelation))
+                .trigger(InstanceProtocol.MessageName.GET_RELATION, read(this::getRelation))
                 .orElse(w -> super.handle(w));
     }
 
@@ -180,6 +183,28 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         instanceWorker.start(sequence.start());
     }
 
+    private void getRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
+        System.out.println("InstanceImpl.getRelation <"+instanceWorker.currentTransaction()+">");
+        try {
+            List<Instance.InstanceIdentity> instanceIdentities = getRelations(
+                    instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress(),
+                    instanceData);
+
+            instanceWorker.replyWithParam(
+                    MessageValue.values(
+                            instanceIdentities.stream()
+                                    .map(instanceIdentity -> MessageValue.address(Instance.INSTANCE_IDENTITY, instanceIdentity))
+                    ));
+        } catch (UserException e) {
+            if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
+                System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
+                instanceWorker.createFieldProtocolForward(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress()).getDefaultValue();
+            } else
+                throw e;
+        }
+    }
+
+
     private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
         System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
@@ -222,6 +247,19 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         }
     }
 
+    private static List<Instance.InstanceIdentity> getRelations(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceData instanceData) throws UserException {
+        if (relationClassIdentity==null)
+            throw new NullPointerException("relationClassIdentity is null!");
+        final Optional<RelationClass.RelationDirection> direction = getDirection(relationClassIdentity, instanceData.getIdentity());
+        direction.orElseThrow(() -> new UserException(ErrorClass.INSTANCE, ErrorKind.RELATION_NOT_FOUND, MessageValue.address(relationClassIdentity)));
+        return instanceData.getRelations()
+                .filter(findRelation(relationClassIdentity))
+                .map(relationIdentity -> {
+                    return relationIdentity.getInstanceIdentity(direction.get());
+                })
+                .collect(Collectors.toList());
+    }
+
     private static FieldValue.FieldValueIdentity getFieldValueIdentity(Field.FieldIdentity fieldIdentity, Instance.InstanceData instanceData) throws UserException {
         if (fieldIdentity==null)
             throw new NullPointerException("fieldIdentity is null!");
@@ -230,5 +268,4 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                 .findAny()
                 .orElseThrow(() -> new UserException(ErrorClass.INSTANCE, ErrorKind.FIELD_NOT_FOUND, MessageValue.address(Field.FIELD_IDENTITY, fieldIdentity)));
     }
-
 }

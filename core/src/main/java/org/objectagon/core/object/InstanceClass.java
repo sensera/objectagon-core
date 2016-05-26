@@ -22,7 +22,7 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
     EntityName ENTITY_NAME = EntityName.create("INSTACE_CLASS");
 
     Message.Field INSTANCE_CLASS_IDENTITY = NamedField.address("instanceClassId");
-    Message.Field INSTANCE_CLASS_NAME = NamedField.name("InstanceClasName");
+    Message.Field INSTANCE_CLASS_NAME = NamedField.name("InstanceClassName");
 
     Message.Field FIELDS = NamedField.values("fields");
     Message.Field RELATIONS = NamedField.values("relations");

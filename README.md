@@ -21,7 +21,7 @@ mvn clean install exec:java -Dexec.mainClass="org.objectagon.core.rest.HttpServe
 #### Test server commands
 
 se all server commands at: 
-core/src/main/org/objectagon/core/rest/README.md
+core/src/main/java/org/objectagon/core/rest/README.md
 
 
 **Start new transaction add att to session**
@@ -31,7 +31,7 @@ curl -i -X PUT http://localhost:9900/transaction/
 curl -i -X PUT http://localhost:9900/class?alias=Item
 
 **Sätt namn på typ till *Item* och använd alis *Item* i stället för address**
-curl -i -X POST http://localhost:9900/class/Item/name?InstanceClasName=Item
+curl -i -X POST http://localhost:9900/class/Item/name?InstanceClassName=Item
 
 **Hämta namnet på typen via alias *Item*** 
 curl -i -X GET http://localhost:9900/class/Item/name
@@ -54,6 +54,9 @@ curl -i -X PUT http://localhost:9900/instance/Order1/relation/OrderItem/Item1
 
 **Hämta relation *OrderItem* från **Order1***
 curl -i -X GET http://localhost:9900/instance/Order1/relation/OrderItem
+
+**Hämta relation *OrderItem* från **Item1***
+curl -i -X GET http://localhost:9900/instance/Item1/relation/OrderItem
 
 // ---
 curl -i -X PUT http://localhost:9900/transaction/
