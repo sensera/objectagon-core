@@ -80,7 +80,7 @@ curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerName
 curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerAddress
 
 
-// ---
+// --- Packeterade anrop för att skapa en liten grundstruktur av Item and Order
 curl -i -X PUT http://localhost:9900/transaction/
 curl -i -X PUT http://localhost:9900/class?alias=Item
 curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName

@@ -12,6 +12,10 @@ import org.objectagon.core.object.instance.InstanceProtocolImpl;
 import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.object.instanceclass.InstanceClassProtocolImpl;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
+import org.objectagon.core.object.meta.MetaProtocolImpl;
+import org.objectagon.core.object.meta.MetaService;
+import org.objectagon.core.object.method.MethodProtocolImpl;
+import org.objectagon.core.object.method.MethodService;
 import org.objectagon.core.object.relation.RelationProtocolImpl;
 import org.objectagon.core.object.relation.RelationService;
 import org.objectagon.core.object.relationclass.RelationClassProtocolImpl;
@@ -43,6 +47,8 @@ public class ObjectServices {
     private Address instanceClassServiceAddress;
     private Address relationServiceAddress;
     private Address relationClassServiceAddress;
+    private Address metaServiceAddress;
+    private Address methodServiceAddress;
 
     Service.ServiceName persistencyServiceName;
 
@@ -72,6 +78,12 @@ public class ObjectServices {
         RelationClassService.registerAt(server);
         RelationClassProtocolImpl.registerAt(server);
 
+        MetaService.registerAt(server);
+        MetaProtocolImpl.registerAt(server);
+
+        MethodService.registerAt(server);
+        MethodProtocolImpl.registerAt(server);
+
         return this;
     }
 
@@ -82,6 +94,8 @@ public class ObjectServices {
         instanceClassServiceAddress = server.createReceiver(InstanceClassService.NAME, getInitializer(InstanceClass.ENTITY_NAME)).getAddress();
         relationServiceAddress = server.createReceiver(RelationService.NAME, getInitializer(Relation.ENTITY_NAME)).getAddress();
         relationClassServiceAddress = server.createReceiver(RelationClassService.NAME, getInitializer(RelationClass.ENTITY_NAME)).getAddress();
+        metaServiceAddress = server.createReceiver(MetaService.NAME, getInitializer(Meta.ENTITY_NAME)).getAddress();
+        methodServiceAddress = server.createReceiver(MethodService.NAME, getInitializer(Method.ENTITY_NAME)).getAddress();
         return this;
     }
 
@@ -128,6 +142,10 @@ public class ObjectServices {
         return relationClassServiceAddress;
     }
 
+    public Address getMetaServiceAddress() {return metaServiceAddress;}
+
+    public Address getMethodServiceAddress() {return methodServiceAddress;}
+
     public void initialize(TaskBuilder.SequenceBuilder sequenceBuilder) {
         Server.AliasCtrl aliasCtrl = (Server.AliasCtrl) this.server;
         Composer.ResolveTarget nameServiceAddress = () -> aliasCtrl.lookupAddressByAlias(NameServiceImpl.NAME_SERVICE).get();
@@ -137,6 +155,8 @@ public class ObjectServices {
         registerName(nameServiceAddress, sequenceBuilder, this.instanceClassServiceAddress, InstanceClassService.NAME);
         registerName(nameServiceAddress, sequenceBuilder, this.relationServiceAddress, RelationService.NAME);
         registerName(nameServiceAddress, sequenceBuilder, this.relationClassServiceAddress, RelationClassService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.metaServiceAddress, MetaService.NAME);
+        registerName(nameServiceAddress, sequenceBuilder, this.methodServiceAddress, MethodService.NAME);
     }
 
     private void registerName(Composer.ResolveTarget nameServiceAddress, TaskBuilder.SequenceBuilder sequenceBuilder, Address address, Service.ServiceName name) {
