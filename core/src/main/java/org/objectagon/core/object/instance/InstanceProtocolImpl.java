@@ -8,7 +8,11 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.*;
+import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
+
+import java.util.Arrays;
 
 import static org.objectagon.core.msg.message.MessageValue.address;
 
@@ -17,6 +21,8 @@ import static org.objectagon.core.msg.message.MessageValue.address;
  * Created by christian on 2015-10-20.
  */
 public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send, Protocol.Reply> implements InstanceProtocol {
+
+    static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
     public static void registerAtServer(Server server) {
         server.registerFactory(INSTANCE_PROTOCOL, new SingletonFactory<>(InstanceProtocolImpl::new));
@@ -67,6 +73,15 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
         @Override
         public Task removeRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance) {
             return task(MessageName.REMOVE_RELATION, send -> send.send(MessageName.REMOVE_RELATION, address(RelationClass.RELATION_CLASS_IDENTITY, relationClassIdentity), address(instance)));
+        }
+
+        @Override
+        public Task invokeMethod(Method.MethodIdentity methodIdentity, KeyValue<Method.ParamName, Message.Value>... paramValues) {
+            return task(MessageName.INVOKE_METHOD, send -> send.send(
+                    MessageName.INVOKE_METHOD,
+                    address(Method.METHOD_IDENTITY, methodIdentity),
+                    methodMessageValueTransform.createValuesTransformer().transform(Arrays.asList(paramValues))
+            ));
         }
     }
 

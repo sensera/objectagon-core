@@ -1,6 +1,7 @@
 package org.objectagon.core.object.method;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
@@ -41,6 +42,16 @@ public class MethodProtocolImpl extends AbstractProtocol<MethodProtocol.Send, Pr
         @Override
         public Task invoke(MessageValue... params) {
             return task(MessageName.INVOKE, send -> send.send(MessageName.INVOKE, MessageValue.values(Method.CODE, params)));
+        }
+
+        @Override
+        public Task addParam(Method.ParamName paramName, Message.Field field, Message.Value defaultValue) {
+            return task(MessageName.ADD_PARAM, send -> send.send(MessageName.ADD_PARAM, MessageValue.name(Method.PARAM_NAME, paramName), MessageValue.field(Method.PARAM_FIELD, field), defaultValue));
+        }
+
+        @Override
+        public Task removeParam(Method.ParamName paramName) {
+            return task(MessageName.REMOVE_PARAM, send -> send.send(MessageName.REMOVE_PARAM, MessageValue.name(Method.PARAM_NAME, paramName)));
         }
     }
 

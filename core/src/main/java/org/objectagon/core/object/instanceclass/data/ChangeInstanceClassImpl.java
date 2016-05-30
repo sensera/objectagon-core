@@ -1,12 +1,13 @@
 package org.objectagon.core.object.instanceclass.data;
 
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.*;
+import org.objectagon.core.object.instanceclass.MethodClassImpl;
 import org.objectagon.core.storage.Data;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.utils.KeyValue;
+import org.objectagon.core.utils.Util;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -22,6 +23,7 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
     private Stream<Map.Entry<Name, Instance.InstanceIdentity>> instanceAliases;
     private List<Consumer<List<Field.FieldIdentity>>> fieldChanges = new ArrayList<>();
     private List<Consumer<List<RelationClass.RelationClassIdentity>>> relationClassChanges = new ArrayList<>();
+    private List<Consumer<List<InstanceClass.MethodClass>>> methodChanges = new ArrayList<>();
     private List<Consumer<Map<Name, Instance.InstanceIdentity>>> instanceAliasChanges = new ArrayList<>();
     private Optional<InstanceClass.InstanceClassName> name = Optional.empty();
 
@@ -73,11 +75,23 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
     }
 
     @Override
+    public InstanceClass.ChangeInstanceClass addMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings, List<KeyValue<Method.ParamName, Message.Value>> defaultValues) {
+        methodChanges.add(methodIdentities -> methodIdentities.add(MethodClassImpl.create(methodIdentity, fieldMappings, defaultValues)));
+        return this;
+    }
+
+    @Override
+    public InstanceClass.ChangeInstanceClass removeMethod(Method.MethodIdentity methodIdentity) {
+        methodChanges.add(methodIdentities -> {
+            methodIdentities.stream()
+                    .filter(methodClass -> methodClass.getMethodIdentity().equals(methodIdentity))
+                    .forEach(methodIdentities::remove);
+        });
+        return this;
+    }
+
+    @Override
     public <D extends Data<InstanceClass.InstanceClassIdentity, StandardVersion>> D create(StandardVersion version) {
-        List<Field.FieldIdentity> newFields = instanceClassData.getFields().collect(Collectors.toList());
-        fieldChanges.stream().forEach(listConsumer -> listConsumer.accept(newFields));
-        List<RelationClass.RelationClassIdentity> newRelations = instanceClassData.getRelations().collect(Collectors.toList());
-        relationClassChanges.stream().forEach(listConsumer -> listConsumer.accept(newRelations));
         if (!instanceAliasChanges.isEmpty()) {
             Map<Name,Instance.InstanceIdentity> newInstanceAliases = new HashMap<>();
             instanceAliases.forEach(nameInstanceIdentityEntry -> newInstanceAliases.put(nameInstanceIdentityEntry.getKey(), nameInstanceIdentityEntry.getValue()));
@@ -86,9 +100,10 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
         }
         InstanceClassDataImpl res = new InstanceClassDataImpl(
                 name.orElse(instanceClassData.getName()),
-                newFields.stream(),
-                newRelations.stream(),
-                instanceAliases,
+                Util.updateIfChange(instanceClassData.getFields(), fieldChanges),
+                Util.updateIfChange(instanceClassData.getRelations(), relationClassChanges),
+                Util.updateIfChange(instanceClassData.getMethods(), methodChanges),
+                instanceAliases.collect(Collectors.toList()),
                 instanceClassData.getIdentity(),
                 version);
         return (D) res;

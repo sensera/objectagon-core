@@ -10,6 +10,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
 import org.objectagon.core.object.instance.data.InstanceDataImpl;
+import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.EntityProtocol;
 import org.objectagon.core.storage.Transaction;
@@ -34,6 +35,8 @@ import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CON
  * Created by christian on 2015-10-20.
  */
 public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.InstanceData,StandardVersion,InstanceImpl.InstanceWorker> implements Instance {
+
+    static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
     private enum InstanceTasks implements Task.TaskName { DestroyRelations }
 
@@ -82,6 +85,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                 .trigger(InstanceProtocol.MessageName.REMOVE_RELATION, read(this::removeRelation))
                 .trigger(InstanceProtocol.MessageName.DROP_RELATION, write(this::dropRelation))
                 .trigger(InstanceProtocol.MessageName.GET_RELATION, read(this::getRelation))
+                .trigger(InstanceProtocol.MessageName.INVOKE_METHOD, read(this::invokeMethod))
                 .orElse(w -> super.handle(w));
     }
 
@@ -194,6 +198,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                     MessageValue.values(
                             instanceIdentities.stream()
                                     .map(instanceIdentity -> MessageValue.address(Instance.INSTANCE_IDENTITY, instanceIdentity))
+                                    .collect(Collectors.toList())
                     ));
         } catch (UserException e) {
             if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
@@ -204,6 +209,16 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         }
     }
 
+    private void invokeMethod(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
+        System.out.println("InstanceImpl.invokeMethod  <"+instanceWorker.currentTransaction()+">");
+        instanceWorker.start(
+                instanceWorker.createInstanceClassProtocol(getAddress().getInstanceClassIdentity())
+                        .invokeMethod(
+                                instanceWorker.getValue(Method.METHOD_IDENTITY).asAddress(),
+                                getAddress(),
+                                methodMessageValueTransform.createValuesTransformer().transform(instanceWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS)))
+        );
+    }
 
     private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
@@ -238,6 +253,12 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
             return getWorkerContext()
                     .<Protocol.ProtocolAddress, FieldProtocol>createReceiver(FieldProtocol.FIELD_PROTOCOL)
                     .createSend(() -> getWorkerContext().createTargetComposer(fieldIdentity));
+        }
+
+        public InstanceClassProtocol.Send createInstanceClassProtocol(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress, InstanceClassProtocol>createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL)
+                    .createSend(() -> getWorkerContext().createTargetComposer(instanceClassIdentity));
         }
 
         public RelationClassProtocol.Send createRelationClassProtocolSend(RelationClass.RelationClassIdentity relationClassIdentity) {

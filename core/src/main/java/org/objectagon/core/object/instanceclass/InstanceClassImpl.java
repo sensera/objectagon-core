@@ -21,6 +21,7 @@ import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
+import org.objectagon.core.utils.KeyValue;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
  * Created by christian on 2016-02-28.
  */
 public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIdentity, InstanceClass.InstanceClassData, StandardVersion, InstanceClassImpl.InstanceClassWorker> implements InstanceClass {
+
+    static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
     Service.ServiceName eventService;
 
@@ -100,6 +103,9 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                 .trigger(InstanceClassProtocol.MessageName.GET_INSTANCE_BY_ALIAS, read(this::getInstanceByAlias))
                 .trigger(InstanceClassProtocol.MessageName.ADD_INSTANCE_ALIAS, write(this::<ChangeInstanceClass>addInstanceAlias))
                 .trigger(InstanceClassProtocol.MessageName.REMOVE_INSTANCE_ALIAS, write(this::<ChangeInstanceClass>removeInstanceAlias))
+                .trigger(InstanceClassProtocol.MessageName.ADD_METHOD, write(this::<ChangeInstanceClass>addMethod))
+                .trigger(InstanceClassProtocol.MessageName.REMOVE_METHOD, write(this::<ChangeInstanceClass>removeMethod))
+                .trigger(InstanceClassProtocol.MessageName.INVOKE_METHOD, read(this::invokeMethod))
                 .orElse(w -> super.handle(w));
     }
 
@@ -135,13 +141,13 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
 
     private void getFields(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
         Message.Value values = MessageValue.values(Field.FIELDS,
-                instanceClassData.getFields().map(MessageValue::address).collect(Collectors.toList())
+                instanceClassData.getFields().stream().map(MessageValue::address).collect(Collectors.toList())
         );
         instanceClassWorker.replyWithParam(values);
     }
 
     private void getRelations(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
-        List<Message.Value> collect = instanceClassData.getRelations().map(MessageValue::address).collect(Collectors.toList());
+        List<Message.Value> collect = instanceClassData.getRelations().stream().map(MessageValue::address).collect(Collectors.toList());
         instanceClassWorker.replyWithParam(MessageValue.values(Relation.RELATIONS,
                 collect
         ));
@@ -169,10 +175,39 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
         changeInstanceClass.addRelation(relationClassIdentity);
     }
 
+    private void addMethod(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+        final MessageValueFieldUtil lookup = MessageValueFieldUtil.create(preparedValues);
+        Method.MethodIdentity methodIdentity = lookup.getValueByField(Method.METHOD_IDENTITY).asAddress();
+        List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings = methodMessageValueTransform.createFieldMappingsTransformer().transform(lookup.getValueByField(InstanceClassProtocol.METHOD_FIELD_MAPPINGS));
+        List<KeyValue<Method.ParamName, Message.Value>> defaultValues = methodMessageValueTransform.createValuesTransformer().transform(lookup.getValueByField(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
+        changeInstanceClass.addMethod(methodIdentity, fieldMappings, defaultValues);
+    }
+
+    private void removeMethod(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
+        Method.MethodIdentity methodIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(Method.METHOD_IDENTITY).asAddress();
+        changeInstanceClass.removeMethod(methodIdentity);
+    }
+
     private void createInstance(InstanceClassWorker entityWorker) {
         entityWorker.start(
                 entityWorker.createEntityServiceProtocolSend(NameServiceImpl.NAME_SERVICE, InstanceService.NAME)
                         .create(MessageValue.address(InstanceClass.INSTANCE_CLASS_IDENTITY, getAddress()))
         );
     }
+
+    private void invokeMethod(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) throws UserException {
+        System.out.println("InstanceClassImpl.invokeMethod");
+        throw new UserException(ErrorClass.INSTANCE_CLASS, ErrorKind.NOT_IMPLEMENTED);
+        // Collect values and invoke method
+/*
+        instanceClassWorker.start(
+                instanceClassWorker.createInstanceClassProtocol(getAddress().getInstanceClassIdentity())
+                        .invokeMethod(
+                                instanceClassWorker.getValue(Method.METHOD_IDENTITY).asAddress(),
+                                getAddress(),
+                                methodMessageValueTransform.createValuesTransformer().transform(instanceClassWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS)))
+        );
+*/
+    }
+
 }

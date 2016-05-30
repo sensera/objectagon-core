@@ -11,6 +11,8 @@ import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
 
+import java.util.List;
+
 /**
  * Created by christian on 2016-05-29.
  */
@@ -32,9 +34,12 @@ public interface Meta extends Entity<Meta.MetaIdentity, Meta.MetaData> {
 
     interface MetaData extends Data<Meta.MetaIdentity, StandardVersion> {
         MetaName getName();
+        List<Method.MethodIdentity> getMethods();
     }
 
     interface ChangeMeta extends Data.Change<Meta.MetaIdentity,StandardVersion> {
         ChangeMeta setName(MetaName metaName);
+        ChangeMeta addMethod(Method.MethodIdentity methodIdentity);
+        ChangeMeta removeMethod(Method.MethodIdentity methodIdentity);
     }
 }

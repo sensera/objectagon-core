@@ -4,6 +4,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
 
 /**
  * Created by christian on 2015-11-01.
@@ -30,7 +31,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
         REMOVE_FIELD,
         DROP_FIELD_VALUES, // TASK
         ADD_RELATION_CLASS,
-        REMOVE_RELATION_CLASS,
+        REMOVE_RELATION_CLASS, INVOKE_METHOD,
     }
 
     interface Send extends Protocol.Send {
@@ -39,6 +40,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
         Task getRelation(RelationClass.RelationClassIdentity relationClassIdentity);
         Task addRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance);
         Task removeRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance);
+        Task invokeMethod(Method.MethodIdentity methodIdentity, KeyValue<Method.ParamName, Message.Value>... paramValues);
     }
 
     interface Alter extends Protocol.Send {

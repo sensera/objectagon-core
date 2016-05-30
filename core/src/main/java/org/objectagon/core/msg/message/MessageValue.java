@@ -40,6 +40,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value values(Message.Value... values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> asList(values));}
     public static Message.Value values(Message.Field field, Message.Value... values) { return new MessageValue<Message.Values>(field, () -> asList(values));}
     public static Message.Value values(Message.Field field, Iterable<Message.Value> values) { return new MessageValue<Message.Values>(field, iterableToValues(values));}
+    public static Message.Value field(Message.Field field, Message.Field value) { return new MessageValue<>(field, value);}
     public static Message.Value empty() {return UnknownValue.create(StandardField.UNKNOWN);}
 
     Message.Field field;
@@ -94,6 +95,11 @@ public class MessageValue<V> implements Message.Value {
     @Override
     public <N extends Name> N asName() {
         return (N) value;
+    }
+
+    @Override
+    public Message.Field asField() {
+        return (Message.Field) value;
     }
 
     @Override

@@ -6,6 +6,9 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
+
+import java.util.List;
 
 /**
  * Created by christian on 2015-11-01.
@@ -16,6 +19,9 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
     Message.Field ALIAS_NAME = NamedField.name("aliasName");
     Message.Field FIELDS = NamedField.values("fields");
     Message.Field RELATIONS = NamedField.values("relations");
+    Message.Field METHOD_FIELD_MAPPINGS = NamedField.values("methodFieldMappings");
+    Message.Field METHOD_DEFAULT_MAPPINGS = NamedField.values("methodDefaultMappings");
+    Message.Field KEY_VALUES = NamedField.values("keyValues");
 
     Internal createInternal(CreateSendParam createSendParam);
 
@@ -27,7 +33,7 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         GET_NAME,
         SET_NAME,
         ADD_RELATION,
-        ADD_INSTANCE_ALIAS, GET_INSTANCE_BY_ALIAS, REMOVE_INSTANCE_ALIAS, SET_RELATION
+        ADD_INSTANCE_ALIAS, GET_INSTANCE_BY_ALIAS, REMOVE_INSTANCE_ALIAS, ADD_METHOD, REMOVE_METHOD, INVOKE_METHOD, SET_RELATION
     }
 
     interface Send extends Protocol.Send {
@@ -39,6 +45,9 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         Task addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name aliasName);
         Task removeInstanceAlias(Name aliasName);
         Task getInstanceByAlias(Name aliasName);
+        Task addMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings, List<KeyValue<Method.ParamName, Message.Value>> defaultValues);
+        Task removeMethod(Method.MethodIdentity methodIdentity);
+        Task invokeMethod(Method.MethodIdentity methodIdentity, Instance.InstanceIdentity instanceIdentity, List<KeyValue<Method.ParamName,Message.Value>> params);
     }
 
     interface Internal extends Protocol.Send {

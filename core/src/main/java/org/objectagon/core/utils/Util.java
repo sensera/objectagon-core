@@ -7,7 +7,11 @@ import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.UnknownValue;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by christian on 2015-11-29.
@@ -19,11 +23,10 @@ public class Util {
         return Arrays.asList(values);
     }
 
-    public static <E> Optional<E> select(Iterable<E> values, Select<E> select) {
-        for (E value : values)
-            if (select.select(value))
-                return Optional.of(value);
-        return Optional.empty();
+    public static <E> Optional<E> select(Iterable<E> values, Predicate<E> select) {
+        return iterableToStream(values)
+                .filter(select)
+                .findAny();
     }
 
     public static void notImplemented()  {
@@ -41,9 +44,8 @@ public class Util {
         return value == null || value.equals("");
     }
 
-    @FunctionalInterface
-    public interface Select<E> {
-        boolean select(E value);
+    public static <T> Stream<T> iterableToStream(Iterable<T> iter) {
+        return StreamSupport.stream(iter.spliterator(), false);
     }
 
     public static <T> List<T> iterableToList(Iterable<T> iter) {
@@ -58,6 +60,13 @@ public class Util {
         return copy.toArray(createArray.get());
     }
 
+    public static <T> List<T> updateIfChange(List<T> original, List<Consumer<List<T>>> changes) {
+        if (changes.isEmpty())
+            return original;
+        List<T> newFields = new ArrayList<>(original);
+        changes.stream().forEach(listConsumer -> listConsumer.accept(newFields));
+        return newFields;
+    }
 
     public static ValuePrinter createValuePrinter() { return new ValuePrinter();}
 

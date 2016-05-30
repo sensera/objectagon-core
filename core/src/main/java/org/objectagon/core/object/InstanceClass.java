@@ -10,9 +10,10 @@ import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Created by christian on 2015-10-18.
@@ -38,10 +39,17 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
 
     interface InstanceClassData extends Data<InstanceClass.InstanceClassIdentity, StandardVersion> {
         default Type getDataType() {return DATA_TYPE;}
-        Stream<Field.FieldIdentity> getFields();
-        Stream<RelationClass.RelationClassIdentity> getRelations();
+        List<Field.FieldIdentity> getFields();
+        List<RelationClass.RelationClassIdentity> getRelations();
+        List<MethodClass> getMethods();
         InstanceClassName getName();
         Optional<Instance.InstanceIdentity> getInstanceByAliasName(Name alias);
+    }
+
+    interface MethodClass {
+        Method.MethodIdentity getMethodIdentity();
+        List<KeyValue<Method.ParamName, Field.FieldIdentity>> getFieldMappings();
+        List<KeyValue<Method.ParamName, Message.Value>> getDefaultValues();
     }
 
     interface ChangeInstanceClass extends Data.Change<InstanceClass.InstanceClassIdentity,StandardVersion> {
@@ -52,6 +60,8 @@ public interface InstanceClass extends Entity<InstanceClass.InstanceClassIdentit
         ChangeInstanceClass setName(InstanceClassName instanceClassName);
         ChangeInstanceClass addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name alias);
         ChangeInstanceClass removeInstanceAlias(Name instanceAlias);
+        ChangeInstanceClass addMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings, List<KeyValue<Method.ParamName, Message.Value>> defaultValues);
+        ChangeInstanceClass removeMethod(Method.MethodIdentity methodIdentity);
     }
 
 }

@@ -17,10 +17,8 @@ import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.ObjectagonCompiler;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by christian on 2016-05-29.
@@ -75,19 +73,24 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                 .trigger(MethodProtocol.MessageName.GET_CODE, read(this::getCode))
                 .trigger(MethodProtocol.MessageName.SET_CODE, write(this::<ChangeMethod>setCode))
                 .trigger(MethodProtocol.MessageName.INVOKE, read(this::invoke))
-/*
-                .trigger(InstanceClassProtocol.MessageName.GET_RELATIONS, read(this::getRelations))
-                .trigger(InstanceClassProtocol.MessageName.ADD_FIELD, write(this::<ChangeInstanceClass>addField, this::createField))
-                .trigger(InstanceClassProtocol.MessageName.ADD_RELATION, write(this::<ChangeInstanceClass>setRelationClass, this::createRelationClass))
-                .trigger(InstanceClassProtocol.MessageName.SET_RELATION, write(this::<ChangeInstanceClass>setRelationClass))
-                .trigger(InstanceClassProtocol.MessageName.GET_NAME, read(this::getName))
-                .trigger(InstanceClassProtocol.MessageName.SET_NAME, write(this::<ChangeInstanceClass>setName))
-                .trigger(InstanceClassProtocol.MessageName.CREATE_INSTANCE, this::createInstance)
-                .trigger(InstanceClassProtocol.MessageName.GET_INSTANCE_BY_ALIAS, read(this::getInstanceByAlias))
-                .trigger(InstanceClassProtocol.MessageName.ADD_INSTANCE_ALIAS, write(this::<ChangeInstanceClass>addInstanceAlias))
-                .trigger(InstanceClassProtocol.MessageName.REMOVE_INSTANCE_ALIAS, write(this::<ChangeInstanceClass>removeInstanceAlias))
-*/
+                .trigger(MethodProtocol.MessageName.ADD_PARAM, write(this::<ChangeMethod>addParam))
+                .trigger(MethodProtocol.MessageName.REMOVE_PARAM, write(this::<ChangeMethod>removeParam))
                 .orElse(w -> super.handle(w));
+    }
+
+    private void addParam(MethodWorker methodWorker, MethodData methodData, ChangeMethod changeMethod, Message.Values preparedValues) {
+        Method.ParamName paramName = methodWorker.getValue(Method.PARAM_NAME).asName();
+        Message.Field field = methodWorker.getValue(Method.PARAM_FIELD).asField();
+        Message.Value defaultValue = methodWorker.getValue(Method.DEFAULT_VALUE);
+        if (defaultValue.isUnknown())
+            changeMethod.addInvokeParam(paramName, field);
+        else
+            changeMethod.addInvokeParam(paramName, field, defaultValue);
+    }
+
+    private void removeParam(MethodWorker methodWorker, MethodData methodData, ChangeMethod changeMethod, Message.Values preparedValues) {
+        Method.ParamName paramName = methodWorker.getValue(Method.PARAM_NAME).asName();
+        changeMethod.removeInvokeParam(paramName);
     }
 
     private void getCode(MethodWorker methodWorker, MethodData methodData) {
@@ -114,13 +117,27 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
         }
         invoke.invoke(new InvokeWorker() {
             @Override
+            public List<ParamName> getInvokeParams() {
+                return methodData.getInvokeParams().stream().map(InvokeParam::getName).collect(Collectors.toList());
+            }
+
+            @Override
             public void replyOk() {
                 methodWorker.replyOk();
             }
 
             @Override
-            public Message.Value getValue(Message.Field field) {
-                return methodWorker.getValue(field);
+            public Message.Value getValue(ParamName paramName) {
+                return methodData.getInvokeParams().stream()
+                        .filter(invokeParam -> invokeParam.getName().equals(paramName))
+                        .findAny()
+                        .map(invokeParam -> {
+                            final Message.Value value = methodWorker.getValue(invokeParam.getField());
+                            if (value.isUnknown())
+                                return invokeParam.getDefaultValue().orElse(value);
+                            return value;
+                        })
+                        .orElse(MessageValue.empty());
             }
 
             @Override
@@ -133,8 +150,6 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                 methodWorker.failed(errorClass, errorKind, Arrays.asList(values));
             }
         });
-
-        // Compile and invoke
     }
 
     private static ObjectagonCompiler<Method.Invoke> createStandardCompiler() {

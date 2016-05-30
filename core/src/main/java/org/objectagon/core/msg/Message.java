@@ -35,6 +35,7 @@ public interface Message {
         MessageName asMessageName();
         MessageValueMessage asMessage();
         <N extends Name> N asName();
+        Field asField();
         Values asValues();
         default boolean isUnknown() { return this instanceof UnknownValue; }
 
@@ -118,5 +119,10 @@ public interface Message {
 
     interface ToValue {
         void toValue(BuilderItem builderItem);
+    }
+
+    interface Transform<Target> {
+        Value transform(Target target);
+        Target transform(Value value);
     }
 }

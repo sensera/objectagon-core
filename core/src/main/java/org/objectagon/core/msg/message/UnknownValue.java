@@ -44,6 +44,9 @@ public class UnknownValue implements Message.Value {
     public <N extends Name> N asName() {return null;}
 
     @Override
+    public Message.Field asField() {return null;}
+
+    @Override
     public Message.Values asValues() {return null;}
 
     public void writeTo(Message.Writer writer) {}

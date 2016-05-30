@@ -17,11 +17,15 @@ public interface MethodProtocol extends Protocol<MethodProtocol.Send, Protocol.R
         GET_CODE,
         SET_CODE,
         INVOKE,
+        ADD_PARAM,
+        REMOVE_PARAM
     }
 
     interface Send extends Protocol.Send {
         Task getCode();
         Task setCode(String code);
         Task invoke(MessageValue... params);
+        Task addParam(Method.ParamName paramName, Message.Field field, Message.Value defaultValue);
+        Task removeParam(Method.ParamName paramName);
     }
 }
