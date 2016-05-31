@@ -5,8 +5,10 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
+import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.Method;
 import org.objectagon.core.object.MethodProtocol;
+import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
 import org.objectagon.core.object.method.data.MethodDataImpl;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
@@ -14,6 +16,7 @@ import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.utils.FindNamedConfiguration;
+import org.objectagon.core.utils.KeyValue;
 import org.objectagon.core.utils.ObjectagonCompiler;
 
 import java.io.File;
@@ -24,6 +27,8 @@ import java.util.stream.Collectors;
  * Created by christian on 2016-05-29.
  */
 public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodData, StandardVersion, MethodImpl.MethodWorker> implements Method {
+
+    static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
     private ObjectagonCompiler<Method.Invoke> objectagonCompiler;
 
@@ -104,7 +109,8 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
     }
 
     private void invoke(MethodWorker methodWorker, MethodData methodData) {
-        methodData.getCode();
+        final List<KeyValue<ParamName, Message.Value>> paramNameValueList = methodMessageValueTransform.createValuesTransformer().transform(methodWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
+        System.out.println("MethodImpl.invoke with "+paramNameValueList.size()+" params");
         Invoke invoke = compiledMethods.get(methodData.getVersion());
         if (invoke==null) {
             try {
@@ -115,10 +121,16 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                 methodWorker.failed(ErrorClass.METHOD, ErrorKind.FAILED_TO_INVOKE_METHOD, Arrays.asList(MessageValue.text(e.getMessage())));
             }
         }
+        final List<KeyValue<ParamName, Message.Value>> replyParams = new ArrayList<>();
         invoke.invoke(new InvokeWorker() {
             @Override
             public List<ParamName> getInvokeParams() {
                 return methodData.getInvokeParams().stream().map(InvokeParam::getName).collect(Collectors.toList());
+            }
+
+            @Override
+            public Message.Value getValue(String name) {
+                return getValue(new ParamNameImpl(name));
             }
 
             @Override
@@ -132,7 +144,11 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                         .filter(invokeParam -> invokeParam.getName().equals(paramName))
                         .findAny()
                         .map(invokeParam -> {
-                            final Message.Value value = methodWorker.getValue(invokeParam.getField());
+                            final Message.Value value = paramNameValueList.stream()
+                                    .filter(paramNameValueKeyValue -> paramNameValueKeyValue.getKey().equals(invokeParam.getName()))
+                                    .map(KeyValue::getValue)
+                                    .findAny()
+                                    .orElse(MessageValue.empty());
                             if (value.isUnknown())
                                 return invokeParam.getDefaultValue().orElse(value);
                             return value;
@@ -148,6 +164,16 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
             @Override
             public void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values) {
                 methodWorker.failed(errorClass, errorKind, Arrays.asList(values));
+            }
+
+            @Override
+            public <T> ValueCreator<T> setValue(String paramName) {
+                return setValue(new ParamNameImpl(paramName));
+            }
+
+            @Override
+            public <T> ValueCreator<T> setValue(ParamName paramName) {
+                return value -> { replyParams.add(methodMessageValueTransform.createKeyValue(paramName, MessageValue.any(value))); };
             }
         });
     }

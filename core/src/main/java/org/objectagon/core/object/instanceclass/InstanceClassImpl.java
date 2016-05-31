@@ -20,6 +20,7 @@ import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.KeyValue;
 
@@ -27,10 +28,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.objectagon.core.object.instanceclass.MethodClassImpl.findMethodClassByMethodIdentity;
+
 /**
  * Created by christian on 2016-02-28.
  */
 public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIdentity, InstanceClass.InstanceClassData, StandardVersion, InstanceClassImpl.InstanceClassWorker> implements InstanceClass {
+
+    enum InstanceClassTaskName implements Task.TaskName {
+        LOOKUP_METHOD_FIELD_VALUES_PARAMS
+    }
 
     static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
@@ -196,18 +203,41 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void invokeMethod(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) throws UserException {
-        System.out.println("InstanceClassImpl.invokeMethod");
-        throw new UserException(ErrorClass.INSTANCE_CLASS, ErrorKind.NOT_IMPLEMENTED);
-        // Collect values and invoke method
-/*
-        instanceClassWorker.start(
-                instanceClassWorker.createInstanceClassProtocol(getAddress().getInstanceClassIdentity())
-                        .invokeMethod(
-                                instanceClassWorker.getValue(Method.METHOD_IDENTITY).asAddress(),
-                                getAddress(),
-                                methodMessageValueTransform.createValuesTransformer().transform(instanceClassWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS)))
+        System.out.println("InstanceClassImpl.invokeMethod ******************");
+        final Method.MethodIdentity methodIdentity = instanceClassWorker.getValue(Method.METHOD_IDENTITY).asAddress();
+        final Optional<MethodClass> methodClassByMethodIdentityOptional = findMethodClassByMethodIdentity(instanceClassData.getMethods(), methodIdentity);
+        if (!methodClassByMethodIdentityOptional.isPresent())
+            throw new UserException(ErrorClass.INSTANCE_CLASS, ErrorKind.FAILED_TO_INVOKE_METHOD);
+        final MethodClass methodClass = methodClassByMethodIdentityOptional.get();
+        final List<KeyValue<Method.ParamName, Message.Value>> paramNameValueList = methodMessageValueTransform.createValuesTransformer().transform(instanceClassWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
+        paramNameValueList.addAll(methodClass.getDefaultValues());
+        if (methodClassByMethodIdentityOptional.get().getFieldMappings().isEmpty()) {
+            instanceClassWorker.start(
+                    instanceClassWorker.createMethodProtocolSend(methodIdentity).invoke(paramNameValueList)
+            );
+            return;
+        }
+        final TaskBuilder.SequenceBuilder sequence = instanceClassWorker.getTaskBuilder()
+                .sequence(InstanceClassTaskName.LOOKUP_METHOD_FIELD_VALUES_PARAMS);
+
+        final Instance.InstanceIdentity instanceIdentity = instanceClassWorker.getValue(Instance.INSTANCE_IDENTITY).asAddress();
+
+        methodClass.getFieldMappings().stream().forEach(paramNameFieldIdentityKeyValue -> {
+            sequence.addTask(instanceClassWorker.createInstanceProtocol(instanceIdentity).getValue(paramNameFieldIdentityKeyValue.getValue())
+                    .addSuccessAction((messageName, values) -> {
+                        final Message.Value valueByField = MessageValueFieldUtil.create(values).getValueByField(FieldValue.VALUE);
+                        paramNameValueList.add(methodMessageValueTransform.createKeyValue(paramNameFieldIdentityKeyValue.getKey(), valueByField));
+                    }));
+        });
+        final Task task = sequence.create();
+        task.addFailedAction(instanceClassWorker::failed);
+        task.addSuccessAction((messageName, values) ->
+                instanceClassWorker.start(
+                    instanceClassWorker.createMethodProtocolSend(methodIdentity).invoke(paramNameValueList)
+                )
         );
-*/
+        task.start();
+
     }
 
 }

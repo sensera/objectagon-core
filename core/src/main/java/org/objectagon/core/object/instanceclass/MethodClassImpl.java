@@ -7,6 +7,7 @@ import org.objectagon.core.object.Method;
 import org.objectagon.core.utils.KeyValue;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by christian on 2016-05-29.
@@ -30,4 +31,10 @@ public class MethodClassImpl implements InstanceClass.MethodClass {
     @Override public Method.MethodIdentity getMethodIdentity() {return methodIdentity;}
     @Override public List<KeyValue<Method.ParamName, Field.FieldIdentity>> getFieldMappings() {return fieldMappings;}
     @Override public List<KeyValue<Method.ParamName, Message.Value>> getDefaultValues() {return defaultValues;}
+
+    public static Optional<InstanceClass.MethodClass> findMethodClassByMethodIdentity(List<InstanceClass.MethodClass> methodClassList, Method.MethodIdentity methodIdentity) {
+        return methodClassList.stream()
+                .filter(methodClass -> methodClass.getMethodIdentity().equals(methodIdentity))
+                .findAny();
+    }
 }

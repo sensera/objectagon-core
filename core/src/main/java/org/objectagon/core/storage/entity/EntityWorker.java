@@ -27,4 +27,6 @@ public interface EntityWorker extends BasicWorker {
     TransactionManagerProtocol.Send createTransactionManagerProtocolSend(Transaction transaction);
 
     InstanceProtocol.Internal createInstanceProtocolInternal(Instance.InstanceIdentity instanceIdentity) ;
+
+    InstanceProtocol.Send createInstanceProtocol(Instance.InstanceIdentity instanceIdentity) ;
 }

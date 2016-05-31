@@ -10,6 +10,8 @@ public class MethodInvokeDummy implements Method.Invoke {
     @Override
     public void invoke(Method.InvokeWorker invokeWorker) {
         /* Code inside method should be used as method code */
-        invokeWorker.replyOk();
+
+        long newNumber = invokeWorker.getValue("number").asNumber() + invokeWorker.getValue("add").asNumber();
+        invokeWorker.setValue("number").set(newNumber);
     }
 }

@@ -63,10 +63,18 @@ public interface Method extends Entity<Method.MethodIdentity,Method.MethodData> 
 
     interface InvokeWorker {
         List<ParamName> getInvokeParams();
+        Message.Value getValue(String name);
         Message.Value getValue(ParamName paramName);
         void replyOk();
         void replyOkWithParams(Message.Value... values);
         void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values);
+
+        <T> ValueCreator<T> setValue(String paramName);
+        <T> ValueCreator<T> setValue(ParamName paramName);
+    }
+
+    interface ValueCreator<T> {
+        void set(T value);
     }
 
 }

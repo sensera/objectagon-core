@@ -8,12 +8,18 @@ import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
 import org.objectagon.core.object.Method;
 import org.objectagon.core.object.MethodProtocol;
+import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
+
+import java.util.List;
 
 /**
  * Created by christian on 2016-05-29.
  */
 public class MethodProtocolImpl extends AbstractProtocol<MethodProtocol.Send, Protocol.Reply> implements MethodProtocol {
+
+    static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
     public static void registerAt(Server server) {
         server.registerFactory(METHOD_PROTOCOL, new SingletonFactory<>(MethodProtocolImpl::new));
@@ -40,8 +46,11 @@ public class MethodProtocolImpl extends AbstractProtocol<MethodProtocol.Send, Pr
         }
 
         @Override
-        public Task invoke(MessageValue... params) {
-            return task(MessageName.INVOKE, send -> send.send(MessageName.INVOKE, MessageValue.values(Method.CODE, params)));
+        public Task invoke(List<KeyValue<Method.ParamName, Message.Value>> paramNameValueList) {
+            return task(MessageName.INVOKE, send -> send.send(
+                    MessageName.INVOKE,
+                    methodMessageValueTransform.createValuesTransformer().transform(paramNameValueList)
+            ));
         }
 
         @Override

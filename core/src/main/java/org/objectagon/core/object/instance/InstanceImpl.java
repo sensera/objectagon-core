@@ -194,12 +194,11 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                     instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress(),
                     instanceData);
 
-            instanceWorker.replyWithParam(
-                    MessageValue.values(
-                            instanceIdentities.stream()
-                                    .map(instanceIdentity -> MessageValue.address(Instance.INSTANCE_IDENTITY, instanceIdentity))
-                                    .collect(Collectors.toList())
-                    ));
+            final List<Message.Value> instanceList = instanceIdentities.stream()
+                    .map(instanceIdentity -> MessageValue.address(Instance.INSTANCE_IDENTITY, instanceIdentity))
+                    .collect(Collectors.toList());
+
+            instanceWorker.replyWithParam(MessageValue.values(instanceList));
         } catch (UserException e) {
             if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
                 System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
@@ -212,7 +211,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     private void invokeMethod(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
         System.out.println("InstanceImpl.invokeMethod  <"+instanceWorker.currentTransaction()+">");
         instanceWorker.start(
-                instanceWorker.createInstanceClassProtocol(getAddress().getInstanceClassIdentity())
+                instanceWorker.createInstanceClassProtocolForward(getAddress().getInstanceClassIdentity())
                         .invokeMethod(
                                 instanceWorker.getValue(Method.METHOD_IDENTITY).asAddress(),
                                 getAddress(),
@@ -259,6 +258,12 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
             return getWorkerContext()
                     .<Protocol.ProtocolAddress, InstanceClassProtocol>createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL)
                     .createSend(() -> getWorkerContext().createTargetComposer(instanceClassIdentity));
+        }
+
+        public InstanceClassProtocol.Send createInstanceClassProtocolForward(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress, InstanceClassProtocol>createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL)
+                    .createSend(() -> getWorkerContext().createForwardComposer(instanceClassIdentity));
         }
 
         public RelationClassProtocol.Send createRelationClassProtocolSend(RelationClass.RelationClassIdentity relationClassIdentity) {

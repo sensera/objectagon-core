@@ -110,4 +110,8 @@ public class MethodMessageValueTransform {
         }
     }
 
+    public KeyValue<Method.ParamName, Message.Value> createKeyValue(Method.ParamName key, Message.Value field) {
+        return new KeyDefaultImpl(key, field);
+    }
+
 }
