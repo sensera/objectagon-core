@@ -1,5 +1,8 @@
 package org.objectagon.core.utils;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.object.Method;
 
 import javax.tools.*;
@@ -127,6 +130,47 @@ public class ObjectagonCompiler<T> {
                 Arrays.asList("org.objectagon.core.object.Method"));
         Class<Method.Invoke> newClass = objectagonCompiler.compile("invokeWorker.replyOk();");
         Method.Invoke invoke = newClass.newInstance();
-        invoke.invoke(() -> System.out.println("ObjectagonCompiler.replyOk"));
+        invoke.invoke(new Method.InvokeWorker() {
+            @Override
+            public List<Method.ParamName> getInvokeParams() {
+                return null;
+            }
+
+            @Override
+            public Message.Value getValue(String name) {
+                return null;
+            }
+
+            @Override
+            public Message.Value getValue(Method.ParamName paramName) {
+                return null;
+            }
+
+            @Override
+            public void replyOk() {
+                System.out.println("ObjectagonCompiler.replyOk");
+            }
+
+            @Override
+            public void replyOkWithParams(Message.Value... values) {
+
+            }
+
+            @Override
+            public void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values) {
+
+            }
+
+            @Override
+            public <T> Method.ValueCreator<T> setValue(String paramName) {
+                return null;
+            }
+
+            @Override
+            public <T> Method.ValueCreator<T> setValue(Method.ParamName paramName) {
+                return null;
+            }
+        });
+        //invoke.invoke(() -> System.out.println("ObjectagonCompiler.replyOk"));
     }
 }
