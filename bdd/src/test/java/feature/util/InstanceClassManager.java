@@ -6,13 +6,11 @@ import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.name.StandardName;
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.*;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
 import org.objectagon.core.task.Task;
 
+import java.util.Collections;
 import java.util.stream.Stream;
 
 /**
@@ -66,6 +64,13 @@ public class InstanceClassManager {
                 message -> developer.setValue(Field.FIELD_IDENTITY, message.getValue(StandardField.ADDRESS))
         );
         return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
+    }
+
+    public void addMethodToInstanceClass(InstanceClass.InstanceClassIdentity instanceClassIdentity, Method.MethodIdentity methodIdentity) throws UserException {
+        taskWait(
+                developer.createInstanceClassProtocolSend(instanceClassIdentity).addMethod(methodIdentity, Collections.EMPTY_LIST, Collections.EMPTY_LIST),
+                message -> developer.setValue(Method.METHOD_IDENTITY, message.getValue(StandardField.ADDRESS))
+        );
     }
 
     public void setFieldDefaultValue(Field.FieldIdentity fieldIdentity, String defaultValue) throws UserException {

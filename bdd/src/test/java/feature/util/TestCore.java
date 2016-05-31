@@ -246,6 +246,11 @@ public class TestCore {
             return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getInstanceClassServiceAddress(), headers()));
         }
 
+        public EntityServiceProtocol.Send createMetaEntityServiceProtocol() {
+            EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL);
+            return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getMetaServiceAddress(), headers()));
+        }
+
         public InstanceClassProtocol.Send createInstanceClassProtocolSend(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
             InstanceClassProtocol instanceClassProtocol = server.createReceiver(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL);
             return instanceClassProtocol.createSend(() -> StandardComposer.create(this, instanceClassIdentity, headers()));
@@ -254,6 +259,16 @@ public class TestCore {
         public FieldProtocol.Send createFieldProtocolSend(Field.FieldIdentity fieldIdentity) {
             FieldProtocol fieldProtocol = server.createReceiver(FieldProtocol.FIELD_PROTOCOL);
             return fieldProtocol.createSend(() -> StandardComposer.create(this, fieldIdentity, headers()));
+        }
+
+        public MetaProtocol.Send createMetaProtocolSend(Meta.MetaIdentity metaIdentity) {
+            MetaProtocol metaProtocol = server.createReceiver(MetaProtocol.META_PROTOCOL);
+            return metaProtocol.createSend(() -> StandardComposer.create(this, metaIdentity, headers()));
+        }
+
+        public MethodProtocol.Send createMethodProtocolSend(Method.MethodIdentity methodIdentity) {
+            MethodProtocol methodProtocol = server.createReceiver(MethodProtocol.METHOD_PROTOCOL);
+            return methodProtocol.createSend(() -> StandardComposer.create(this, methodIdentity, headers()));
         }
 
         public InstanceProtocol.Send createInstanceProtocolSend(Instance.InstanceIdentity instanceIdentity) {
