@@ -4,7 +4,6 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.object.Method;
-import org.objectagon.core.object.instanceclass.InstanceClassImpl;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
 import org.objectagon.core.storage.DataVersion;
@@ -21,7 +20,7 @@ import java.util.Optional;
  */
 public class MethodService extends EntityService<Service.ServiceName, Method.MethodIdentity, Method.MethodData, EntityService.EntityServiceWorker>  {
 
-    public static ServiceName NAME = StandardServiceName.name("META_SERVICE");
+    public static ServiceName NAME = StandardServiceName.name("METHOD_SERVICE");
 
     public static void registerAt(Server server) {
         server.registerFactory(NAME, MethodService::new);
@@ -31,7 +30,7 @@ public class MethodService extends EntityService<Service.ServiceName, Method.Met
         super(receiverCtrl, NAME, Method.DATA_TYPE);
     }
 
-    @Override protected Server.Factory createEntityFactory() {return InstanceClassImpl::new;}
+    @Override protected Server.Factory createEntityFactory() {return MethodImpl::new;}
     @Override protected DataVersion<Method.MethodIdentity, StandardVersion> createInitialDataFromValues(Method.MethodIdentity identity, Message.Values initialParams, Transaction transaction) {
         return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }

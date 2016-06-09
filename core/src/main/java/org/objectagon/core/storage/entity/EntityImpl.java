@@ -7,7 +7,6 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
-import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.storage.*;
 import org.objectagon.core.storage.entity.util.DataVersionTransactions;
@@ -376,7 +375,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .addFailedAction(worker::failed)
                 .addSuccessAction((messageName, values) -> {
                     updateDataAndVersion(newData, newDataVersion);
-                    worker.success(StandardProtocol.MessageName.OK_MESSAGE, preparedValues!=null ? preparedValues.values():values);
+                    worker.success(messageName, preparedValues!=null ? preparedValues.values():values);
                 })
                 .start();
     }

@@ -4,7 +4,6 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.object.Meta;
-import org.objectagon.core.object.instanceclass.InstanceClassImpl;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
 import org.objectagon.core.storage.DataVersion;
@@ -31,7 +30,7 @@ public class MetaService extends EntityService<Service.ServiceName, Meta.MetaIde
         super(receiverCtrl, NAME, Meta.DATA_TYPE);
     }
 
-    @Override protected Server.Factory createEntityFactory() {return InstanceClassImpl::new;}
+    @Override protected Server.Factory createEntityFactory() {return MetaImpl::new;}
     @Override protected DataVersion<Meta.MetaIdentity, StandardVersion> createInitialDataFromValues(Meta.MetaIdentity identity, Message.Values initialParams, Transaction transaction) {
         return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }

@@ -177,7 +177,7 @@ public class MessageValue<V> implements Message.Value {
     }
 
     private void validate(Message.Field field, V value, Class cls) {
-        if (!cls.isInstance(value))
+        if (value!=null && !cls.isInstance(value))
             throw new ClassCastException(""+value+" is not type of "+field.getName());
     }
 

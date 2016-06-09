@@ -3,7 +3,7 @@ Feature: Set method code
 
   Background:
     Given there is an active transaction
-    And there is a type called Meta
+    And there is a base called Meta
     And the base Meta has a method named addOne
 
   Scenario: Set method code

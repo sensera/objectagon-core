@@ -28,7 +28,7 @@ public class MetaProtocolImpl extends AbstractProtocol<MetaProtocol.Send, Protoc
 
         @Override
         public Task createMethod() {
-            return task(MessageName.CREATE_METHOD, send -> send(MessageName.CREATE_METHOD));
+            return task(MessageName.CREATE_METHOD, send -> send.send(MessageName.CREATE_METHOD));
         }
     }
 }

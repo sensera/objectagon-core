@@ -16,6 +16,8 @@ import org.objectagon.core.task.StandardTaskBuilder;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.Util;
 
+import java.util.List;
+
 /**
  * Created by christian on 2015-10-06.
  */
@@ -202,7 +204,9 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         }
 
         public Composer createReplyToSenderComposer() {
-            return new BasicComposer(receiver, sender, headers);
+            List<Message.Value> newHeaders = Util.iterableToList(headers.values());
+            newHeaders.add(MessageValue.messageName(StandardProtocol.FieldName.ORIGINAL_MESSAGE, message.getName()));
+            return new BasicComposer(receiver, sender, () -> newHeaders);
         }
 
         @Override

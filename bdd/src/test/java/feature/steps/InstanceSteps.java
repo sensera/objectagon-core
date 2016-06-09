@@ -13,6 +13,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.Field;
 import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.InstanceClass;
+import org.objectagon.core.object.Method;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.Is.is;
@@ -74,5 +75,13 @@ public class InstanceSteps {
         Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceName);
         Field.FieldIdentity fieldIdentity = testCore.getNamedAddress(fieldName);
         mgr.setValue(instanceIdentity, fieldIdentity, MessageValue.text(value));
+    }
+
+    @When("^I invoke method (.*) of (.*)$")
+    public void iInvokeMethodAddNumberOfItem(String methodAlias, String instanceAlias) throws Throwable {
+        InstanceManager mgr = InstanceManager.create(testCore.createTestUser("Developer"));
+        Method.MethodIdentity methodIdentity = testCore.getNamedAddress(methodAlias);
+        Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceAlias);
+        mgr.invokeMethod(methodIdentity, instanceIdentity);
     }
 }

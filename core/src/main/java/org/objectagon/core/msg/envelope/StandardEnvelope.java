@@ -7,6 +7,7 @@ import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.message.MinimalMessage;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.message.VolatileAddressValue;
+import org.objectagon.core.utils.Util;
 
 /**
  * Created by christian on 2015-10-07.
@@ -79,6 +80,6 @@ public class StandardEnvelope implements Envelope {
 
     @Override
     public String toString() {
-        return "*"+message+"@"+target+" from "+sender;
+        return "*"+message+"@"+target+" from "+sender+" headers "+ Util.printValuesToString(headers.values());
     }
 }

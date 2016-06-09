@@ -3,10 +3,7 @@ package feature.util;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.FieldValue;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceClass;
+import org.objectagon.core.object.*;
 import org.objectagon.core.task.Task;
 
 import java.util.stream.Stream;
@@ -51,6 +48,12 @@ public class InstanceManager {
         return taskWait(
                 developer.createInstanceClassProtocolSend(instanceClassIdentity).createInstance()
         ).getValue(StandardField.ADDRESS).asAddress();
+    }
+
+    public void invokeMethod(Method.MethodIdentity methodIdentity, Instance.InstanceIdentity instanceIdentity) throws UserException {
+        taskWait(
+                developer.createInstanceProtocolSend(instanceIdentity).invokeMethod(methodIdentity)
+        );
     }
 
     @FunctionalInterface

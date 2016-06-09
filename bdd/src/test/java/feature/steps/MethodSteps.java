@@ -31,8 +31,8 @@ public class MethodSteps {
     public void tareDown(Scenario scenario) { if (testCore!=null) testCore.stop();}
 
     @When("^I add method (.*) to (.*)$")
-    public void addFiledWithNameToTypeWithName(String fieldName, String typeName) throws Throwable {
-        the_type_has_a_field_named(typeName, fieldName);
+    public void addFiledWithNameToTypeWithName(String methodName, String typeName) throws Throwable {
+        the_type_has_a_field_named(typeName, methodName);
     }
 
     @Given("^the base (.*) has a method named (.*)$")
@@ -65,6 +65,10 @@ public class MethodSteps {
         assertThat(codeRetrieved, is(equalTo(code)));
     }
 
+    @And("the method (.*) is welded to (.*)")
+    public void theDefaultValueForItemNameIsPhone3(String methodAlias, String typeName) throws Throwable {
+        theDefaultValueForItemNameIsPhone2(methodAlias, typeName);
+    }
     @And("^I weld method (.*) to type (.*)$")
     public void theDefaultValueForItemNameIsPhone2(String methodAlias, String typeName) throws Throwable {
         MethodManager mgr = MethodManager.create(testCore.createTestUser("Developer"));
