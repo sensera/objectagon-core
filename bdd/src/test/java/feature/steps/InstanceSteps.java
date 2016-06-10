@@ -14,6 +14,8 @@ import org.objectagon.core.object.Field;
 import org.objectagon.core.object.Instance;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.Method;
+import org.objectagon.core.object.method.ParamNameImpl;
+import org.objectagon.core.utils.KeyValue;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.Is.is;
@@ -83,5 +85,23 @@ public class InstanceSteps {
         Method.MethodIdentity methodIdentity = testCore.getNamedAddress(methodAlias);
         Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceAlias);
         mgr.invokeMethod(methodIdentity, instanceIdentity);
+    }
+
+    @When("^I invoke method (.*) of (.*) with param (.*) and value (.*)$")
+    public void iInvokeMethodAddNumberOfItem2(String methodAlias, String instanceAlias, String paramName, String value) throws Throwable {
+        InstanceManager mgr = InstanceManager.create(testCore.createTestUser("Developer"));
+        Method.MethodIdentity methodIdentity = testCore.getNamedAddress(methodAlias);
+        Instance.InstanceIdentity instanceIdentity = testCore.getNamedAddress(instanceAlias);
+        mgr.invokeMethod(methodIdentity, instanceIdentity, new KeyValue<Method.ParamName, Message.Value>() {
+            @Override
+            public Method.ParamName getKey() {
+                return ParamNameImpl.create(paramName);
+            }
+
+            @Override
+            public Message.Value getValue() {
+                return MessageValue.text(Method.PARAM_VALUE, value);
+            }
+        });
     }
 }

@@ -2,8 +2,8 @@ package feature.util;
 
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.object.Meta;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.object.Method;
 import org.objectagon.core.task.Task;
 
@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 public class MethodManager {
     private final TestCore.TestUser developer;
+    private NamedField param_number = NamedField.number("PARAM_NUMBER");;
 
     private MethodManager(TestCore.TestUser developer) {
         this.developer = developer;
@@ -55,9 +56,14 @@ public class MethodManager {
 
     public String getCode(Method.MethodIdentity methodIdentity) throws UserException {
         return taskWait(
-                developer.createMethodProtocolSend(methodIdentity).getCode(),
-                message -> developer.setValue(Meta.META_IDENTITY, message.getValue(StandardField.ADDRESS))
+                developer.createMethodProtocolSend(methodIdentity).getCode()
         ).getValue(Method.CODE).asText();
+    }
+
+    public void addParam(Method.MethodIdentity methodIdentity, Method.ParamName paramName) throws UserException {
+        taskWait(
+                developer.createMethodProtocolSend(methodIdentity).addParam(paramName, param_number, MessageValue.number(param_number, 11L))
+        );
     }
 
     @FunctionalInterface

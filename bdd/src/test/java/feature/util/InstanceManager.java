@@ -5,6 +5,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.object.*;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
 
 import java.util.stream.Stream;
 
@@ -53,6 +54,12 @@ public class InstanceManager {
     public void invokeMethod(Method.MethodIdentity methodIdentity, Instance.InstanceIdentity instanceIdentity) throws UserException {
         taskWait(
                 developer.createInstanceProtocolSend(instanceIdentity).invokeMethod(methodIdentity)
+        );
+    }
+
+    public void invokeMethod(Method.MethodIdentity methodIdentity, Instance.InstanceIdentity instanceIdentity, KeyValue<Method.ParamName, Message.Value> paramValue) throws UserException {
+        taskWait(
+                developer.createInstanceProtocolSend(instanceIdentity).invokeMethod(methodIdentity, paramValue)
         );
     }
 

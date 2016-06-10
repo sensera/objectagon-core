@@ -25,6 +25,7 @@ public interface Method extends Entity<Method.MethodIdentity,Method.MethodData> 
     Message.Field METHOD_NAME = NamedField.name("methodName");
     Message.Field METHOD_IDENTITY = NamedField.address("methodId");
     Message.Field CODE = NamedField.text("code");
+    Message.Field PARAM_VALUE = NamedField.text("paramValue");
     Message.Field PARAMS = NamedField.values("params");
     Message.Field PARAM_NAME  = NamedField.name("paramName");
     Message.Field PARAM_FIELD  = NamedField.name("paramField");

@@ -9,8 +9,10 @@ import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.object.*;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -66,9 +68,9 @@ public class InstanceClassManager {
         return MessageValueFieldUtil.create(msg.getValues()).getValueByField(StandardField.ADDRESS).asAddress();
     }
 
-    public void addMethodToInstanceClass(InstanceClass.InstanceClassIdentity instanceClassIdentity, Method.MethodIdentity methodIdentity) throws UserException {
+    public void addMethodToInstanceClass(InstanceClass.InstanceClassIdentity instanceClassIdentity, Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings) throws UserException {
         taskWait(
-                developer.createInstanceClassProtocolSend(instanceClassIdentity).addMethod(methodIdentity, Collections.EMPTY_LIST, Collections.EMPTY_LIST),
+                developer.createInstanceClassProtocolSend(instanceClassIdentity).addMethod(methodIdentity, fieldMappings, Collections.EMPTY_LIST),
                 message -> developer.setValue(Method.METHOD_IDENTITY, message.getValue(StandardField.ADDRESS))
         );
     }

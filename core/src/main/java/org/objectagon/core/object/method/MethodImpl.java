@@ -176,7 +176,10 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                 return value -> { replyParams.add(methodMessageValueTransform.createKeyValue(paramName, MessageValue.any(value))); };
             }
         });
-        methodWorker.replyWithParam(MessageValue.values(Method.PARAMS, methodMessageValueTransform.createValuesTransformer().transform(replyParams)));
+        if (replyParams.isEmpty())
+            methodWorker.replyOk();
+        else
+            methodWorker.replyWithParam(MessageValue.values(Method.PARAMS, methodMessageValueTransform.createValuesTransformer().transform(replyParams)));
     }
 
     private static ObjectagonCompiler<Method.Invoke> createStandardCompiler() {

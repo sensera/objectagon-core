@@ -3,6 +3,7 @@ package org.objectagon.core.utils;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -47,5 +48,19 @@ public class KeyValueUtil<Key,Value> {
 
     private Predicate<KeyValue<Key, Value>> findByKey(Key key) {
         return keyValueKeyValue -> keyValueKeyValue.getKey().equals(key);
+    }
+
+    public static <Key,Value> List<KeyValue<Key,Value>> single(Key key, Value value) {
+        return Collections.singletonList(new KeyValue<Key, Value>() {
+            @Override
+            public Key getKey() {
+                return key;
+            }
+
+            @Override
+            public Value getValue() {
+                return value;
+            }
+        });
     }
 }
