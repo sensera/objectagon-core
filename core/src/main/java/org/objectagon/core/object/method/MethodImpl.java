@@ -111,6 +111,7 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
     private void invoke(MethodWorker methodWorker, MethodData methodData) {
         final List<KeyValue<ParamName, Message.Value>> paramNameValueList = methodMessageValueTransform.createValuesTransformer().transform(methodWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
         System.out.println("MethodImpl.invoke with "+paramNameValueList.size()+" params");
+        paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("MethodImpl.invoke "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
         Invoke invoke = compiledMethods.get(methodData.getVersion());
         if (invoke==null) {
             try {
@@ -119,6 +120,7 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                 compiledMethods.put(methodData.getVersion(), invoke);
             } catch (Exception e) {
                 methodWorker.failed(ErrorClass.METHOD, ErrorKind.FAILED_TO_INVOKE_METHOD, Arrays.asList(MessageValue.text(e.getMessage())));
+                return;
             }
         }
         final List<KeyValue<ParamName, Message.Value>> replyParams = new ArrayList<>();
@@ -145,7 +147,9 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                         .findAny()
                         .map(invokeParam -> {
                             final Message.Value value = paramNameValueList.stream()
-                                    .filter(paramNameValueKeyValue -> paramNameValueKeyValue.getKey().equals(invokeParam.getName()))
+                                    .filter(paramNameValueKeyValue -> {
+                                        return paramNameValueKeyValue.getKey().equals(invokeParam.getName());
+                                    })
                                     .map(KeyValue::getValue)
                                     .findAny()
                                     .orElse(MessageValue.empty());
@@ -183,12 +187,13 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
     }
 
     private static ObjectagonCompiler<Method.Invoke> createStandardCompiler() {
+        //System.out.println("MethodImpl.createStandardCompiler "+new File(".").getAbsolutePath()+" **************************************************************************************************** ");
         File compilePath = new File("/tmp/objectagoncompiler/");
         if (!compilePath.exists() && !compilePath.mkdirs() )
             throw new RuntimeException("Create dirs '"+compilePath.getAbsolutePath()+"' failed!");
         ObjectagonCompiler<Method.Invoke> objectagonCompiler = new ObjectagonCompiler<>(
                 compilePath,
-                "/projects/objectagon/objectagon-core/core/target/core-1.0-SNAPSHOT.jar",
+                "./core/target/classes",
                 "org.objectagon.core.compiledmethod",
                 Arrays.asList("org.objectagon.core.object.Method"));
         return objectagonCompiler;

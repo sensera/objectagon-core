@@ -79,7 +79,7 @@ public class InstanceSteps {
         mgr.setValue(instanceIdentity, fieldIdentity, MessageValue.text(value));
     }
 
-    @When("^I invoke method (.*) of (.*)$")
+    @When("^I invoke method (.*) of (.*) with no param$")
     public void iInvokeMethodAddNumberOfItem(String methodAlias, String instanceAlias) throws Throwable {
         InstanceManager mgr = InstanceManager.create(testCore.createTestUser("Developer"));
         Method.MethodIdentity methodIdentity = testCore.getNamedAddress(methodAlias);

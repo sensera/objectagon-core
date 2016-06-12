@@ -28,7 +28,7 @@ public interface Method extends Entity<Method.MethodIdentity,Method.MethodData> 
     Message.Field PARAM_VALUE = NamedField.text("paramValue");
     Message.Field PARAMS = NamedField.values("params");
     Message.Field PARAM_NAME  = NamedField.name("paramName");
-    Message.Field PARAM_FIELD  = NamedField.name("paramField");
+    Message.Field PARAM_FIELD  = NamedField.any("paramField");
     Message.Field DEFAULT_VALUE = NamedField.values("defaultValue");
 
     Data.Type DATA_TYPE = DataType.create("METHOD");

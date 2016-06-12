@@ -39,4 +39,7 @@ public class MessageValueFieldUtil {
         return StreamSupport.stream(values.spliterator(), false);
     }
 
+    public Iterable<Message.Value> getValues() {
+        return values;
+    }
 }

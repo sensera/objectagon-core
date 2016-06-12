@@ -72,7 +72,7 @@ public class MethodSteps {
         assertThat(codeRetrieved, is(equalTo(code)));
     }
 
-    @And("the method (.*) is welded to (.*)")
+    @And("the method (.*) is welded to (.*) without field")
     public void theDefaultValueForItemNameIsPhone3(String methodAlias, String typeName) throws Throwable {
         theDefaultValueForItemNameIsPhone2(methodAlias, typeName);
     }

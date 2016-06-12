@@ -70,11 +70,17 @@ public class MessageValue<V> implements Message.Value {
 
     @Override
     public String asText() {
-        return (String) value;
+        if (value instanceof String)
+            return (String) value;
+        if (value==null)
+            return null;
+        return value.toString();
     }
 
     @Override
     public Long asNumber() {
+        if (value instanceof String)
+            return Long.parseLong( (String) value);
         return (Long) value;
     }
 

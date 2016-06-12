@@ -231,12 +231,16 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
             sequence.addTask(instanceClassWorker.createInstanceProtocol(instanceIdentity).getValue(paramNameFieldIdentityKeyValue.getValue())
                     .addSuccessAction((messageName, values) -> {
                         final Message.Value valueByField = MessageValueFieldUtil.create(values).getValueByField(FieldValue.VALUE);
-                        paramNameValueList.add(methodMessageValueTransform.createKeyValue(paramNameFieldIdentityKeyValue.getKey(), valueByField));
+                        final Message.Value foundValue = valueByField.asValues().values().iterator().next();
+                        System.out.println("InstanceClassImpl.invokeMethod looked up "+paramNameFieldIdentityKeyValue.getKey()+"="+foundValue.asText());
+                        paramNameValueList.add(methodMessageValueTransform.createKeyValue(paramNameFieldIdentityKeyValue.getKey(), foundValue));
                     }));
         });
         final Task task = sequence.create();
         task.addFailedAction(instanceClassWorker::failed);
         task.addSuccessAction((messageName, values) -> {
+            System.out.println("InstanceClassImpl.invokeMethod ******************* params ******************'");
+            paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("InstanceClassImpl.invokeMethod "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
             instanceClassWorker.createMethodProtocolSend(methodIdentity)
                     .invoke(paramNameValueList)
                         .addFailedAction(instanceClassWorker::failed)
@@ -254,7 +258,8 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                 instanceClassWorker.replyOk();
                 return;
             }
-            final List<KeyValue<Method.ParamName, Message.Value>> paramValues = methodMessageValueTransform.createValuesTransformer().transform(replyParams);
+            final Message.Value methodDefaultMappingsValue = MessageValueFieldUtil.create(replyParams.asValues()).getValueByField(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS);
+            final List<KeyValue<Method.ParamName, Message.Value>> paramValues = methodMessageValueTransform.createValuesTransformer().transform(methodDefaultMappingsValue);
             if (paramValues.isEmpty()) {
                 instanceClassWorker.replyOk();
                 return;

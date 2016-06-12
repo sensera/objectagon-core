@@ -11,16 +11,15 @@ Feature: Invoke method
 
   Scenario: Invoke simple method
     Given the method AddNumber has code value int a = 10;
-    And the method AddNumber is welded to Item
-    When I invoke method AddNumber of ITEM1
+    And the method AddNumber is welded to Item without field
+    When I invoke method AddNumber of ITEM1 with no param
     Then the response is ok
 
   Scenario: Invoke method with param
-    Given the method AddNumber has code value int a = 10;
+    Given the method AddNumber has code value invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());
     And the method AddNumber has a parameter called sumValue
     And the method AddNumber has a parameter called addValue
     And the method AddNumber with parameter sumValue is welded to Item and field Quantity
-    And the method AddNumber is welded to Item
     And set instance: ITEM1 field: Quantity to value: 15
     When I invoke method AddNumber of ITEM1 with param addValue and value 8
     Then the response is ok

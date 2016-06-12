@@ -107,6 +107,7 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
             return task(MessageName.INVOKE_METHOD, send -> send.send(
                     MessageName.INVOKE_METHOD,
                     address(Method.METHOD_IDENTITY, methodIdentity),
+                    address(Instance.INSTANCE_IDENTITY, instanceIdentity),
                     methodMessageValueTransform.createValuesTransformer().transform(paramValues)
             ));
         }

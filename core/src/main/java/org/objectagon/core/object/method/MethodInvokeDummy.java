@@ -11,7 +11,7 @@ public class MethodInvokeDummy implements Method.Invoke {
     public void invoke(Method.InvokeWorker invokeWorker) {
         /* Code inside method should be used as method code */
 
-        long newNumber = invokeWorker.getValue("number").asNumber() + invokeWorker.getValue("add").asNumber();
-        invokeWorker.setValue("number").set(newNumber);
+        System.out.println("MethodInvokeDummy.invoke "+invokeWorker.getClass().getName() );
+        invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());
     }
 }

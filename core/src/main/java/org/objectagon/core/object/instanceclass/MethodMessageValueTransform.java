@@ -10,6 +10,7 @@ import org.objectagon.core.utils.KeyValue;
 import org.objectagon.core.utils.KeyValueUtil;
 import org.objectagon.core.utils.Util;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,10 +61,15 @@ public class MethodMessageValueTransform {
             public List<KeyValue<Method.ParamName, Message.Value>> transform(Message.Value valueToTransform) {
                 return Util.iterableToStream(valueToTransform.asValues().values())
                         .map(value -> {
-                            final MessageValueFieldUtil lookup = MessageValueFieldUtil.create(value.asValues());
+                            final Iterator<Message.Value> iterator = value.asValues().values().iterator();
+                            Message.Value value1 = iterator.next();
+                            if (value1.getField().equals(Method.PARAM_NAME))
+                                return new KeyDefaultImpl(
+                                        value1.asName(),
+                                        iterator.next());
                             return new KeyDefaultImpl(
-                                    lookup.getValueByField(Method.PARAM_NAME).asName(),
-                                    lookup.getValueByField(Method.DEFAULT_VALUE));
+                                    iterator.next().asName(),
+                                    value1);
                         })
                         .collect(Collectors.toList());
             }
@@ -110,7 +116,7 @@ public class MethodMessageValueTransform {
         }
     }
 
-    public KeyValue<Method.ParamName, Message.Value> createKeyValue(Method.ParamName key, Message.Value field) {
+    public static KeyValue<Method.ParamName, Message.Value> createKeyValue(Method.ParamName key, Message.Value field) {
         return new KeyDefaultImpl(key, field);
     }
 
