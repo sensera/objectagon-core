@@ -32,8 +32,6 @@ public class ParamNameImpl implements Method.ParamName {
 
     @Override
     public String toString() {
-        return "ParamNameImpl{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
 }

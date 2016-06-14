@@ -52,6 +52,9 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandler<HttpObject> implements RestProcessor.Response {
 
     private final Consumer<Entry<String, String>> entryConsumer = entry -> System.out.println("  " + entry.getKey() + "=" + entry.getValue());
+    private String path;
+    private QueryStringDecoder queryStringDecoder;
+    private RestProcessor.Operation operation;
 
     private enum TaskName implements Task.TaskName {
         REGISTER_NAME, LOOKUP,
@@ -66,6 +69,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
     private ServerCore serverCore;
     private HttpRequest request;
     Map<String,String> params = new HashMap<>();
+    ByteBuf content;
 
     private Reply reply;
 
@@ -106,102 +110,65 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
             //if (!request.getMethod().equals(HttpMethod.GET))
                 //return;
             URI uri = new URI(request.getUri());
-            String path = uri.getPath();
-            System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+request.getMethod()+" "+path+" -----------------------------------------------------------------------------------------------------------------------------------------------------");
+            path = uri.getPath();
+            System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+request.getMethod()+" "+ path +" -----------------------------------------------------------------------------------------------------------------------------------------------------");
             //System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+path);
             params = new HashMap<>();
-            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
-            queryStringDecoder.parameters().forEach((name, values) -> {
-                //System.out.println("  " + name);
-                //values.stream().forEach(value -> System.out.println("  - " + value));
-                params.put(name, values.get(0));
-            });
+            content = Unpooled.buffer();
+            queryStringDecoder = new QueryStringDecoder(request.getUri());
+            queryStringDecoder.parameters().forEach((name, values) -> params.put(name, values.get(0)));
 
-            try {
-                String[] splittedPath = path.length() == 0 ? new String[0] : path.substring(1).split("/");
-                List<RestProcessor.PathItem> pathItems = new ArrayList<>();
-                Stream.of(splittedPath).forEach(s -> pathItems.add(new LocalPathItem(s)));
-                final RestProcessor.Operation operation = translate(((HttpRequest) msg).getMethod());
+            operation = translate(((HttpRequest) msg).getMethod());
 
-                ProcessorLocator.LocatorResponse locatorResponse = locator.match(new LocalLocatorContext(Arrays.asList(splittedPath).iterator(), operation, serverCore.createTestUser("test") ));
-                Optional<RestProcessor> match = locatorResponse.restProcessor();
-                RestProcessor.Request req = new RestProcessor.Request() {
-                    @Override
-                    public RestProcessor.Operation getOperation() {
-                        return operation;
-                    }
-
-                    @Override
-                    public Optional<RestProcessor.PathItem> getPathItem(int index) {
-                        RestProcessor.PathItem pathItem1 = pathItems.get(index);
-                        try {
-                            RestProcessor.PathItem pathItem = locatorResponse.foundMatchingAlias(index)
-                                    .map(address -> createAddressPathItem(address))
-                                    .orElse(pathItem1);
-                            return Optional.of(pathItem);
-                        } catch (Exception e) {
-                            return Optional.empty();
-                        }
-                    }
-
-                    @Override
-                    public String getUser() {
-                        return "test";
-                    }
-
-                    @Override
-                    public Message.Value[] queryAsValues() {
-                        List<Message.Value> resp = new ArrayList<>();
-                        queryStringDecoder.parameters().forEach((name, values) -> {
-                            resp.add(MessageValue.text(NamedField.text(name),values.get(0)));
-                        });
-                        return resp.toArray(new Message.Value[resp.size()]);
-                    }
-
-                    @Override
-                    public RestProcessor.RequestValue getValue(Message.Field field) {
-                        String param = params.get(field.getName().toString());
-                        if (param==null)
-                            throw new RuntimeException("No param named "+field.getName().toString());
-                        return new RestProcessorRequestValue(field, param);
-                    }
-
-                    @Override
-                    public Optional<RestProcessor.RequestValue> getValueOptional(Message.Field field) {
-                        String param = params.get(field.getName().toString());
-                        if (param==null)
-                            return Optional.empty();
-                        return Optional.of(new RestProcessorRequestValue(field, param));
-                    }
-
-                };
-                match.ifPresent(restProcessor -> restProcessor.process(serverCore, req, this));
-                match.orElseThrow(() -> new RuntimeException("No match for path '"+path+"'"));
-            } catch (RuntimeException e) {
-                System.out.println("HttpProtocolSessionServerHandler.channelRead0 ERROR "+e.getMessage() + "%%%%%%%%%%%%%%%%%%%%%%%%");
-                e.printStackTrace();
-                failed(ErrorClass.UNKNOWN, ErrorKind.UNKNOWN_TARGET, Arrays.asList());
-            }
         }
 
         if (msg instanceof HttpContent) {
             HttpContent httpContent = (HttpContent) msg;
 
+            this.content.writeBytes(httpContent.content());
+
             if (msg instanceof LastHttpContent) {
                 LastHttpContent trailer = (LastHttpContent) msg;
 
-                synchronized (this) {
-                    //System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING");
-                    if (reply.equals(Reply.Waiting))
-                        wait(1000);
-                    //System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING released");
-                    if (reply.equals(Reply.Waiting)) {
-                        errorClass = ErrorClass.PROTOCOL;
-                        errorKind = ErrorKind.TIMEOUT;
+                System.out.println("HttpProtocolSessionServerHandler.channelRead0 *************************** CONTENT >>>>>>>>>>>>>>>>>>>>");
+                System.out.println("readableBytes="+this.content.readableBytes());
+                System.out.println("HttpProtocolSessionServerHandler.channelRead0 *************************** CONTENT <<<<<<<<<<<<<<<<<<<<<");
+
+                try {
+                    String[] splittedPath = path.length() == 0 ? new String[0] : path.substring(1).split("/");
+                    List<RestProcessor.PathItem> pathItems = new ArrayList<>();
+                    Stream.of(splittedPath).forEach(s -> pathItems.add(new LocalPathItem(s)));
+
+
+                    ProcessorLocator.LocatorResponse locatorResponse = locator.match(new LocalLocatorContext(Arrays.asList(splittedPath).iterator(), operation, serverCore.createTestUser("test") ));
+                    Optional<RestProcessor> match = locatorResponse.restProcessor();
+                    RestProcessor.Request req = new MyRequest(operation, pathItems, locatorResponse, queryStringDecoder);
+
+                    match.ifPresent(restProcessor -> restProcessor.process(serverCore, req, this));
+                    match.orElseThrow(() -> new RuntimeException("No match for path '"+path+"'"));
+
+                    synchronized (this) {
+                        //System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING");
+                        if (reply.equals(Reply.Waiting))
+                            wait(1000);
+                        //System.out.println("HttpProtocolSessionServerHandler.channelRead0 WAITING released");
+                        if (reply.equals(Reply.Waiting)) {
+                            errorClass = ErrorClass.PROTOCOL;
+                            errorKind = ErrorKind.TIMEOUT;
+                        }
                     }
+
+                } catch (RuntimeException e) {
+                    System.out.println("HttpProtocolSessionServerHandler.channelRead0 ERROR "+e.getMessage() + "%%%%%%%%%%%%%%%%%%%%%%%%");
+                    e.printStackTrace();
+                    failed(ErrorClass.UNKNOWN, ErrorKind.UNKNOWN_TARGET, Arrays.asList());
                 }
 
-                ByteBuf content = Unpooled.copiedBuffer(
+                System.out.println("HttpProtocolSessionServerHandler.channelRead0 RELEASE Content ----------------------------------------");
+                this.content.release();
+                this.content = null;
+
+                ByteBuf replyContent = Unpooled.copiedBuffer(
                         errorClass != null ?
                             errorToString() :
                             msgToString(),
@@ -209,7 +176,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
                 FullHttpResponse response = new DefaultFullHttpResponse(
                         HTTP_1_1, trailer.getDecoderResult().isSuccess() ? OK : BAD_REQUEST,
-                        content);
+                        replyContent);
                 //response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
                 response.headers().set(CONTENT_TYPE, "application/json; charset=UTF-8");
 
@@ -471,4 +438,73 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         return (A) StandardAddress.standard(serverCore.serverId, timestamp, addressId);
     }
 
+    private class MyRequest implements RestProcessor.Request {
+        private final RestProcessor.Operation operation;
+        private final List<RestProcessor.PathItem> pathItems;
+        private final ProcessorLocator.LocatorResponse locatorResponse;
+        private final QueryStringDecoder queryStringDecoder;
+
+        public MyRequest(RestProcessor.Operation operation, List<RestProcessor.PathItem> pathItems, ProcessorLocator.LocatorResponse locatorResponse, QueryStringDecoder queryStringDecoder) {
+            this.operation = operation;
+            this.pathItems = pathItems;
+            this.locatorResponse = locatorResponse;
+            this.queryStringDecoder = queryStringDecoder;
+        }
+
+        @Override
+        public RestProcessor.Operation getOperation() {
+            return operation;
+        }
+
+        @Override
+        public Optional<RestProcessor.PathItem> getPathItem(int index) {
+            RestProcessor.PathItem pathItem1 = pathItems.get(index);
+            try {
+                RestProcessor.PathItem pathItem = locatorResponse.foundMatchingAlias(index)
+                        .map(address -> createAddressPathItem(address))
+                        .orElse(pathItem1);
+                return Optional.of(pathItem);
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        }
+
+        @Override
+        public String getUser() {
+            return "test";
+        }
+
+        @Override
+        public Message.Value[] queryAsValues() {
+            List<Message.Value> resp = new ArrayList<>();
+            queryStringDecoder.parameters().forEach((name, values) -> {
+                resp.add(MessageValue.text(NamedField.text(name),values.get(0)));
+            });
+            return resp.toArray(new Message.Value[resp.size()]);
+        }
+
+        @Override
+        public RestProcessor.RequestValue getValue(Message.Field field) {
+            String param = params.get(field.getName().toString());
+            if (param==null)
+                throw new RuntimeException("No param named "+field.getName().toString());
+            return new RestProcessorRequestValue(field, param);
+        }
+
+        @Override
+        public Optional<RestProcessor.RequestValue> getValueOptional(Message.Field field) {
+            String param = params.get(field.getName().toString());
+            if (param==null)
+                return Optional.empty();
+            return Optional.of(new RestProcessorRequestValue(field, param));
+        }
+
+        @Override
+        public byte[] getContent() {
+            byte[] bytes = new byte[content.readableBytes()];
+            content.readBytes(bytes);
+            return bytes;
+        }
+
+    }
 }

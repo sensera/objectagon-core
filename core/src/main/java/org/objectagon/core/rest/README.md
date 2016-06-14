@@ -53,7 +53,9 @@ Future versions
 
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
-| /meta/                        | -                   | -                 | -               | -                |   
+| /meta/                        | List meta           | Create meta       | -               | -                |   
+| /meta/{id}                    | Get meta contents   | -                 | -               | Remove           |
+| /meta/{id}/method             | Get meta methods    | Create method     | -               |                  |
 
 ###### REST - Class
 
@@ -65,7 +67,8 @@ Future versions
 | /class/{id}/field             | List fields         | Create new field  | -               | -                |   
 | /class/{id}/relation          | Get relations       | Create new relation | -             | -                |   
 | /class/{id}/relation/{classId} |                    | Create new relation | -             | -                |   
-| /class/{id}/method            | Not supported yet   | -                 | -               | -                |   
+| /class/{id}/method            | List methods        |                   |                 | -                |   
+| /class/{id}/method/{id}       |                     | Attache method    |                 | -                |   
 | /class/{id}/instance          | -                   | Create new instance | -             | -                |   
 | /class/{id}/instance/{name}   | get instanceAlias   | Create new alias  | -               | remove alias     |
 
@@ -88,11 +91,13 @@ Future versions
 | /relation/{id}/target         | Get relation target | -                 | -               | -                |   
 
 ###### REST - Method
-Future versions
 
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
 |-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
-| /method/{id}                  | Not supported yet   | -                 | -               | -                |   
+| /method/{id}                  | Method contents     | -                 | -               | Remove method    |   
+| /method/{id}/code             | Get method code     | -                 | Set method code | -                |
+| /method/{id}/param            | All params          | Create new param  | -               |                  |
+| /method/{id}/param/{name}     | Get param contents  | -                 | -               | Remove param     |
 
 ###### REST - Instance
 

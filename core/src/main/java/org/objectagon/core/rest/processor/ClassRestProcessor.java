@@ -5,15 +5,18 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.message.NamedField;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.InstanceClassProtocol;
-import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.*;
+import org.objectagon.core.object.method.ParamNameImpl;
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.ServerCore;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
+import org.objectagon.core.utils.KeyValueUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Created by christian on 2016-05-03.
@@ -70,6 +73,23 @@ public class ClassRestProcessor extends AbstractRestProcessor {
                     return instanceClassProtocolSend.getInstanceByAlias(instanceAlias);
                 }))
         ).add("class").addIdentity("classId").add("instance").addName().setOperation(Operation.UpdateExecute);
+
+        locatorBuilder.patternBuilder(
+                new ClassRestProcessor(((instanceClassProtocolSend, testUser, request, response) -> {
+                    Method.MethodIdentity methodIdentity = request.getPathItem(3).get().address(Method.METHOD_IDENTITY);
+                    final List<KeyValue<Method.ParamName, Field.FieldIdentity>> keyValues = new ArrayList<>();
+                    Stream.of(request.queryAsValues()).forEach(value -> {
+                        Method.ParamName paramName = ParamNameImpl.create(value.getField().getName().toString());
+                        String fieldIdentityAsText = value.asText();
+                        System.out.println("ClassRestProcessor.attachToLocator fieldIdentityAsText="+fieldIdentityAsText);
+                        Field.FieldIdentity fieldIdentity = fieldIdentityAsText.contains("-")
+                                ? request.getValue(NamedField.text(fieldIdentityAsText)).address()
+                                : testUser.getValue(NamedField.address(fieldIdentityAsText)).get().asAddress();
+                        keyValues.add(KeyValueUtil.createKeyValue(paramName, fieldIdentity));
+                    });
+                    return instanceClassProtocolSend.addMethod(methodIdentity, keyValues, new ArrayList<>());
+                }))
+        ).add("class").addIdentity("classId").add("method").addIdentity("methodId").setOperation(Operation.SaveNew);
     }
 
     InstanceClassProtocolSendConsumer instanceClassProtocolSendConsumer;

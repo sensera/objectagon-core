@@ -6,6 +6,8 @@ import org.objectagon.core.msg.protocol.ProtocolNameImpl;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.KeyValue;
 
+import java.util.List;
+
 /**
  * Created by christian on 2015-11-01.
  */
@@ -41,6 +43,7 @@ public interface InstanceProtocol extends Protocol<InstanceProtocol.Send, Protoc
         Task addRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance);
         Task removeRelation(RelationClass.RelationClassIdentity relationClassIdentity, Instance.InstanceIdentity instance);
         Task invokeMethod(Method.MethodIdentity methodIdentity, KeyValue<Method.ParamName, Message.Value>... paramValues);
+        Task invokeMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Message.Value>> paramValues);
     }
 
     interface Alter extends Protocol.Send {

@@ -13,6 +13,7 @@ import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.KeyValue;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.objectagon.core.msg.message.MessageValue.address;
 
@@ -81,6 +82,15 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
                     MessageName.INVOKE_METHOD,
                     address(Method.METHOD_IDENTITY, methodIdentity),
                     methodMessageValueTransform.createValuesTransformer().transform(Arrays.asList(paramValues))
+            ));
+        }
+
+        @Override
+        public Task invokeMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Message.Value>> paramValues) {
+            return task(MessageName.INVOKE_METHOD, send -> send.send(
+                    MessageName.INVOKE_METHOD,
+                    address(Method.METHOD_IDENTITY, methodIdentity),
+                    methodMessageValueTransform.createValuesTransformer().transform(paramValues)
             ));
         }
     }

@@ -105,13 +105,13 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
     private void setCode(MethodWorker methodWorker, MethodData methodData, ChangeMethod changeMethod, Message.Values preparedValues) {
         String code = methodWorker.getValue(Method.CODE).asText();
         changeMethod.setCode(code);
-        System.out.println("MethodImpl.setCode "+code);
+        //System.out.println("MethodImpl.setCode "+code);
     }
 
     private void invoke(MethodWorker methodWorker, MethodData methodData) {
         final List<KeyValue<ParamName, Message.Value>> paramNameValueList = methodMessageValueTransform.createValuesTransformer().transform(methodWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
-        System.out.println("MethodImpl.invoke with "+paramNameValueList.size()+" params");
-        paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("MethodImpl.invoke "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
+        //System.out.println("MethodImpl.invoke with "+paramNameValueList.size()+" params");
+        //paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("MethodImpl.invoke "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
         Invoke invoke = compiledMethods.get(methodData.getVersion());
         if (invoke==null) {
             try {
@@ -187,13 +187,17 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
     }
 
     private static ObjectagonCompiler<Method.Invoke> createStandardCompiler() {
-        //System.out.println("MethodImpl.createStandardCompiler "+new File(".").getAbsolutePath()+" **************************************************************************************************** ");
+        System.out.println("MethodImpl.createStandardCompiler "+new File(".").getAbsolutePath()+" **************************************************************************************************** ");
         File compilePath = new File("/tmp/objectagoncompiler/");
         if (!compilePath.exists() && !compilePath.mkdirs() )
             throw new RuntimeException("Create dirs '"+compilePath.getAbsolutePath()+"' failed!");
+        String classpath = "./core/target/classes";
+        if (!new File(classpath).exists())
+            classpath = "./target/classes";
+            //throw new RuntimeException("classpath '" + classpath + " does not exist!");
         ObjectagonCompiler<Method.Invoke> objectagonCompiler = new ObjectagonCompiler<>(
                 compilePath,
-                "./core/target/classes",
+                classpath,
                 "org.objectagon.core.compiledmethod",
                 Arrays.asList("org.objectagon.core.object.Method"));
         return objectagonCompiler;

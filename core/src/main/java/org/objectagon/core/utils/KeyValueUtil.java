@@ -63,4 +63,18 @@ public class KeyValueUtil<Key,Value> {
             }
         });
     }
+
+    public static <Key,Value> KeyValue<Key,Value> createKeyValue(Key key, Value value) {
+        return new KeyValue<Key, Value>() {
+            @Override
+            public Key getKey() {
+                return key;
+            }
+
+            @Override
+            public Value getValue() {
+                return value;
+            }
+        };
+    }
 }

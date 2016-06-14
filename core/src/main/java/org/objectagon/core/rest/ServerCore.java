@@ -198,7 +198,13 @@ public class ServerCore {
         Map<Message.Field,Message.Value> storedValues = new HashMap<>();
 
         public void setValue(Message.Field field, Message.Value value) { storedValues.put(field, value); }
-        public Optional<Message.Value> getValue(Message.Field field) { return Optional.ofNullable(storedValues.get(field)); }
+        public Optional<Message.Value> getValue(Message.Field field) {
+            if (storedValues.get(field)==null) {
+                System.out.println("TestUser.getValue ------------------ NOT FOUND '"+field.getName()+"' -----------------------");
+                storedValues.entrySet().stream().forEach(fieldValueEntry -> System.out.println(fieldValueEntry.getKey().getName()+"="+fieldValueEntry.getValue().asText()));
+            }
+            return Optional.ofNullable(storedValues.get(field));
+        }
 
         public void storeResponseMessage(Message message) {
             this.message = Optional.ofNullable(message);
@@ -238,9 +244,19 @@ public class ServerCore {
             return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getFieldServiceAddress(), headers()));
         }
 
+        public MetaProtocol.Send createMetaProtocolSend(Meta.MetaIdentity metaIdentity) {
+            MetaProtocol metaProtocol = server.createReceiver(MetaProtocol.META_PROTOCOL);
+            return metaProtocol.createSend(() -> StandardComposer.create(this, metaIdentity, headers()));
+        }
+
         public EntityServiceProtocol.Send createInstanceClassEntityServiceProtocol() {
             EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL);
             return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getInstanceClassServiceAddress(), headers()));
+        }
+
+        public EntityServiceProtocol.Send createMetaEntityServiceProtocol() {
+            EntityServiceProtocol entityServiceProtocol = server.createReceiver(EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL);
+            return entityServiceProtocol.createSend(() -> StandardComposer.create(this, objectServices.getMetaServiceAddress(), headers()));
         }
 
         public InstanceClassProtocol.Send createInstanceClassProtocolSend(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
@@ -256,6 +272,11 @@ public class ServerCore {
         public InstanceProtocol.Send createInstanceProtocolSend(Instance.InstanceIdentity instanceIdentity) {
             InstanceProtocol instanceProtocol = server.createReceiver(InstanceProtocol.INSTANCE_PROTOCOL);
             return instanceProtocol.createSend(() -> StandardComposer.create(this, instanceIdentity, headers()));
+        }
+
+        public MethodProtocol.Send createMethodProtocolSend(Method.MethodIdentity methodIdentity) {
+            MethodProtocol methodProtocol = server.createReceiver(MethodProtocol.METHOD_PROTOCOL);
+            return methodProtocol.createSend(() -> StandardComposer.create(this, methodIdentity, headers()));
         }
 
         public Transaction createTransaction() throws UserException {
@@ -321,6 +342,7 @@ public class ServerCore {
             task.addSuccessAction((messageName, values) -> transaction = Optional.of(MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress()));
             return task;
         }
+
     }
 
     public interface TestUserConfig extends Receiver.NamedConfiguration {

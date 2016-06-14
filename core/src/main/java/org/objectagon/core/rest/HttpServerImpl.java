@@ -77,6 +77,8 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
         TransactionServiceRestProcessor.attachToLocator(locatorBuilder);
 
         ClassRestProcessor.attachToLocator(locatorBuilder);
+        MetaRestProcessor.attachToLocator(locatorBuilder);
+        MethodRestProcessor.attachToLocator(locatorBuilder);
         FieldRestProcessor.attachToLocator(locatorBuilder);
 
         InstanceRestProcessor.attachToLocator(locatorBuilder);

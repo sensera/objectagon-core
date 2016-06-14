@@ -5,11 +5,17 @@ import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.object.*;
+import org.objectagon.core.object.method.ParamNameImpl;
 import org.objectagon.core.rest.ProcessorLocator;
 import org.objectagon.core.rest.ServerCore;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.utils.KeyValue;
+import org.objectagon.core.utils.KeyValueUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Created by christian on 2016-05-03.
@@ -54,6 +60,18 @@ public class InstanceRestProcessor extends AbstractRestProcessor {
                     return send.getRelation(address);
                 }))
         ).add("instance").addIdentity("instanceId").add("relation").addIdentity("relationId").setOperation(Operation.Get);
+
+        locatorBuilder.patternBuilder(
+                new InstanceRestProcessor(((send, testUser, request, response) -> {
+                    Method.MethodIdentity address = request.getPathItem(3).get().address(Method.METHOD_IDENTITY);
+                    List<KeyValue<Method.ParamName, Message.Value>> keyValueParams = new ArrayList<>();
+                    Stream.of(request.queryAsValues()).forEach(value -> {
+                        Method.ParamName paramName = ParamNameImpl.create(value.getField().getName().toString());
+                        keyValueParams.add(KeyValueUtil.createKeyValue(paramName, value));
+                    });
+                    return send.invokeMethod(address, keyValueParams);
+                }))
+        ).add("instance").addIdentity("instanceId").add("method").addIdentity("methodId").setOperation(Operation.Get);
     }
 
     InstanceProtocolSendConsumer instanceProtocolSendConsumer;

@@ -14,12 +14,15 @@ import org.objectagon.core.task.Task;
  */
 public class EntityRestProcessor extends AbstractRestProcessor {
 
-    enum EntityType { Class }
+    enum EntityType { Class, Meta }
 
     public static void attachToLocator(ProcessorLocator.LocatorBuilder locatorBuilder) {
         locatorBuilder.patternBuilder(
                 new EntityRestProcessor(EntityType.Class, ((send, testUser, request, response) -> send.create(request.queryAsValues())))
         ).add("class").setOperation(Operation.SaveNew);
+        locatorBuilder.patternBuilder(
+                new EntityRestProcessor(EntityType.Meta, ((send, testUser, request, response) -> send.create(request.queryAsValues())))
+        ).add("meta").setOperation(Operation.SaveNew);
     }
 
     EntityType entityType;
@@ -33,6 +36,7 @@ public class EntityRestProcessor extends AbstractRestProcessor {
     private EntityServiceProtocol.Send getEntityServiceProtocol(ServerCore.TestUser testUser) {
         switch (entityType) {
             case Class: return testUser.createInstanceClassEntityServiceProtocol();
+            case Meta: return testUser.createMetaEntityServiceProtocol();
             default: throw new RuntimeException("Internal error");
         }
     }
@@ -43,10 +47,8 @@ public class EntityRestProcessor extends AbstractRestProcessor {
                 .addSuccessAction(response::reply);
         MessageValueFieldUtil.create(request.queryAsValues())
                 .getValueByFieldOption(NamedField.text("alias"))
-                //.ifPresent(value -> task.addSuccessAction((messageName, values) -> testUser.setValue(NamedField.address(value.asText()), MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS))));
                 .ifPresent(value -> task.addSuccessAction((messageName, values) -> {
                     Message.Value address = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS);
-                    System.out.println("EntityRestProcessor.createActionTask store alias("+value.asText()+") value "+address);
                     testUser.setValue(NamedField.text(value.asText()), address);
                 }));
         return task;

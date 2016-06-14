@@ -23,6 +23,7 @@ public interface RestProcessor {
         Message.Value[] queryAsValues();
         RequestValue getValue(Message.Field field);
         Optional<RequestValue> getValueOptional(Message.Field field);
+        byte[] getContent();
     }
 
     interface Response {

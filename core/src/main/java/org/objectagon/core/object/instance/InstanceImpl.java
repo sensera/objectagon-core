@@ -109,7 +109,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     private void getValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
-        System.out.println("InstanceImpl.getValue <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.getValue <"+instanceWorker.currentTransaction()+">");
         try {
             FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(
                     instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress(),
@@ -118,7 +118,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
                     .getValue();
         } catch (UserException e) {
             if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
-                System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
+                //System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
                 instanceWorker.createFieldProtocolForward(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress()).getDefaultValue();
             } else
                 throw e;
@@ -127,7 +127,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
     private Optional<Task> createValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData) {
         Message.Value value = instanceWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
-        System.out.println("InstanceImpl.createValue "+value+" <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.createValue "+value+" <"+instanceWorker.currentTransaction()+">");
         try {
             FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(
                     instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress(),
@@ -147,39 +147,39 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
     private void addRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         Relation.RelationIdentity relationIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
-        System.out.println("InstanceImpl.addRelation "+relationIdentity+" <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.addRelation "+relationIdentity+" <"+instanceWorker.currentTransaction()+">");
         change.addRelation(relationIdentity);
     }
 
     private Optional<Task> createRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData) {
         Instance.InstanceIdentity targetIdentity = instanceWorker.getValue(StandardField.ADDRESS).asAddress();
         RelationClass.RelationClassIdentity relationClassIdentity = instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress();
-        System.out.println("InstanceImpl.createRelation target="+targetIdentity);
-        System.out.println("InstanceImpl.createRelation type="+relationClassIdentity);
+        //System.out.println("InstanceImpl.createRelation target="+targetIdentity);
+        //System.out.println("InstanceImpl.createRelation type="+relationClassIdentity);
         return Optional.of(instanceWorker.createRelationClassProtocolSend(relationClassIdentity).createRelation(getAddress(), targetIdentity));
     }
 
     private void dropRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         Relation.RelationIdentity relationIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
-        System.out.println("InstanceImpl.dropRelation "+relationIdentity+" <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.dropRelation "+relationIdentity+" <"+instanceWorker.currentTransaction()+">");
         change.removeRelation(relationIdentity);
     }
 
     private void removeRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
         Instance.InstanceIdentity targetIdentity = instanceWorker.getValue(StandardField.ADDRESS).asAddress();
         RelationClass.RelationClassIdentity relationClassIdentity = instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress();
-        System.out.println("InstanceImpl.removeRelation target="+targetIdentity);
-        System.out.println("InstanceImpl.removeRelation type="+relationClassIdentity);
+        //System.out.println("InstanceImpl.removeRelation target="+targetIdentity);
+        //System.out.println("InstanceImpl.removeRelation type="+relationClassIdentity);
         List<Relation.RelationIdentity> relationsToRemove = instanceData.getRelations()
                 .filter(r -> r.getRelationClassIdentity().equals(relationClassIdentity))
                 .filter(r -> r.getInstanceIdentity(RelationClass.RelationDirection.RELATION_TO).equals(targetIdentity))
                 .collect(Collectors.toList());
         if (relationsToRemove.isEmpty()) {
-            System.out.println("InstanceImpl.removeRelation found NO relations to remove!");
+            //System.out.println("InstanceImpl.removeRelation found NO relations to remove!");
             instanceWorker.replyOk();
             return;
         }
-        System.out.println("InstanceImpl.removeRelation found "+relationsToRemove.size()+" relation(s) to remove!");
+        //System.out.println("InstanceImpl.removeRelation found "+relationsToRemove.size()+" relation(s) to remove!");
         TaskBuilder.SequenceBuilder sequence = instanceWorker.getTaskBuilder().sequence(InstanceTasks.DestroyRelations);
         relationsToRemove.stream().forEach(relationIdentity -> {
             sequence.addTask(instanceWorker.createRelationClassProtocolSend(relationClassIdentity).destroyRelation(getAddress(), relationIdentity));
@@ -188,7 +188,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     private void getRelation(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
-        System.out.println("InstanceImpl.getRelation <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.getRelation <"+instanceWorker.currentTransaction()+">");
         try {
             List<Instance.InstanceIdentity> instanceIdentities = getRelations(
                     instanceWorker.getValue(RelationClass.RELATION_CLASS_IDENTITY).asAddress(),
@@ -201,7 +201,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
             instanceWorker.replyWithParam(MessageValue.values(instanceList));
         } catch (UserException e) {
             if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
-                System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
+                //System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
                 instanceWorker.createFieldProtocolForward(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress()).getDefaultValue();
             } else
                 throw e;
@@ -209,7 +209,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     private void invokeMethod(InstanceWorker instanceWorker, Instance.InstanceData instanceData) throws UserException {
-        System.out.println("InstanceImpl.invokeMethod  <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.invokeMethod  <"+instanceWorker.currentTransaction()+">");
         instanceWorker.start(
                 instanceWorker.createInstanceClassProtocolForward(getAddress().getInstanceClassIdentity())
                         .invokeMethod(
@@ -221,7 +221,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
     private void setValue(InstanceWorker instanceWorker, Instance.InstanceData instanceData, Instance.InstanceDataChange change, Message.Values values) {
         FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
-        System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
+        //System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
         change.addField(fieldValueIdentity);
     }
 

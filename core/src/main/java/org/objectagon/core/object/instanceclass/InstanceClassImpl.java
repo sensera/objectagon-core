@@ -136,7 +136,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void getName(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
-        System.out.println("InstanceClassImpl.getName "+instanceClassData.getName()+" ¤"+instanceClassWorker.currentTransaction());
+        //System.out.println("InstanceClassImpl.getName "+instanceClassData.getName()+" ¤"+instanceClassWorker.currentTransaction());
         instanceClassWorker.replyWithParam(MessageValue.name(InstanceClass.INSTANCE_CLASS_NAME, instanceClassData.getName()));
     }
 
@@ -144,7 +144,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
         InstanceClassName instanceClassName = instanceClassWorker.getValue(InstanceClass.INSTANCE_CLASS_NAME).asName();
         changeInstanceClass.setName(instanceClassName);
         instanceClassWorker.broadCastNameChange(getAddress(), instanceClassName);
-        System.out.println("InstanceClassImpl.setName "+instanceClassName+" ¤"+instanceClassWorker.currentTransaction());
+        //System.out.println("InstanceClassImpl.setName "+instanceClassName+" ¤"+instanceClassWorker.currentTransaction());
     }
 
     private void getFields(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) {
@@ -204,7 +204,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void invokeMethod(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) throws UserException {
-        System.out.println("InstanceClassImpl.invokeMethod ******************");
+        //System.out.println("InstanceClassImpl.invokeMethod ******************");
         final Method.MethodIdentity methodIdentity = instanceClassWorker.getValue(Method.METHOD_IDENTITY).asAddress();
         final Instance.InstanceIdentity instanceIdentity = instanceClassWorker.getValue(Instance.INSTANCE_IDENTITY).asAddress();
         final Optional<MethodClass> methodClassByMethodIdentityOptional = findMethodClassByMethodIdentity(instanceClassData.getMethods(), methodIdentity);
@@ -232,15 +232,15 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                     .addSuccessAction((messageName, values) -> {
                         final Message.Value valueByField = MessageValueFieldUtil.create(values).getValueByField(FieldValue.VALUE);
                         final Message.Value foundValue = valueByField.asValues().values().iterator().next();
-                        System.out.println("InstanceClassImpl.invokeMethod looked up "+paramNameFieldIdentityKeyValue.getKey()+"="+foundValue.asText());
+                        //System.out.println("InstanceClassImpl.invokeMethod looked up "+paramNameFieldIdentityKeyValue.getKey()+"="+foundValue.asText());
                         paramNameValueList.add(methodMessageValueTransform.createKeyValue(paramNameFieldIdentityKeyValue.getKey(), foundValue));
                     }));
         });
         final Task task = sequence.create();
         task.addFailedAction(instanceClassWorker::failed);
         task.addSuccessAction((messageName, values) -> {
-            System.out.println("InstanceClassImpl.invokeMethod ******************* params ******************'");
-            paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("InstanceClassImpl.invokeMethod "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
+            //System.out.println("InstanceClassImpl.invokeMethod ******************* params ******************'");
+            //paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("InstanceClassImpl.invokeMethod "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
             instanceClassWorker.createMethodProtocolSend(methodIdentity)
                     .invoke(paramNameValueList)
                         .addFailedAction(instanceClassWorker::failed)
