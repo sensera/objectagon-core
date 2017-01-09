@@ -333,7 +333,6 @@ public class ServerCore {
             return transactionManagerProtocol.createSend(() -> StandardComposer.create(this, transaction, headers()));
         }
 
-
         public Task createTransactionTask() {
             TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
             TaskBuilder.Builder<Task> builder = taskBuilder.protocol(TransactionServiceProtocol.TRANSACTION_SERVICE_PROTOCOL,
@@ -343,6 +342,11 @@ public class ServerCore {
             return task;
         }
 
+        public RestServiceProtocol.Send createRestServiceProtocol() {
+            Address restServiceAddress = null; //TODO Implement me
+            RestServiceProtocol restServiceProtocol = server.createReceiver(RestServiceProtocol.REST_SERVICE_PROTOCOL);
+            return restServiceProtocol.createSend(() -> StandardComposer.create(this,  restServiceAddress, headers()));
+        }
     }
 
     public interface TestUserConfig extends Receiver.NamedConfiguration {

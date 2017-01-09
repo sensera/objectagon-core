@@ -27,12 +27,15 @@
         <processorPath useClasspath="true" />
         <module name="bdd" />
         <module name="core" />
+        <module name="shop" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
       <module name="bdd" target="1.8" />
       <module name="core" target="1.8" />
+      <module name="demo" target="1.5" />
       <module name="objectagon-core" target="1.8" />
+      <module name="shop" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

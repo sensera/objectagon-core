@@ -19,11 +19,11 @@ public interface Field extends Entity<Field.FieldIdentity,Field.FieldData> {
 
     EntityName ENTITY_NAME = EntityName.create("FIELD");
 
-    Message.Field FIELD_IDENTITY = NamedField.address("FIELD_IDENTITY");
-    Message.Field FIELD_NAME = NamedField.name("FIELD_NAME");
-    Message.Field FIELD_TYPE = NamedField.name("FIELD_TYPE");
-    Message.Field FIELDS = NamedField.values("FIELDS");
-    Message.Field DEFAULT_VALUE = NamedField.any("DEFAULT_VALUE");
+    Message.Field FIELD_IDENTITY = NamedField.address("fieldId");
+    Message.Field FIELD_NAME = NamedField.name("fieldName");
+    Message.Field FIELD_TYPE = NamedField.name("fieldType");
+    Message.Field FIELDS = NamedField.values("fields");
+    Message.Field DEFAULT_VALUE = NamedField.any("defaultValue");
 
     Data.Type DATA_TYPE = DataType.create("FIELD");
 

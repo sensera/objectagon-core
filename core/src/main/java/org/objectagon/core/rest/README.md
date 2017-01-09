@@ -106,7 +106,7 @@ Future versions
 | /instance/                    | List instances      | -                 | -               | -                |   
 | /instance/{name}              | List instances      | Create new instance | -             | -                |   
 | /instance/{id}                | Get instance contents | -               | -               | Delete instance  |   
-| /instance/{id}/field/{name}   | Get field value     | Update field value | Add field value | Delete value   |   
+| /instance/{id}/field/{name}   | Get field value     | Add field value   | Update field value | Delete value  |   
 | /instance/{id}/relation/{relationId}| Get relation  | -                 | Add relation    | -                |   
 | /instance/{id}/relation/{relationId}/{instanceId}|  | -                 | Add relation    | -                |
 | /instance/{id}/relation/{id}  | Get relation        | -                 | -               | Delete relation  |   
