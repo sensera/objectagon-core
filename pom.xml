@@ -24,8 +24,10 @@
     </build>
 
     <modules>
-        <module>bdd</module>
         <module>core</module>
+        <module>object</module>
+        <module>rest</module>
+        <module>docker</module>
     </modules>
 
 </project>

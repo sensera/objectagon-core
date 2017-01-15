@@ -4,7 +4,6 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
-import org.objectagon.core.object.*;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.event.EventServiceProtocol;
 import org.objectagon.core.service.name.NameServiceImpl;
@@ -50,20 +49,6 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
                 .createSend(() -> getWorkerContext().createForwardComposer(serviceAddress));
     }
 
-    public MethodProtocol.Send createMethodProtocolSend(Method.MethodIdentity methodIdentity) {
-        if (methodIdentity==null) throw new NullPointerException("methodIdentity is null!");
-        return getWorkerContext()
-                .<Protocol.ProtocolAddress,MethodProtocol>createReceiver(
-                        MethodProtocol.METHOD_PROTOCOL)
-                .createSend(() -> getWorkerContext().createTargetComposer(methodIdentity));
-    }
-
-    public FieldValueProtocol.Send createFieldValueProtocolSend(FieldValue.FieldValueIdentity fieldValueIdentity) {
-        return getWorkerContext()
-                .<Protocol.ProtocolAddress,FieldValueProtocol>createReceiver(FieldValueProtocol.FIELD_VALUE_PROTOCOL)
-                .createSend(() -> getWorkerContext().createTargetComposer(fieldValueIdentity));
-    }
-
     @Override
     public TransactionManagerProtocol.Send createTransactionManagerProtocolSend(Transaction transaction) {
         return getWorkerContext()
@@ -71,17 +56,4 @@ public class EntityWorkerImpl extends BasicWorkerImpl implements EntityWorker {
                 .createSend(() -> getWorkerContext().createTargetComposer(transaction));
     }
 
-    @Override
-    public InstanceProtocol.Internal createInstanceProtocolInternal(Instance.InstanceIdentity instanceIdentity) {
-        return getWorkerContext()
-                .<Protocol.ProtocolAddress,InstanceProtocol>createReceiver(InstanceProtocol.INSTANCE_PROTOCOL)
-                .createInternal(() -> getWorkerContext().createTargetComposer(instanceIdentity));
-    }
-
-    @Override
-    public InstanceProtocol.Send createInstanceProtocol(Instance.InstanceIdentity instanceIdentity) {
-        return getWorkerContext()
-                .<Protocol.ProtocolAddress,InstanceProtocol>createReceiver(InstanceProtocol.INSTANCE_PROTOCOL)
-                .createSend(() -> getWorkerContext().createTargetComposer(instanceIdentity));
-    }
 }
