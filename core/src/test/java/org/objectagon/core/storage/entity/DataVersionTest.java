@@ -1,6 +1,7 @@
 package org.objectagon.core.storage.entity;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.storage.*;
@@ -32,11 +33,13 @@ public class DataVersionTest {
     }
 
     @Test
+    @Ignore
     public void testCreate() {
         assertThat(dataVersion.rootNode().isPresent(), is(equalTo(false)));
     }
 
     @Test
+    @Ignore
     public void testAddTransaction() throws UserException {
         DataVersion.ChangeDataVersion change = (DataVersion.ChangeDataVersion) dataVersion.change();
 
@@ -61,6 +64,7 @@ public class DataVersionTest {
 
 
     @Test
+    @Ignore
     public void testNewVersion() throws UserException {
         DataVersion.ChangeDataVersion change = (DataVersion.ChangeDataVersion) dataVersion.change();
 

@@ -14,9 +14,15 @@ First came Open Source, then Open Data. This is Open Functionality.
   
 ##  To start server
 
+Via Docker
+
+> docker run -d -p 9900:9900 sensera/objectagon
+
+Or
+
 Go to directory core
 enter:
-mvn clean install exec:java -Dexec.mainClass="org.objectagon.core.rest.HttpServerImpl" -DskipTests
+> mvn clean install exec:java -Dexec.mainClass="org.objectagon.core.rest.HttpServerImpl" -DskipTests
 
 #### Test server commands
 
@@ -24,42 +30,45 @@ se all server commands at:
 core/src/main/java/org/objectagon/core/rest/README.md
 
 
+
+
 **Start new transaction add att to session**
 curl -i -X PUT http://localhost:9900/transaction/
 
 
-**Skapa en meta och koppla till Alias**
+**Create meta and attach to Alias**
 curl -i -X PUT http://localhost:9900/meta?alias=Base
 
-**Skapa en typ och koppla den skapade typens id till alias *Item***
+**Create a type and attach i to the type id and alias *Item***
 curl -i -X PUT http://localhost:9900/class?alias=Item
 
-**Skapa en metod**
+**Create a method**
 curl -i -X PUT http://localhost:9900/meta/Base/method?alias=addValue
 
-**Lägg till parametrar till metoden**
+**Add parameters to the Method**
 echo 'invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());' | curl -i -X POST -d @- http://localhost:9900/method/addValue/code
 curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=sumValue&paramField=Number' 
 curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=addValue&paramField=Number'
 
-**Lägg till fält på Item**
+**Add field to an Item**
 curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
 curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
 curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemQuantity
 
-**Bind metoden addValue till Item och fältet ItemQuantity**
+**Bind the method addValue to Item and the field ItemQuantity**
 curl -i -X PUT http://localhost:9900/class/Item/method/addValue?sumValue=ItemQuantity
 
-**Skapa en typ och koppla den skapade typens id till alias *Order***
+**Create a type and attach it to the type id and alias *Order***
 curl -i -X PUT http://localhost:9900/class?alias=Order
 
-**Lägg till fält på Order**
+**Add a field to Order**
 curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
 curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
 curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
 
 
 **Skapa en relationstyp (mellan Order och Item) och koppla den skapade relationstypen till alias *OrderItem***
+**Create a relationtype **
 curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
 
 

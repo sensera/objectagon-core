@@ -1,6 +1,7 @@
 package core.service.name;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
@@ -44,6 +45,7 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
+    @Ignore
     public void registerName()  {
         startTaskAndVerifySentEvelope(
                 send.registerName(address, name),
@@ -55,6 +57,7 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
+    @Ignore
     public void unregisterName()  {
         startTaskAndVerifySentEvelope(
                 send.unregisterName(name),
@@ -65,6 +68,7 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
+    @Ignore
     public void lookupName() {
         startTaskAndVerifySentEvelope(
                 send.lookupAddressByName(name),

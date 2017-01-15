@@ -1,6 +1,7 @@
 package org.objectagon.core.storage.persistence;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
@@ -58,6 +59,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
+    @Ignore
     public void all()  {
         startTaskAndVerifySentEvelope(
                 send.all(identity),
@@ -68,6 +70,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
+    @Ignore
     public void pushData()  {
         startTaskAndVerifySentEvelope(
                 send.pushData(data),
@@ -80,6 +83,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
+    @Ignore
     public void getData() {
         startTaskAndVerifySentEvelope(
                 send.getData(mock(Data.Type.class), identity, version),
