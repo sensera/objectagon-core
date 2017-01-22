@@ -1,4 +1,4 @@
-package org.objectagon.core.rest2;
+package org.objectagon.core.rest2.service;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.exception.UserException;
@@ -9,6 +9,7 @@ import org.objectagon.core.msg.address.AddressList;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.service.*;
+import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.KeyValue;

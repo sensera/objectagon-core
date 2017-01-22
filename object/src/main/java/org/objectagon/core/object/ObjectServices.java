@@ -38,7 +38,7 @@ public class ObjectServices {
         InitObjectServiceTasks;
     }
 
-    public static ObjectServices create(Server server, Service.ServiceName persistancyAddress) { return new ObjectServices(server, persistancyAddress);}
+    public static ObjectServices create(Server server, Service.ServiceName persistenceAddress) { return new ObjectServices(server, persistenceAddress);}
 
     final private Server server;
     private Address fieldServiceAddress;
@@ -52,9 +52,9 @@ public class ObjectServices {
 
     Service.ServiceName persistencyServiceName;
 
-    public ObjectServices(Server server, Service.ServiceName persistencyServiceName) {
+    public ObjectServices(Server server, Service.ServiceName persistenceServiceName) {
         this.server = server;
-        this.persistencyServiceName = persistencyServiceName;
+        this.persistencyServiceName = persistenceServiceName;
     }
 
     public ObjectServices registerAt() {

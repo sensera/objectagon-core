@@ -1,4 +1,4 @@
-package org.objectagon.core.rest2;
+package org.objectagon.core.rest2.service;
 
 import org.objectagon.core.msg.Name;
 

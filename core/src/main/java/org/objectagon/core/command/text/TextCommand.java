@@ -3,9 +3,7 @@ package org.objectagon.core.command.text;
 import org.objectagon.core.command.Command;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by christian on 2017-01-15.
@@ -13,7 +11,6 @@ import java.util.Map;
 public class TextCommand {
 
     Command command;
-    Map<String, Command.ServicePackage> packages = new HashMap<>();
     List<Cmd> commands = new ArrayList<>();
 
     public TextCommand(Command command) {
