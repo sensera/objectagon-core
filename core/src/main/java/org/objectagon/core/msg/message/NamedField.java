@@ -16,6 +16,7 @@ public class NamedField implements Message.Field {
     public static NamedField blob(String name) { return new NamedField(name, Message.FieldType.Blob);}
     public static NamedField message(String name) { return new NamedField(name, Message.FieldType.Message);}
     public static NamedField name(String name) { return new NamedField(name, Message.FieldType.Name);}
+    public static NamedField map(String name) { return new NamedField(name, Message.FieldType.Map);}
     public static NamedField password(String name) { return new NamedField(name, Message.FieldType.Password);}
     public static NamedField values(String name) { return new NamedField(name, Message.FieldType.Values);}
 

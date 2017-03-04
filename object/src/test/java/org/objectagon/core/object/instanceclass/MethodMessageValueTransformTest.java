@@ -47,8 +47,8 @@ public class MethodMessageValueTransformTest {
     public void transformValuesListToValue() {
         List<KeyValue<Method.ParamName, Message.Value>> list = new ArrayList<>();
 
-        list.add(MethodMessageValueTransform.createKeyValue(paramName1, textValue));
-        list.add(MethodMessageValueTransform.createKeyValue(paramName2, numberValue));
+        list.add(methodMessageValueTransform.createKeyValue(paramName1, textValue));
+        list.add(methodMessageValueTransform.createKeyValue(paramName2, numberValue));
 
         final Message.Value value = methodMessageValueTransform.createValuesTransformer().transform(list);
 

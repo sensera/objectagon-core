@@ -5,6 +5,7 @@ import org.objectagon.core.msg.message.MessageValue;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
  */
 public class KeyValueUtil<Key,Value> {
     public static <Key,Value> KeyValueUtil<Key,Value> create(List<KeyValue<Key, Value>> keyValueList) { return new KeyValueUtil<>(keyValueList); }
+    public static <Key,Value> Map<Key,Value> toMap(List<KeyValue<Key, Value>> keyValueList) { return new KeyValueUtil<>(keyValueList).asMap(); }
 
     List<KeyValue<Key,Value>> keyValueList;
 
@@ -76,5 +78,10 @@ public class KeyValueUtil<Key,Value> {
                 return value;
             }
         };
+    }
+
+    public Map<Key,Value> asMap() {
+        return keyValueList.stream()
+                .collect(Collectors.toMap(KeyValue::getKey, KeyValue::getValue));
     }
 }

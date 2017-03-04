@@ -1,27 +1,38 @@
 package org.objectagon.core.rest2.service;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
-import org.objectagon.core.msg.address.AddressList;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
+import org.objectagon.core.rest2.service.locator.RestPathImpl;
+import org.objectagon.core.rest2.service.locator.RestServiceActionLocatorImpl;
 import org.objectagon.core.service.*;
-import org.objectagon.core.storage.entity.EntityName;
+import org.objectagon.core.storage.Identity;
+import org.objectagon.core.task.ActionTask;
 import org.objectagon.core.task.Task;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.KeyValue;
+import org.objectagon.core.utils.KeyValueUtil;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Created by christian on 2017-01-09.
  */
 public class RestService extends AbstractService<RestService.RestServiceWorker, Service.ServiceName> {
+
+    enum RestServiceTaksName implements Task.TaskName {
+        INITIALIZE_LOCATOR;
+    }
 
     public static ServiceName REST_SERVICE_NAME = StandardServiceName.name("REST_SERVICE_NAME");
 
@@ -29,11 +40,28 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         server.registerFactory(REST_SERVICE_NAME, RestService::new);
     }
 
-    private Map<Name,AddressList<Address>> eventListeners = new HashMap<>();
+    private RestServiceActionLocator restServiceActionLocator = new RestServiceActionLocatorImpl();
 
     public RestService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
         setServiceName(REST_SERVICE_NAME);
+    }
+
+    @Override
+    public void configure(Configurations... configurations) {
+        super.configure(configurations);
+    }
+
+    @Override
+    protected Optional<TaskBuilder.Builder> internalCreateStartServiceTask(RestServiceWorker serviceWorker) {
+        TaskBuilder taskBuilder = serviceWorker.getTaskBuilder();
+        final TaskBuilder.Builder<ActionTask> action = taskBuilder.action(RestServiceTaksName.INITIALIZE_LOCATOR, () -> {
+            System.out.println("RestService.internalCreateStartServiceTask 1");
+            restServiceActionLocator.configure(name -> (ServiceName) getReceiverCtrl().lookupAddressByAlias(name)
+                    .orElseThrow(() -> new SevereError(ErrorClass.UNKNOWN, ErrorKind.MISSING_CONFIGURATION)));
+            System.out.println("RestService.internalCreateStartServiceTask 2");
+        });
+        return Optional.of(action);
     }
 
     @Override
@@ -57,14 +85,21 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         return new RestServiceWorker(workerContext);
     }
 
-    public class RestServiceWorker extends ServiceWorkerImpl {
+    public class RestServiceWorker extends ServiceWorkerImpl implements RestServiceActionLocator.IdentityLookup {
 
         public RestServiceWorker(WorkerContext workerContext) {
             super(workerContext);
         }
 
-        public Task getTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path) throws UserException {
-            throw new UserException(null, null);
+        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path) throws Exception {
+            final RestServiceActionLocator.RestPath restPath = RestPathImpl.create(path, this);
+            final RestServiceActionLocator.RestAction restAction = restServiceActionLocator.locate(null, method, restPath);
+            return restAction.createTask(getWorkerContext().getTaskBuilder(), restPath, null, null);
+        }
+
+        @Override
+        public Optional<Identity> find(String identityAlias) {
+            return getReceiverCtrl().lookupAddressByAlias(StandardName.name(identityAlias)).map(address -> (Identity) address);
         }
     }
 
@@ -73,7 +108,6 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         RestServiceProtocol.Method method;
         Name path;
         List<KeyValue<ParamName, Message.Value>> params;
-        Task task;
 
         public ProcessRestRequestAction(RestService initializer, RestServiceWorker context) {
             super(initializer, context);
@@ -83,13 +117,21 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         public boolean initialize() throws UserException {
             this.method = context.getValue(RestServiceProtocol.METHOD_FIELD).asName();
             this.path = context.getValue(RestServiceProtocol.PATH_FIELD).asName();
-            this.params = context.getValue(RestServiceProtocol.PATH_FIELD).asName();
-            this.task = context.getTaskFromMethodAndPath(method, path);
+            this.params = context.getValue(RestServiceProtocol.PATH_FIELD).asMap().entrySet().stream()
+                    .map(entry -> KeyValueUtil.createKeyValue( (ParamName) entry.getKey(), (Message.Value) entry.getValue()))
+                    .collect(Collectors.toList());
             return super.initialize();
         }
 
         @Override
         protected Task internalRun(RestServiceWorker actionContext) throws UserException {
+            Task task = null;
+            try {
+                task = context.createTaskFromMethodAndPath(method, path);
+            } catch (Exception e) {
+                e.printStackTrace(); //TODO // FIXME: 2017-02-26
+                throw new UserException(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
+            }
             return task;
         }
     }

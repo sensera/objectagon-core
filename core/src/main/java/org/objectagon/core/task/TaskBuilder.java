@@ -52,4 +52,5 @@ public interface TaskBuilder {
     interface TaskBuilderAddress extends Address {
         Task.TaskAddress create(Task.TaskName taskName, long taskSequenceId);
     }
+
 }

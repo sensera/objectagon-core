@@ -74,6 +74,7 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
             httpServer = new HttpServer(new LocalHttpCommunicator(), port);
             try {
                 httpServer.start();
+                System.out.println("HttpService.internalCreateStartServiceTask started");
             } catch (FailedToStartException e) {
                 e.printStackTrace();
             }
@@ -87,6 +88,7 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
                 return;
             try {
                 httpServer.stop();
+                System.out.println("HttpService.internalCreateStopServiceTask stopped");
             } catch (FailedToStopException e) {
                 e.printStackTrace();
             }

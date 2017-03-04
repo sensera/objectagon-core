@@ -33,102 +33,96 @@ core/src/main/java/org/objectagon/core/rest/README.md
 
 
 **Start new transaction add att to session**
-curl -i -X PUT http://localhost:9900/transaction/
+> curl -i -X PUT http://localhost:9900/transaction/
 
 
 **Create meta and attach to Alias**
-curl -i -X PUT http://localhost:9900/meta?alias=Base
+> curl -i -X PUT http://localhost:9900/meta?alias=Base
 
 **Create a type and attach i to the type id and alias *Item***
-curl -i -X PUT http://localhost:9900/class?alias=Item
+> curl -i -X PUT http://localhost:9900/class?alias=Item
 
 **Create a method**
-curl -i -X PUT http://localhost:9900/meta/Base/method?alias=addValue
+> curl -i -X PUT http://localhost:9900/meta/Base/method?alias=addValue
 
 **Add parameters to the Method**
-echo 'invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());' | curl -i -X POST -d @- http://localhost:9900/method/addValue/code
-curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=sumValue&paramField=Number' 
-curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=addValue&paramField=Number'
+> echo 'invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());' | curl -i -X POST -d @- http://localhost:9900/method/addValue/code
+> curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=sumValue&paramField=Number' 
+> curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=addValue&paramField=Number'
 
 **Add field to an Item**
-curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
-curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
-curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemQuantity
+> curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
+> curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
+> curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemQuantity
 
 **Bind the method addValue to Item and the field ItemQuantity**
-curl -i -X PUT http://localhost:9900/class/Item/method/addValue?sumValue=ItemQuantity
+> curl -i -X PUT http://localhost:9900/class/Item/method/addValue?sumValue=ItemQuantity
 
 **Create a type and attach it to the type id and alias *Order***
-curl -i -X PUT http://localhost:9900/class?alias=Order
+> curl -i -X PUT http://localhost:9900/class?alias=Order
 
 **Add a field to Order**
-curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
-curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
-curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
+> curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
+> curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
+> curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
 
 
-**Skapa en relationstyp (mellan Order och Item) och koppla den skapade relationstypen till alias *OrderItem***
-**Create a relationtype **
-curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
+**Create a relationtype (between Order and Item) and connect the created relation type to alias *OrderItem***
+> curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
 
 
-**Skapa en instans av Order och koppla till alias *Order1***
-curl -i -X PUT http://localhost:9900/class/Order/instance?alias=Order1
+**Create an instance of Order and connect it to alias *Order1***
+> curl -i -X PUT http://localhost:9900/class/Order/instance?alias=Order1
 
-**Skapa en instans av Item och koppla till alias *Item1***
-curl -i -X PUT http://localhost:9900/class/Item/instance?alias=Item1
+**Create an instance of Item and connect it to alias *Item1***
+> curl -i -X PUT http://localhost:9900/class/Item/instance?alias=Item1
 
-**Sätt värden på fälten**
-curl -i -X POST http://localhost:9900/instance/Item1/field/ItemName?value=Hubbabubba
-curl -i -X POST http://localhost:9900/instance/Item1/field/ItemNumber?value=67897
-curl -i -X POST http://localhost:9900/instance/Order1/field/OrderNumber?value=44343
-curl -i -X POST http://localhost:9900/instance/Order1/field/CustomerName?value=Hubba%20AB
-curl -i -X POST http://localhost:9900/instance/Order1/field/CustomerAddress?value=Gone%20Street%201
+**Set values on fields**
+> curl -i -X POST http://localhost:9900/instance/Item1/field/ItemName?value=Hubbabubba
+> curl -i -X POST http://localhost:9900/instance/Item1/field/ItemNumber?value=67897
+> curl -i -X POST http://localhost:9900/instance/Order1/field/OrderNumber?value=44343
+> curl -i -X POST http://localhost:9900/instance/Order1/field/CustomerName?value=Hubba%20AB
+> curl -i -X POST http://localhost:9900/instance/Order1/field/CustomerAddress?value=Gone%20Street%201
 
-**Lägg till en relation från Order1 to Item1**
-curl -i -X PUT http://localhost:9900/instance/Order1/relation/OrderItem/Item1
+**Add relation from *Order1* to *Item1***
+> curl -i -X PUT http://localhost:9900/instance/Order1/relation/OrderItem/Item1
 
-**Hämta relation *OrderItem* från **Order1***
-curl -i -X GET http://localhost:9900/instance/Order1/relation/OrderItem
+**Get relation *OrderItem* from **Order1***
+> curl -i -X GET http://localhost:9900/instance/Order1/relation/OrderItem
 
-**Hämta relation *OrderItem* från **Item1***
-curl -i -X GET http://localhost:9900/instance/Item1/relation/OrderItem
+**Get relation *Item1* from **OrderItem***
+> curl -i -X GET http://localhost:9900/instance/Item1/relation/OrderItem
 
-**Anropa metoden**
-curl -i -X GET http://localhost:9900/instance/Item1/method/addValue?addValue=10
+**Invkoke method**
+> curl -i -X GET http://localhost:9900/instance/Item1/method/addValue?addValue=10
 
-**Hämta värden från fälten**
-curl -i -X GET http://localhost:9900/instance/Item1/field/ItemName
-curl -i -X GET http://localhost:9900/instance/Item1/field/ItemNumber
-curl -i -X GET http://localhost:9900/instance/Item1/field/ItemQuantity
-curl -i -X GET http://localhost:9900/instance/Order1/field/OrderNumber
-curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerName
-curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerAddress
+**Get values from fields**
+> curl -i -X GET http://localhost:9900/instance/Item1/field/ItemName
+> curl -i -X GET http://localhost:9900/instance/Item1/field/ItemNumber
+> curl -i -X GET http://localhost:9900/instance/Item1/field/ItemQuantity
+> curl -i -X GET http://localhost:9900/instance/Order1/field/OrderNumber
+> curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerName
+> curl -i -X GET http://localhost:9900/instance/Order1/field/CustomerAddress
 
 
-// --- Packeterade anrop för att skapa en liten grundstruktur av Item and Order
-curl -i -X PUT http://localhost:9900/transaction/
-curl -i -X PUT http://localhost:9900/class?alias=Item
-curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
-curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
-curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemQuantity
-curl -i -X PUT http://localhost:9900/class?alias=Order
-curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
-curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
-curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
-curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
-curl -i -X PUT http://localhost:9900/class/Order/instance?alias=Order1
-curl -i -X PUT http://localhost:9900/class/Item/instance?alias=Item1
-curl -i -X PUT http://localhost:9900/instance/Order1/relation/OrderItem/Item1
-
-curl -i -X PUT http://localhost:9900/meta?alias=Base
-curl -i -X PUT http://localhost:9900/meta/Base/method?alias=addValue
-
-echo 'invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());' | curl -i -X POST -d @- http://localhost:9900/method/addValue/code
-
-curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=sumValue&paramField=Number' 
-curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=addValue&paramField=Number'
-
-curl -i -X PUT http://localhost:9900/class/Item/method/addValue?sumValue=ItemQuantity
-
-curl -i -X GET http://localhost:9900/instance/Item1/method/addValue?addValue=10
+// --- All calls put together to create a base structure of Item and Order
+> curl -i -X PUT http://localhost:9900/transaction/
+> curl -i -X PUT http://localhost:9900/class?alias=Item
+> curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemName
+> curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemNumber
+> curl -i -X PUT http://localhost:9900/class/Item/field?alias=ItemQuantity
+> curl -i -X PUT http://localhost:9900/class?alias=Order
+> curl -i -X PUT http://localhost:9900/class/Order/field?alias=OrderNumber
+> curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerName
+> curl -i -X PUT http://localhost:9900/class/Order/field?alias=CustomerAddress
+> curl -i -X PUT http://localhost:9900/class/Order/relation/Item?alias=OrderItem
+> curl -i -X PUT http://localhost:9900/class/Order/instance?alias=Order1
+> curl -i -X PUT http://localhost:9900/class/Item/instance?alias=Item1
+> curl -i -X PUT http://localhost:9900/instance/Order1/relation/OrderItem/Item1
+> curl -i -X PUT http://localhost:9900/meta?alias=Base
+> curl -i -X PUT http://localhost:9900/meta/Base/method?alias=addValue
+> echo 'invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());' | curl -i -X POST -d @- http://localhost:9900/method/addValue/code
+> curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=sumValue&paramField=Number' 
+> curl -i -X PUT 'http://localhost:9900/method/addValue/param?paramName=addValue&paramField=Number'
+> curl -i -X PUT http://localhost:9900/class/Item/method/addValue?sumValue=ItemQuantity
+> curl -i -X GET http://localhost:9900/instance/Item1/method/addValue?addValue=10

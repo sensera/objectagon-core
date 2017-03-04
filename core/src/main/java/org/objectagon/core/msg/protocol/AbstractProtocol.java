@@ -133,7 +133,6 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
 
         public AbstractProtocolSession(Composer composer) {
             this.composer = composer;
-
         }
 
         @Override
@@ -176,8 +175,8 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
                         Receiver.ADDRESS_CONFIGURATIONS,
                         ReceiverAddressConfigurationParameters.create(
                                 getReceiverCtrl().getServerId(),
-                                System.currentTimeMillis(),
-                                idCounter.next()))
+                                idCounter.next(),
+                                System.currentTimeMillis()))
             );
             return sessionTask;
         }

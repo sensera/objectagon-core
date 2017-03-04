@@ -80,6 +80,6 @@ public class StandardEnvelope implements Envelope {
 
     @Override
     public String toString() {
-        return "*"+message+"@"+target+" from "+sender+" headers "+ Util.printValuesToString(headers.values());
+        return "*"+message+"@"+target+" from "+sender+" headers "+ ( headers!=null ? Util.printValuesToString(headers.values()) : "" );
     }
 }

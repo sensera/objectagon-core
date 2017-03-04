@@ -87,7 +87,7 @@ public class RestServerBasicConfiguration {
         server.registerFactory(TEST_USER, TestUser::new);
     }
 
-    private Task initialize() {
+    public Task initialize() {
         TaskBuilder taskBuilder = server.createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
 
         TaskBuilder.SequenceBuilder sequence = taskBuilder.sequence(InitTasks.InitTestCoreTasks);

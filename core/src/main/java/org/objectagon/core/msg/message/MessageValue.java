@@ -5,10 +5,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -42,6 +39,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value values(Message.Field field, Iterable<Message.Value> values) { return new MessageValue<Message.Values>(field, iterableToValues(values));}
     public static Message.Value field(Message.Field field, Message.Field value) { return new MessageValue<>(field, value);}
     public static Message.Value blob(Message.Field field, byte[] value) { return new MessageValue<>(field, value);}
+    public static Message.Value map(Message.Field field, Map<? extends Name,? extends Message.Value> value) { return new MessageValue<>(field, value);}
     public static Message.Value any(Object value) { return new MessageValue<>(StandardField.UNKNOWN, value);}
     public static Message.Value empty() {return UnknownValue.create(StandardField.UNKNOWN);}
 
@@ -138,6 +136,11 @@ public class MessageValue<V> implements Message.Value {
     }
 
     @Override
+    public Map<? extends Name, ? extends Message.Value> asMap() {
+        return (Map<? extends Name, ? extends Message.Value>) value;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MessageValue)) return false;
@@ -179,6 +182,7 @@ public class MessageValue<V> implements Message.Value {
             case MessageName: validate(field, value, Message.MessageName.class); break;
             case Message: validate(field, value, MessageValueMessage.class); break;
             case Values: validate(field, value, Message.Values.class); break;
+            case Map:  break;
             default: //TODO the rest?
         }
     }

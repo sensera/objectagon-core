@@ -8,7 +8,8 @@ import org.objectagon.core.msg.protocol.ProtocolNameStandardAddress;
  */
 public interface Protocol<S extends Protocol.Send, R extends Protocol.Reply> extends Receiver<Protocol.ProtocolAddress> {
 
-    Message.Field PROTOCOL_NAME = NamedField.name("PROTOCOL_NAME");
+    Message.Field PROTOCOL_NAME = NamedField.name("protocolName");
+    Message.Field SESSION_ID = NamedField.address("sessionId");
 
     S createSend(CreateSendParam createSend);
     R createReply(CreateReplyParam createReply);
@@ -33,6 +34,8 @@ public interface Protocol<S extends Protocol.Send, R extends Protocol.Reply> ext
     interface Session {
         void terminate();
     }
+
+    interface SessionId extends Address { }
 
     interface Send extends Session {}
 

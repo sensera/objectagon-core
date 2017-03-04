@@ -41,6 +41,7 @@ public class HttpServer extends AbstractStartStopController {
                     .childHandler(new HttpServerInitializer(httpCommunicator));
 
             ch = b.bind(port).sync().channel();
+            System.out.println("HttpServer.protectedStart LISTENING on "+port);
         } catch (InterruptedException e) {
             throw new FailedToStartException(e);
         }

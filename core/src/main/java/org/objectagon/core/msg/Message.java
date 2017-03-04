@@ -37,6 +37,8 @@ public interface Message {
         <N extends Name> N asName();
         Field asField();
         Values asValues();
+        java.util.Map<? extends Name, ? extends Value> asMap();
+
         default boolean isUnknown() { return this instanceof UnknownValue; }
 
         void writeTo(Writer writer);
@@ -77,7 +79,8 @@ public interface Message {
         MessageName,
         Name,
         Password,
-        Values;
+        Values,
+        Map;
     }
 
     interface Writer {

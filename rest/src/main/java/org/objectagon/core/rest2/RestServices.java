@@ -43,8 +43,8 @@ public class RestServices {
     }
 
     public RestServices createReceivers() {
-        restServiceAddress = server.createReceiver(RestService.REST_SERVICE_NAME, OneReceiverConfigurations.create(HttpService.HTTP_SERVICE_CONFIGURATION_NAME, getHttpServiceConfig())).getAddress();
-        httpServiceAddress = server.createReceiver(HttpService.HTTP_SERVICE_NAME).getAddress();
+        restServiceAddress = server.createReceiver(RestService.REST_SERVICE_NAME).getAddress();
+        httpServiceAddress = server.createReceiver(HttpService.HTTP_SERVICE_NAME, OneReceiverConfigurations.create(HttpService.HTTP_SERVICE_CONFIGURATION_NAME, getHttpServiceConfig())).getAddress();
         return this;
     }
 

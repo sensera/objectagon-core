@@ -76,7 +76,7 @@ public class MethodMessageValueTransform {
         };
     }
 
-    private static class KeyIdentityImpl implements KeyValue<Method.ParamName, Field.FieldIdentity> {
+    private class KeyIdentityImpl implements KeyValue<Method.ParamName, Field.FieldIdentity> {
         private Method.ParamName key;
         private Field.FieldIdentity field;
 
@@ -96,7 +96,7 @@ public class MethodMessageValueTransform {
         }
     }
 
-    private static class KeyDefaultImpl implements KeyValue<Method.ParamName, Message.Value> {
+    private class KeyDefaultImpl implements KeyValue<Method.ParamName, Message.Value> {
         private Method.ParamName key;
         private Message.Value field;
 
@@ -116,7 +116,7 @@ public class MethodMessageValueTransform {
         }
     }
 
-    public static KeyValue<Method.ParamName, Message.Value> createKeyValue(Method.ParamName key, Message.Value field) {
+    public KeyValue<Method.ParamName, Message.Value> createKeyValue(Method.ParamName key, Message.Value field) {
         return new KeyDefaultImpl(key, field);
     }
 

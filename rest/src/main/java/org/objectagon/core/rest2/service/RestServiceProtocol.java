@@ -22,10 +22,12 @@ public interface RestServiceProtocol extends Protocol<RestServiceProtocol.Send, 
 
     Message.Field METHOD_FIELD  = NamedField.name("methodField");
     Message.Field PATH_FIELD  = NamedField.name("pathField");
-    Message.Field PARAMS_FIELD  = NamedField.values("paramsField");
+    Message.Field PARAMS_FIELD  = NamedField.map("paramsField");
+    Message.Field CONTENT_SEQUENCE  = NamedField.number("contentSequence");
+    Message.Field CONTENT_BYTES  = NamedField.blob("contentBytes");
 
     enum MessageName implements Message.MessageName, Task.TaskName {
-        REST_REQUEST,
+        REST_REQUEST, REST_CONTENT, COMPLETED,
     }
 
     enum Method implements Name {
