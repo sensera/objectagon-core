@@ -1,5 +1,6 @@
 package org.objectagon.core.rest2.service;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -25,6 +26,7 @@ public class RestServiceProtocolSessionTest extends AbstractProtocolSessionTest<
     }
 
     @Test
+    @Ignore("WIP: REST SERVER")
     public void testRestRequest() {
         final StandardName path = StandardName.name("Path");
         final List params = Collections.EMPTY_LIST;
