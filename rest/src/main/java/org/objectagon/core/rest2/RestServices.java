@@ -4,6 +4,7 @@ import org.objectagon.core.Server;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.rest2.http.HttpServerImpl;
 import org.objectagon.core.rest2.http.HttpService;
 import org.objectagon.core.rest2.service.RestService;
 import org.objectagon.core.rest2.service.RestServiceProtocolImpl;
@@ -52,6 +53,7 @@ public class RestServices {
         return new HttpService.HttpServiceConfig() {
             @Override public Address getRestServiceAddress() {return restServiceAddress;}
             @Override public int getListenPort() {return 9900;}
+            @Override public HttpService.CreateHttpServer getCreateHttpServer() {return HttpServerImpl::new;}
         };
     }
 

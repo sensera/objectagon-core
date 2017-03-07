@@ -35,6 +35,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     }
 
     public static ServiceName REST_SERVICE_NAME = StandardServiceName.name("REST_SERVICE_NAME");
+    public static final Name REST_SERVICE_CONFIGURATION_NAME = StandardName.name("REST_SERVICE_CONFIGURATION_NAME");
 
     public static void registerAtServer(Server server) {
         server.registerFactory(REST_SERVICE_NAME, RestService::new);
@@ -50,6 +51,8 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     @Override
     public void configure(Configurations... configurations) {
         super.configure(configurations);
+        RestServiceConfig restServiceConfig = FindNamedConfiguration.finder(configurations).getConfigurationByName(REST_SERVICE_CONFIGURATION_NAME);
+        restServiceActionLocator = restServiceConfig.createRestServiceActionLocator();
     }
 
     @Override
@@ -75,7 +78,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
-                patternBuilder -> patternBuilder.setMessageNameTrigger(RestServiceProtocol.MessageName.REST_REQUEST),
+                patternBuilder -> patternBuilder.setMessageNameTrigger(RestServiceProtocol.MessageName.SIMPLE_REST_CONTENT),
                 (initializer, context) -> new ProcessRestRequestAction((RestService) initializer, (RestService.RestServiceWorker) context)
         );
     }
@@ -91,10 +94,10 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             super(workerContext);
         }
 
-        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path) throws Exception {
+        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) throws Exception {
             final RestServiceActionLocator.RestPath restPath = RestPathImpl.create(path, this);
             final RestServiceActionLocator.RestAction restAction = restServiceActionLocator.locate(null, method, restPath);
-            return restAction.createTask(getWorkerContext().getTaskBuilder(), restPath, null, null);
+            return restAction.createTask(getWorkerContext().getTaskBuilder(), restPath, params, content);
         }
 
         @Override
@@ -108,6 +111,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         RestServiceProtocol.Method method;
         Name path;
         List<KeyValue<ParamName, Message.Value>> params;
+        String content;
 
         public ProcessRestRequestAction(RestService initializer, RestServiceWorker context) {
             super(initializer, context);
@@ -117,7 +121,8 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         public boolean initialize() throws UserException {
             this.method = context.getValue(RestServiceProtocol.METHOD_FIELD).asName();
             this.path = context.getValue(RestServiceProtocol.PATH_FIELD).asName();
-            this.params = context.getValue(RestServiceProtocol.PATH_FIELD).asMap().entrySet().stream()
+            this.content = context.getValue(RestServiceProtocol.CONTENT_FIELD).asText();
+            this.params = context.getValue(RestServiceProtocol.PARAMS_FIELD).asMap().entrySet().stream()
                     .map(entry -> KeyValueUtil.createKeyValue( (ParamName) entry.getKey(), (Message.Value) entry.getValue()))
                     .collect(Collectors.toList());
             return super.initialize();
@@ -127,13 +132,17 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         protected Task internalRun(RestServiceWorker actionContext) throws UserException {
             Task task = null;
             try {
-                task = context.createTaskFromMethodAndPath(method, path);
+                task = context.createTaskFromMethodAndPath(method, path, content, params);
             } catch (Exception e) {
                 e.printStackTrace(); //TODO // FIXME: 2017-02-26
                 throw new UserException(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
             }
             return task;
         }
+    }
+
+    public interface RestServiceConfig extends NamedConfiguration {
+        RestServiceActionLocator createRestServiceActionLocator();
     }
 
 

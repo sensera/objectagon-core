@@ -44,6 +44,7 @@ public interface HttpCommunicator {
         void pushContent(InputStream content);
         void pushContent(ByteBuf content);
         AsyncReply completed();
+        void exceptionCaught(Throwable cause);
     }
 
     static HttpParamValues createHttpParamValues(String param, List<String> values) { return new HttpParamValues() {

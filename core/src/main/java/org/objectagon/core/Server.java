@@ -4,6 +4,7 @@ import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.task.TaskBuilder;
 
+import java.io.InputStream;
 import java.util.Optional;
 
 /**
@@ -50,4 +51,20 @@ public interface Server extends Transporter {
         Optional<Address> lookupAddressByAlias(Name name);
     }
 
+    // Future implementation to support general streams
+    interface Streamer {
+        Name registerStreamWriter(StreamerWriter streamerWriter);
+        void registerStreamReader(Name name, StreamerReader streamerReader);
+    }
+
+    interface StreamerWriter {
+        Optional<Long> length();
+        InputStream read();
+    }
+
+    interface StreamerReader {
+        void setLength(long length);
+        void asString(String data);
+        void asStream(InputStream stream);
+    }
 }

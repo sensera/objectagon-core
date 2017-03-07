@@ -11,11 +11,14 @@ import org.objectagon.core.rest2.service.actions.RestActionCreator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Created by christian on 2017-01-25.
  */
 public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
+
+    private final Predicate<RestActionMatchResult> onlyValidResults = restActionMatchResult -> !restActionMatchResult.getRestMatchRating().equals(RestMatchRating.None);
 
     private List<RestActionLocator> restActionLocatorList = new ArrayList<>();
 
@@ -23,6 +26,7 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
     public RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws Exception {
         return restActionLocatorList.stream()
                 .map(restActionLocator -> restActionLocator.check(method, path))
+                .filter(RestServiceActionLocator.ONLY_VALID_RESULTS)
                 .sorted()
                 .map(RestActionMatchResult::getAction)
                 .findFirst()
@@ -58,7 +62,7 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         }
     }
 
-    private class RestActionMatchResultImpl implements RestActionMatchResult {
+    private class RestActionMatchResultImpl implements RestActionMatchResult, Comparable<RestActionMatchResult> {
 
         RestMatchRating restMatchRating;
         RestAction action;
@@ -76,6 +80,11 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         @Override
         public RestAction getAction() {
             return action;
+        }
+
+        @Override
+        public int compareTo(RestActionMatchResult restActionMatchResult) {
+            return restMatchRating.compareTo(restActionMatchResult.getRestMatchRating());
         }
     }
 }

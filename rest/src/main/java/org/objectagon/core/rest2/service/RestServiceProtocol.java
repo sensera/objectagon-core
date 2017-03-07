@@ -22,12 +22,15 @@ public interface RestServiceProtocol extends Protocol<RestServiceProtocol.Send, 
 
     Message.Field METHOD_FIELD  = NamedField.name("methodField");
     Message.Field PATH_FIELD  = NamedField.name("pathField");
+    Message.Field CONTENT_FIELD  = NamedField.text("contentField");
     Message.Field PARAMS_FIELD  = NamedField.map("paramsField");
     Message.Field CONTENT_SEQUENCE  = NamedField.number("contentSequence");
     Message.Field CONTENT_BYTES  = NamedField.blob("contentBytes");
 
+    SimplifiedSend createSimplifiedSend(CreateSendParam createSend);
+
     enum MessageName implements Message.MessageName, Task.TaskName {
-        REST_REQUEST, REST_CONTENT, COMPLETED,
+        REST_REQUEST, REST_CONTENT, COMPLETED, SIMPLE_REST_CONTENT, EXCEPTION_CAUGHT
     }
 
     enum Method implements Name {
@@ -41,6 +44,11 @@ public interface RestServiceProtocol extends Protocol<RestServiceProtocol.Send, 
         Task restRequest(Method method, Name path, List<KeyValue<ParamName, Message.Value>> params);
         Task restContent(long sequence, byte[] bytes);
         Task completed();
+        Task exceptionCaught(Throwable cause);
+    }
+
+    interface SimplifiedSend extends Protocol.Send {
+        Task restRequest(Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params);
     }
 
     static Method getMethodFromString(String method) {

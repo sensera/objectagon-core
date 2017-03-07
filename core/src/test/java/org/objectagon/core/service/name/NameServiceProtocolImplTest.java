@@ -1,7 +1,6 @@
 package core.service.name;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
@@ -11,6 +10,7 @@ import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.service.AbstractProtocolTest;
 import org.objectagon.core.service.name.NameServiceProtocol;
 import org.objectagon.core.service.name.NameServiceProtocolImpl;
+import org.objectagon.core.utils.OneReceiverConfigurations;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -34,7 +34,7 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
         address = mock(Address.class);
         senderAddress = mock(Address.class);
         protocol = new NameServiceProtocolImpl(receiverCtrl);
-        protocol.configure();
+        protocol.configure(OneReceiverConfigurations.create(Receiver.ADDRESS_CONFIGURATIONS, addressConfigurationParameters));
         Protocol.CreateSendParam createSendParam = mock(Protocol.CreateSendParam.class);
 
         when(createSendParam.getComposer()).thenReturn(composer);
@@ -45,7 +45,6 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
-    @Ignore
     public void registerName()  {
         startTaskAndVerifySentEvelope(
                 send.registerName(address, name),
@@ -57,7 +56,6 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
-    @Ignore
     public void unregisterName()  {
         startTaskAndVerifySentEvelope(
                 send.unregisterName(name),
@@ -68,7 +66,6 @@ public class NameServiceProtocolImplTest extends AbstractProtocolTest {
     }
 
     @Test
-    @Ignore
     public void lookupName() {
         startTaskAndVerifySentEvelope(
                 send.lookupAddressByName(name),

@@ -1,5 +1,6 @@
 package org.objectagon.core.rest2.service;
 
+import org.junit.Before;
 import org.mockito.ArgumentCaptor;
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.*;
@@ -24,6 +25,7 @@ public abstract class AbstractProtocolSessionTest<P extends Protocol.Session> {
     protected Receiver.AddressConfigurationParameters addressConfigurationParameters;
     protected P send;
 
+    @Before
     public void setup() {
         receiverCtrl = mock(Receiver.ReceiverCtrl.class);
         composer = mock(Composer.class);

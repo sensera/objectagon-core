@@ -14,7 +14,7 @@ import org.objectagon.core.utils.FailedToStopException;
 /**
  * Created by christian on 2017-01-21.
  */
-public class HttpServer extends AbstractStartStopController {
+public class HttpServerImpl extends AbstractStartStopController implements HttpService.HttpServer {
 
     private final int port;
     private final HttpCommunicator httpCommunicator;
@@ -23,7 +23,7 @@ public class HttpServer extends AbstractStartStopController {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
-    public HttpServer(HttpCommunicator httpCommunicator, int port) {
+    public HttpServerImpl(HttpCommunicator httpCommunicator, int port) {
         this.httpCommunicator = httpCommunicator;
         this.port = port;
     }
@@ -41,7 +41,7 @@ public class HttpServer extends AbstractStartStopController {
                     .childHandler(new HttpServerInitializer(httpCommunicator));
 
             ch = b.bind(port).sync().channel();
-            System.out.println("HttpServer.protectedStart LISTENING on "+port);
+            System.out.println("HttpServerImpl.protectedStart LISTENING on "+port);
         } catch (InterruptedException e) {
             throw new FailedToStartException(e);
         }

@@ -26,6 +26,11 @@ public class RestServiceProtocolImpl extends AbstractProtocol<RestServiceProtoco
         createSend = RestServiceProtocolSend::new;
     }
 
+    @Override
+    public SimplifiedSend createSimplifiedSend(CreateSendParam createSend) {
+        return new RestServiceProtocolSimplifiedSend(createSend);
+    }
+
     private class RestServiceProtocolSend extends AbstractProtocolSend implements RestServiceProtocol.Send {
 
         public RestServiceProtocolSend(CreateSendParam sendParam) {
@@ -60,6 +65,31 @@ public class RestServiceProtocolImpl extends AbstractProtocol<RestServiceProtoco
                     .addFailedAction((errorClass, errorKind, values) -> terminate());
         }
 
+        @Override
+        public Task exceptionCaught(Throwable cause) {
+            return task(MessageName.EXCEPTION_CAUGHT, send -> send.send(MessageName.EXCEPTION_CAUGHT))
+                    .addSuccessAction((messageName, values) -> terminate())
+                    .addFailedAction((errorClass, errorKind, values) -> terminate());
+        }
+    }
 
+    private class RestServiceProtocolSimplifiedSend extends AbstractProtocolSend implements RestServiceProtocol.SimplifiedSend {
+        public RestServiceProtocolSimplifiedSend(CreateSendParam sendParam) {
+            super(sendParam);
+        }
+
+        @Override
+        public Task restRequest(Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) {
+
+            return task(MessageName.SIMPLE_REST_CONTENT, send -> {
+                send.send(
+                        MessageName.SIMPLE_REST_CONTENT,
+                        MessageValue.name(RestServiceProtocol.METHOD_FIELD, method),
+                        MessageValue.name(RestServiceProtocol.PATH_FIELD, path),
+                        MessageValue.text(RestServiceProtocol.CONTENT_FIELD, content),
+                        MessageValue.map(RestServiceProtocol.PARAMS_FIELD, KeyValueUtil.toMap(params))
+                );
+            });
+        }
     }
 }

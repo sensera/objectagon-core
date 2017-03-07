@@ -14,19 +14,22 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
  * Created by christian on 2017-01-25.
  */
 public interface RestServiceActionLocator {
+    Predicate<RestActionMatchResult> ONLY_VALID_RESULTS = restActionMatchResult -> !restActionMatchResult.getRestMatchRating().equals(RestMatchRating.None);
+
     RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws Exception;
 
     void configure(ServiceLocator serviceLocator);
 
     @FunctionalInterface
     interface RestAction {
-        Task createTask(TaskBuilder taskBuilder, RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, byte[] data);
+        Task createTask(TaskBuilder taskBuilder, RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
     }
 
     interface RestActionKey {
@@ -100,6 +103,11 @@ public interface RestServiceActionLocator {
             return Arrays.stream(list).min(Comparator.naturalOrder()).orElse(this);
         }
 
+    }
+
+    @FunctionalInterface
+    interface Create {
+        RestServiceActionLocator create();
     }
 
 }

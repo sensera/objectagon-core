@@ -64,11 +64,9 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
                 this.asyncContent
                         .completed()
-                        .receiveReply(replyContent -> {
-                            responseAsString(channelHandlerContext, trailer, replyContent);
-                        },e -> {
-                            responseAsString(channelHandlerContext, trailer, e.getLocalizedMessage());
-                        });
+                        .receiveReply(
+                                replyContent -> responseAsString(channelHandlerContext, trailer, replyContent),
+                                error -> responseAsString(channelHandlerContext, trailer, error.getLocalizedMessage()));
             }
         }
 
@@ -99,5 +97,8 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
+        this.asyncContent.exceptionCaught(cause);
+
+        asyncContent = null;
     }
 }

@@ -19,21 +19,21 @@ import static org.objectagon.core.rest2.utils.ReadStream.readStream;
 /**
  * Created by christian on 2017-01-22.
  */
-public class HttpServerTest {
+public class HttpServerImplTest {
 
-    HttpServer httpServer;
+    HttpServerImpl httpServerImpl;
     TestHttpCommunicator httpCommunicator;
 
     @Before
     public void setUp() throws Exception {
         httpCommunicator = new TestHttpCommunicator();
-        httpServer = new HttpServer(httpCommunicator, 12345);
-        httpServer.start();
+        httpServerImpl = new HttpServerImpl(httpCommunicator, 12345);
+        httpServerImpl.start();
     }
 
     @After
     public void tearDown() throws Exception {
-        httpServer.stop();
+        httpServerImpl.stop();
     }
 
     @Test
@@ -150,6 +150,11 @@ public class HttpServerTest {
                 return (consumeReplyContent, failed) -> {
                     consumeReplyContent.accept(replyContent);
                 };
+            }
+
+            @Override
+            public void exceptionCaught(Throwable cause) {
+                cause.printStackTrace();
             }
         }
     }

@@ -1,8 +1,6 @@
 package org.objectagon.core.rest2.http;
 
-import io.netty.buffer.ByteBuf;
 import org.objectagon.core.Server;
-import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -10,24 +8,16 @@ import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.name.StandardName;
-import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
-import org.objectagon.core.rest2.utils.ReadStream;
 import org.objectagon.core.service.*;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
-import org.objectagon.core.utils.FailedToStartException;
-import org.objectagon.core.utils.FailedToStopException;
-import org.objectagon.core.utils.FindNamedConfiguration;
-import org.objectagon.core.utils.KeyValue;
+import org.objectagon.core.utils.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -46,7 +36,9 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
 
     private HttpServer httpServer;
     private Address restServiceAddress = null;
+    private CreateHttpServer createHttpServer;
     private int port;
+    private boolean simpleCommunication = true;
 
     public HttpService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -58,6 +50,7 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
         super.configure(configurations);
         HttpServiceConfig httpServiceConfig = FindNamedConfiguration.finder(configurations).getConfigurationByName(HTTP_SERVICE_CONFIGURATION_NAME);
         port = httpServiceConfig.getListenPort();
+        createHttpServer  = httpServiceConfig.getCreateHttpServer();
         restServiceAddress = httpServiceConfig.getRestServiceAddress();
     }
 
@@ -71,7 +64,7 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
     @Override
     protected Optional<TaskBuilder.Builder> internalCreateStartServiceTask(HttpServiceWorker serviceWorker) {
         return Optional.of(serviceWorker.getTaskBuilder().action(HttpServiceTaskName.StartHttpServer, () -> {
-            httpServer = new HttpServer(new LocalHttpCommunicator(), port);
+            httpServer = createHttpServer.create(new LocalHttpCommunicator(), port);
             try {
                 httpServer.start();
                 System.out.println("HttpService.internalCreateStartServiceTask started");
@@ -106,9 +99,8 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
         return new HttpServiceWorker(workerContext);
     }
 
-    public class HttpServiceWorker extends ServiceWorkerImpl {
-
-        public HttpServiceWorker(WorkerContext workerContext) {
+    class HttpServiceWorker extends ServiceWorkerImpl {
+        HttpServiceWorker(WorkerContext workerContext) {
             super(workerContext);
         }
     }
@@ -125,82 +117,17 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
 
         @Override
         public AsyncContent sendMessageWithAsyncContent(String method, String path, List<HttpParamValues> params) {
+            if (simpleCommunication)
+                return new SimpleLocalMessageSession(restServiceProtocol.createSimplifiedSend(createSendParam))
+                    .sendRestRequest(method, path, params);
             return new LocalMessageSession(restServiceProtocol.createSend(createSendParam))
                     .sendRestRequest(method, path, params);
         }
 
     }
 
-    class LocalMessageSession implements HttpCommunicator.AsyncContent, Task.SuccessAction, Task.FailedAction, HttpCommunicator.AsyncReply {
 
-        private final RestServiceProtocol.Send send;
-        private Consumer<String> consumeReplyContent;
-        private Consumer<Exception> failed;
-        private long contentSequence = 0;
-
-        public LocalMessageSession(RestServiceProtocol.Send send) {
-            this.send = send;
-        }
-
-        private LocalMessageSession sendRestRequest(String method, String path, List<HttpCommunicator.HttpParamValues> params) {
-            send.restRequest(RestServiceProtocol.getMethodFromString(method),
-                    RestServiceProtocol.getPathFromString(path),
-                    RestServiceProtocol.getParams(params, getHttpParamValuesKeyValueFunction()))
-                 .start();
-            return this;
-        }
-
-        private synchronized long nextContentSequenceNumber() { return contentSequence++;}
-
-        @Override
-        public void pushContent(String content) {
-            send.restContent(nextContentSequenceNumber(), content.getBytes()).start();
-        }
-
-        @Override
-        public void pushContent(InputStream content) {
-            try {
-                send.restContent(nextContentSequenceNumber(), ReadStream.readStream(content)).start();
-            } catch (IOException e) {
-                e.printStackTrace();
-                //TODO complete failed
-                //failed();
-            }
-        }
-
-        @Override
-        public void pushContent(ByteBuf content) {
-            byte[] bytes = new byte[content.readableBytes()];
-            content.readBytes(bytes);
-            send.restContent(nextContentSequenceNumber(), bytes).start();
-        }
-
-        @Override
-        public HttpCommunicator.AsyncReply completed() {
-            send.completed().start();
-            return this;
-        }
-
-        @Override
-        public void receiveReply(Consumer<String> consumeReplyContent, Consumer<Exception> failed) {
-            this.consumeReplyContent = consumeReplyContent;
-            this.failed = failed;
-        }
-
-        @Override
-        public void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
-            failed.accept(new Exception(errorClass.name()+" "+errorKind.name()));
-            send.terminate();
-        }
-
-        @Override
-        public void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException {
-            consumeReplyContent.accept(messageName.toString());
-            send.terminate();
-        }
-    }
-
-    private static Function<HttpCommunicator.HttpParamValues, KeyValue<ParamName, Message.Value>> getHttpParamValuesKeyValueFunction() {
+    static Function<HttpCommunicator.HttpParamValues, KeyValue<ParamName, Message.Value>> getHttpParamValuesKeyValueFunction() {
         return httpParamValues -> RestServiceProtocol.createParamKeyValue(
                 ParamName.create(httpParamValues.getParam()),
                 MessageValue.values(httpParamValues.getValues().stream().map(MessageValue::text)));
@@ -209,6 +136,14 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
     public interface HttpServiceConfig extends NamedConfiguration {
         Address getRestServiceAddress();
         int getListenPort();
+        CreateHttpServer getCreateHttpServer();
+    }
+
+    public interface HttpServer extends StartStopController {}
+
+    @FunctionalInterface
+    public interface  CreateHttpServer {
+        HttpServer create(HttpCommunicator httpCommunicator, int port);
     }
 
 
