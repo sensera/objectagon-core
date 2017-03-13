@@ -4,6 +4,7 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
@@ -23,7 +24,7 @@ public class ActionTask extends AbstractTask {
             action.run();
             success(StandardProtocol.MessageName.OK_MESSAGE, Message.NO_VALUES);
         } catch (Throwable e) {
-            failed(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED, Message.NO_VALUES);
+            failed(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED, MessageValue.text(e.getMessage()));
         }
     }
 

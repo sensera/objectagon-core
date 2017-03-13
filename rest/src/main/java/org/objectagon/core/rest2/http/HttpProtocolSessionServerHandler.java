@@ -79,7 +79,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 
-        boolean keepAlive = HttpHeaders.isKeepAlive(request);
+        boolean keepAlive = false; //HttpHeaders.isKeepAlive(request);
 
         if (keepAlive) {
             response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());

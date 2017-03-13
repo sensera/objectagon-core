@@ -117,11 +117,27 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
             Message.Value errorClass = worker.getValue(StandardProtocol.FieldName.ERROR_CLASS);
             Message.Value errorKind = worker.getValue(StandardProtocol.FieldName.ERROR_KIND);
             Iterable<Message.Value> values = worker.getValues();
-            failed(ErrorClass.valueOf(errorClass.asText()), ErrorKind.valueOf(errorKind.asText()), values);
+            failed(getErrorClass(errorClass), getErrorKind(errorKind), values);
             worker.setHandled();
         } else {
             success(worker.getMessageName(), worker.getValues());
             worker.setHandled();
+        }
+    }
+
+    private ErrorKind getErrorKind(Message.Value errorKind) {
+        try {
+            return ErrorKind.valueOf(errorKind.asText());
+        } catch (IllegalArgumentException e) {
+            return ErrorKind.UNKNOWN;
+        }
+    }
+
+    private ErrorClass getErrorClass(Message.Value errorClass) {
+        try {
+            return ErrorClass.valueOf(errorClass.asText());
+        } catch (IllegalArgumentException e) {
+            return ErrorClass.UNKNOWN;
         }
     }
 

@@ -3,7 +3,6 @@ package org.objectagon.core.rest2.service.actions;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
-import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
@@ -32,26 +31,28 @@ public class RestActionCreator {
                 .orElseThrow(() -> new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED))
                 .getIdentity()
                 .map(identity -> (E) identity)
-                .orElseThrow(() -> new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED));
+                .orElseThrow(() -> new SevereError(ErrorClass.REST_SERVICE, ErrorKind.ALIAS_NOT_FOUND, restPath.valueAtIndex(index)));
     }
 
     public void addRestAction(
             RestAction restAction,
             AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> send) {
         restServiceActionLocator.addRestAction(
-                createRestAction(restAction,send),
+                createRestAction(restAction, restAction.getProtocol(), send),
                 restAction.getMethod(),
                 restAction);
     }
 
     protected RestServiceActionLocator.RestAction createRestAction(
-            Name name,
+            Task.TaskName taskName,
+            Protocol.ProtocolName protocolName,
             AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> send) {
-        return new AbstractSessionRestAction<InstanceProtocol.Send>((Task.TaskName) name,(Protocol.ProtocolName) name, target, send);
+        return new AbstractSessionRestAction<>(taskName, protocolName, target, send);
     }
 
-    public interface RestAction extends Task.TaskName, Protocol.ProtocolName, RestServiceActionLocator.RestPathPattern {
+    public interface RestAction extends Task.TaskName, RestServiceActionLocator.RestPathPattern {
         RestServiceProtocol.Method getMethod();
+        Protocol.ProtocolName getProtocol();
     }
 
 }

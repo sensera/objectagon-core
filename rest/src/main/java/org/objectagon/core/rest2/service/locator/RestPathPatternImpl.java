@@ -42,7 +42,7 @@ public class RestPathPatternImpl implements RestServiceActionLocator.RestPathPat
                 case Perfect:
                 case Ok: return RestServiceActionLocator.RestMatchRating.Ok;
             }
-            RestServiceActionLocator.RestMatchRating ratingId = restPathValue.isId();
+            RestServiceActionLocator.RestMatchRating ratingId = restPathValue.isId(matchPatternDetails);
             switch (ratingId) {
                 case Perfect:
                 case Ok: return RestServiceActionLocator.RestMatchRating.Ok;
@@ -54,8 +54,16 @@ public class RestPathPatternImpl implements RestServiceActionLocator.RestPathPat
     @Override
     public RestServiceActionLocator.RestMatchRating check(RestServiceActionLocator.RestPath restPath) {
         final List<RestServiceActionLocator.RestMatchRating> matching = restPath.values()
-                .map(restPathValue -> matches.get(restPathValue.getIndex()).check(restPathValue))
+                .map(restPathValue -> {
+                    if (matches.size() <= restPathValue.getIndex())
+                        return RestServiceActionLocator.RestMatchRating.None;
+                    return matches.get(restPathValue.getIndex()).check(restPathValue);
+                })
                 .collect(Collectors.toList());
+        if (matching.isEmpty())
+            return RestServiceActionLocator.RestMatchRating.None;
+        if (matches.size() != restPath.size())
+            return RestServiceActionLocator.RestMatchRating.None;
         if (matching.stream().anyMatch(NONE))
             return RestServiceActionLocator.RestMatchRating.None;
         if (matching.stream().anyMatch(VAGUE))

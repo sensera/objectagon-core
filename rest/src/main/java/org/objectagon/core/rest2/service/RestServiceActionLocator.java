@@ -1,5 +1,6 @@
 package org.objectagon.core.rest2.service;
 
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
 public interface RestServiceActionLocator {
     Predicate<RestActionMatchResult> ONLY_VALID_RESULTS = restActionMatchResult -> !restActionMatchResult.getRestMatchRating().equals(RestMatchRating.None);
 
-    RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws Exception;
+    RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws UserException;
 
     void configure(ServiceLocator serviceLocator);
 
@@ -43,6 +44,9 @@ public interface RestServiceActionLocator {
 
     interface RestPath {
         Stream<RestPathValue> values();
+        Message.Value asValue();
+        Message.Value valueAtIndex(int index);
+        int size();
     }
 
     interface IdentityLookup {
@@ -52,7 +56,7 @@ public interface RestServiceActionLocator {
     interface RestPathValue {
         int getIndex();
         RestServiceActionLocator.RestMatchRating isText(RestPathPatternImpl.MatchPatternDetails matchPatternDetails);
-        RestServiceActionLocator.RestMatchRating isId();
+        RestServiceActionLocator.RestMatchRating isId(RestPathPatternImpl.MatchPatternDetails matchPatternDetails);
         <E extends Identity> Optional<E> getIdentity();
     }
 

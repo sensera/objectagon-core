@@ -20,9 +20,9 @@ public class AbstractSessionRestAction<U extends Protocol.Send> implements RestS
     Task.TaskName taskName;
     Protocol.ProtocolName protocolName;
     Address target;
-    private CreateSendMessageAction createSendMessageAction;
+    private CreateSendMessageAction<U> createSendMessageAction;
 
-    public AbstractSessionRestAction(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, CreateSendMessageAction createSendMessageAction) {
+    public AbstractSessionRestAction(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, CreateSendMessageAction<U> createSendMessageAction) {
         this.taskName = taskName;
         this.protocolName = protocolName;
         this.target = target;
@@ -43,4 +43,8 @@ public class AbstractSessionRestAction<U extends Protocol.Send> implements RestS
         ProtocolTask.SendMessageAction<U> createProtocolSend(RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
     }
 
+    @Override
+    public String toString() {
+        return taskName.toString();
+    }
 }

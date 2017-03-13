@@ -21,7 +21,9 @@ import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.KeyValue;
 import org.objectagon.core.utils.KeyValueUtil;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,8 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     enum RestServiceTaksName implements Task.TaskName {
         INITIALIZE_LOCATOR;
     }
+
+    private Map<String,Identity> aliases = new HashMap<>();
 
     public static ServiceName REST_SERVICE_NAME = StandardServiceName.name("REST_SERVICE_NAME");
     public static final Name REST_SERVICE_CONFIGURATION_NAME = StandardName.name("REST_SERVICE_CONFIGURATION_NAME");
@@ -94,7 +98,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             super(workerContext);
         }
 
-        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) throws Exception {
+        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) throws UserException {
             final RestServiceActionLocator.RestPath restPath = RestPathImpl.create(path, this);
             final RestServiceActionLocator.RestAction restAction = restServiceActionLocator.locate(null, method, restPath);
             return restAction.createTask(getWorkerContext().getTaskBuilder(), restPath, params, content);
@@ -102,7 +106,8 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         @Override
         public Optional<Identity> find(String identityAlias) {
-            return getReceiverCtrl().lookupAddressByAlias(StandardName.name(identityAlias)).map(address -> (Identity) address);
+            return Optional.ofNullable(aliases.get(identityAlias));
+            //return getReceiverCtrl().lookupAddressByAlias(StandardName.name(identityAlias)).map(address -> (Identity) address);
         }
     }
 
@@ -130,14 +135,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         @Override
         protected Task internalRun(RestServiceWorker actionContext) throws UserException {
-            Task task = null;
-            try {
-                task = context.createTaskFromMethodAndPath(method, path, content, params);
-            } catch (Exception e) {
-                e.printStackTrace(); //TODO // FIXME: 2017-02-26
-                throw new UserException(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
-            }
-            return task;
+            return context.createTaskFromMethodAndPath(method, path, content, params);
         }
     }
 

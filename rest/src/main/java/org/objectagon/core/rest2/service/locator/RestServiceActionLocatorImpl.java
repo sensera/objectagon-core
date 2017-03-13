@@ -1,6 +1,10 @@
 package org.objectagon.core.rest2.service.locator;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
@@ -23,14 +27,15 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
     private List<RestActionLocator> restActionLocatorList = new ArrayList<>();
 
     @Override
-    public RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws Exception {
+    public RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws UserException {
         return restActionLocatorList.stream()
                 .map(restActionLocator -> restActionLocator.check(method, path))
                 .filter(RestServiceActionLocator.ONLY_VALID_RESULTS)
+                .peek(restActionMatchResult -> System.out.println("RestServiceActionLocatorImpl.locate "+restActionMatchResult))
                 .sorted()
                 .map(RestActionMatchResult::getAction)
                 .findFirst()
-                .orElseThrow(() -> new Exception("Not found!"));
+                .orElseThrow(() -> new UserException(ErrorClass.REST_SERVICE, ErrorKind.NOT_FOUND, MessageValue.name(method), path.asValue()));
     }
 
     @Override
@@ -85,6 +90,11 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         @Override
         public int compareTo(RestActionMatchResult restActionMatchResult) {
             return restMatchRating.compareTo(restActionMatchResult.getRestMatchRating());
+        }
+
+        @Override
+        public String toString() {
+            return action+" "+restMatchRating;
         }
     }
 }

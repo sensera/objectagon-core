@@ -8,6 +8,7 @@ import org.objectagon.core.rest2.http.HttpServerImpl;
 import org.objectagon.core.rest2.http.HttpService;
 import org.objectagon.core.rest2.service.RestService;
 import org.objectagon.core.rest2.service.RestServiceProtocolImpl;
+import org.objectagon.core.rest2.service.locator.RestServiceActionLocatorImpl;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.ServiceProtocol;
 import org.objectagon.core.service.name.NameServiceImpl;
@@ -20,18 +21,22 @@ import org.objectagon.core.utils.OneReceiverConfigurations;
  * Created by christian on 2016-03-17.
  */
 public class RestServices {
+
+    private int port;
+
     public enum InitTasks implements Task.TaskName {
         InitRestTasks;
     }
 
-    public static RestServices create(Server server) { return new RestServices(server);}
+    public static RestServices create(Server server, int port) { return new RestServices(server, port);}
 
     final private Server server;
     private Address httpServiceAddress;
     private Address restServiceAddress;
 
-    public RestServices(Server server) {
+    public RestServices(Server server, int port) {
         this.server = server;
+        this.port = port;
     }
 
     public RestServices registerAt() {
@@ -44,15 +49,23 @@ public class RestServices {
     }
 
     public RestServices createReceivers() {
-        restServiceAddress = server.createReceiver(RestService.REST_SERVICE_NAME).getAddress();
-        httpServiceAddress = server.createReceiver(HttpService.HTTP_SERVICE_NAME, OneReceiverConfigurations.create(HttpService.HTTP_SERVICE_CONFIGURATION_NAME, getHttpServiceConfig())).getAddress();
+        restServiceAddress = server.createReceiver(RestService.REST_SERVICE_NAME,
+                OneReceiverConfigurations.create(RestService.REST_SERVICE_CONFIGURATION_NAME, getRestServiceConfig())
+        ).getAddress();
+        httpServiceAddress = server.createReceiver(HttpService.HTTP_SERVICE_NAME,
+                OneReceiverConfigurations.create(HttpService.HTTP_SERVICE_CONFIGURATION_NAME, getHttpServiceConfig())
+        ).getAddress();
         return this;
+    }
+
+    private Receiver.NamedConfiguration getRestServiceConfig() {
+        return (RestService.RestServiceConfig) RestServiceActionLocatorImpl::new;
     }
 
     private Receiver.NamedConfiguration getHttpServiceConfig() {
         return new HttpService.HttpServiceConfig() {
             @Override public Address getRestServiceAddress() {return restServiceAddress;}
-            @Override public int getListenPort() {return 9900;}
+            @Override public int getListenPort() {return port;}
             @Override public HttpService.CreateHttpServer getCreateHttpServer() {return HttpServerImpl::new;}
         };
     }

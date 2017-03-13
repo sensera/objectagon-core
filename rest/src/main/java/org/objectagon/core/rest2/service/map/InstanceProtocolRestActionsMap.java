@@ -1,5 +1,7 @@
 package org.objectagon.core.rest2.service.map;
 
+import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathPattern;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
@@ -42,12 +44,14 @@ public interface InstanceProtocolRestActionsMap<E, A extends InstanceProtocolRes
             this.restPathPattern = restPathPattern;
         }
 
-        @Override public String getName() { return name(); }
+        //@Override public String getName() { return name(); }
+
         @Override public RestServiceActionLocator.RestMatchRating check(RestServiceActionLocator.RestPath restPath) {
             return restPathPattern.check(restPath);
         }
         @Override public RestServiceProtocol.Method getMethod() {
             return method;
         }
+        @Override public Protocol.ProtocolName getProtocol() {return InstanceProtocol.INSTANCE_PROTOCOL;}
     }
 }

@@ -56,7 +56,7 @@ public class RestServerBasicConfiguration {
     Optional<TestUser> latestTestUser = Optional.empty();
     Optional<Transaction> transaction = Optional.empty();
 
-    public RestServerBasicConfiguration(Server server) {
+    public RestServerBasicConfiguration(Server server, int port) {
         this.server = server;
 
         StandardTaskBuilder.registerAt(server);
@@ -80,7 +80,7 @@ public class RestServerBasicConfiguration {
                 .registerAt()
                 .createReceivers();
 
-        restServices = RestServices.create(server)
+        restServices = RestServices.create(server, port)
                 .registerAt()
                 .createReceivers();
 

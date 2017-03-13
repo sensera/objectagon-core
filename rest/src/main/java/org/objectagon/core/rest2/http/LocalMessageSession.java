@@ -31,6 +31,8 @@ class LocalMessageSession implements HttpCommunicator.AsyncContent, Task.Success
         send.restRequest(RestServiceProtocol.getMethodFromString(method),
                 RestServiceProtocol.getPathFromString(path),
                 RestServiceProtocol.getParams(params, HttpService.getHttpParamValuesKeyValueFunction()))
+                .addFailedAction(this)
+                .addSuccessAction(this)
                 .start();
         return this;
     }

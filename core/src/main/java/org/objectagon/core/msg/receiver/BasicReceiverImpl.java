@@ -16,6 +16,7 @@ import org.objectagon.core.task.StandardTaskBuilder;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.Util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -204,7 +205,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         }
 
         public Composer createReplyToSenderComposer() {
-            List<Message.Value> newHeaders = Util.iterableToList(headers.values());
+            List<Message.Value> newHeaders = headers != null ? Util.iterableToList(headers.values()): new ArrayList<>();
             newHeaders.add(MessageValue.messageName(StandardProtocol.FieldName.ORIGINAL_MESSAGE, message.getName()));
             return new BasicComposer(receiver, sender, () -> newHeaders);
         }

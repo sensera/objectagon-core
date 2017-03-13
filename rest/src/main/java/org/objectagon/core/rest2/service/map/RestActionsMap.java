@@ -3,6 +3,7 @@ package org.objectagon.core.rest2.service.map;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.rest2.service.actions.AbstractSessionRestAction;
 import org.objectagon.core.rest2.service.actions.RestActionCreator;
@@ -15,8 +16,8 @@ import java.util.stream.Stream;
  */
 public interface RestActionsMap<E, A extends RestActionsMap.Action> {
 
-    default Task throwNotImplementedSevereError() {
-        throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED);
+    default Task throwNotImplementedSevereError(Action action) {
+        throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED, MessageValue.name(action));
     }
 
     default void create(RestActionCreator restActionCreator) {

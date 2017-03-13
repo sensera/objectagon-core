@@ -38,6 +38,7 @@ public class ServerAliasCtrlImpl implements Server.AliasCtrl {
             addressByName.keySet().forEach(System.out::println);
             System.out.println("ServerAliasCtrlImpl.lookupAddressByAlias ******************** NOT FOUND "+name+" *******************************");
             new Exception().printStackTrace();
+            return Optional.empty();
         }
         return address;
     }
