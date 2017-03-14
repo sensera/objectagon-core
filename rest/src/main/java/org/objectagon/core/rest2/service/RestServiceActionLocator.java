@@ -30,7 +30,7 @@ public interface RestServiceActionLocator {
 
     @FunctionalInterface
     interface RestAction {
-        Task createTask(TaskBuilder taskBuilder, RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
+        Task createTask(TaskBuilder taskBuilder, RestServiceActionLocator.IdentityStore identityStore, RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
     }
 
     interface RestActionKey {
@@ -51,6 +51,10 @@ public interface RestServiceActionLocator {
 
     interface IdentityLookup {
         Optional<Identity> find(String identityAlias);
+    }
+
+    interface IdentityStore {
+        void updateIdentity(Identity identity, String identityAlias);
     }
 
     interface RestPathValue {

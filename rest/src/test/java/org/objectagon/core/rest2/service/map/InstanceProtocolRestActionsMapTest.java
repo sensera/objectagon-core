@@ -45,10 +45,9 @@ public class InstanceProtocolRestActionsMapTest {
         verify(InstanceProtocolRestActionsMap.InstanceAction.GET_INSTANCE, "78767623", RestServiceProtocol.Method.GET, "/instance/78767623");
     }
 
-
     @Test(expected = UserException.class)
     public void testNoHit() throws UserException {
-        final RestServiceActionLocator.RestAction restAction = restServiceActionLocator.locate(protocolSessionId, RestServiceProtocol.Method.GET, getPath("/nopath"));
+        restServiceActionLocator.locate(protocolSessionId, RestServiceProtocol.Method.GET, getPath("/nopath"));
     }
 
     // ---------------- Support methods -----------------

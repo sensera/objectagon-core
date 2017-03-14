@@ -30,13 +30,18 @@ import java.util.stream.Collectors;
 /**
  * Created by christian on 2017-01-09.
  */
-public class RestService extends AbstractService<RestService.RestServiceWorker, Service.ServiceName> {
+public class RestService extends AbstractService<RestService.RestServiceWorker, Service.ServiceName> implements RestServiceActionLocator.IdentityStore {
 
     enum RestServiceTaksName implements Task.TaskName {
         INITIALIZE_LOCATOR;
     }
 
     private Map<String,Identity> aliases = new HashMap<>();
+
+    @Override
+    public void updateIdentity(Identity identity, String identityAlias) {
+        aliases.put(identityAlias, identity);
+    }
 
     public static ServiceName REST_SERVICE_NAME = StandardServiceName.name("REST_SERVICE_NAME");
     public static final Name REST_SERVICE_CONFIGURATION_NAME = StandardName.name("REST_SERVICE_CONFIGURATION_NAME");
@@ -101,7 +106,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) throws UserException {
             final RestServiceActionLocator.RestPath restPath = RestPathImpl.create(path, this);
             final RestServiceActionLocator.RestAction restAction = restServiceActionLocator.locate(null, method, restPath);
-            return restAction.createTask(getWorkerContext().getTaskBuilder(), restPath, params, content);
+            return restAction.createTask(getWorkerContext().getTaskBuilder(), RestService.this, restPath, params, content);
         }
 
         @Override

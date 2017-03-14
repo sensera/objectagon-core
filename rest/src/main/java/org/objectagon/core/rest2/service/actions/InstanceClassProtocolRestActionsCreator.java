@@ -13,8 +13,8 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
 
     public AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> getAction(RestActionCreator restActionCreator, InstanceClassAction action) {
         switch (action) {
-            case LIST_CLASSES: return (restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
-            default: return (restPath, params, data) -> session -> throwNotImplementedSevereError(action);
+            case LIST_CLASSES: return (identityStore, restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
+            default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
     }
 

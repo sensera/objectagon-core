@@ -29,18 +29,18 @@ public class AbstractSessionRestAction<U extends Protocol.Send> implements RestS
         this.createSendMessageAction = createSendMessageAction;
     }
 
-    protected ProtocolTask.SendMessageAction createMessage(RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) {
-        return createSendMessageAction.createProtocolSend(restPath, params, data);
+    protected ProtocolTask.SendMessageAction createMessage(RestServiceActionLocator.IdentityStore identityStore, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) {
+        return createSendMessageAction.createProtocolSend(identityStore, restPath, params, data);
     }
 
     @Override
-    public Task createTask(TaskBuilder taskBuilder, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) {
-        return taskBuilder.protocol(taskName, protocolName, target, createMessage(restPath, params, data)).create();
+    public Task createTask(TaskBuilder taskBuilder, RestServiceActionLocator.IdentityStore identityStore, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) {
+        return taskBuilder.protocol(taskName, protocolName, target, createMessage(identityStore, restPath, params, data)).create();
     }
 
     @FunctionalInterface
     public interface CreateSendMessageAction<U extends Protocol.Send> {
-        ProtocolTask.SendMessageAction<U> createProtocolSend(RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
+        ProtocolTask.SendMessageAction<U> createProtocolSend(RestServiceActionLocator.IdentityStore identityStore, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
     }
 
     @Override

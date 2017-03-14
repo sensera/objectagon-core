@@ -13,9 +13,9 @@ public class InstanceProtocolRestActionsCreator implements InstanceProtocolRestA
 
     public AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> getAction(RestActionCreator restActionCreator, InstanceProtocolRestActionsMap.InstanceAction action) {
         switch (action) {
-            case GET_VALUE: return (restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
-            case GET_INSTANCE: return (restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
-            default: return (restPath, params, data) -> session -> throwNotImplementedSevereError(action);
+            case GET_VALUE: return (identityStore, restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
+            case GET_INSTANCE: return (identityStore, restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
+            default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
     }
 

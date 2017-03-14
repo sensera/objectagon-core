@@ -27,6 +27,8 @@ public interface RestServiceProtocol extends Protocol<RestServiceProtocol.Send, 
     Message.Field CONTENT_SEQUENCE  = NamedField.number("contentSequence");
     Message.Field CONTENT_BYTES  = NamedField.blob("contentBytes");
 
+    ParamName ALIAS_PARAM_NAME  = ParamName.create("alias");
+
     SimplifiedSend createSimplifiedSend(CreateSendParam createSend);
 
     enum MessageName implements Message.MessageName, Task.TaskName {

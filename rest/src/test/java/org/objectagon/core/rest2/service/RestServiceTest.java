@@ -32,8 +32,8 @@ public class RestServiceTest extends AbstractServiceTest<RestService> {
         restTask = mock(Task.class);
         when(restServiceActionLocator.locate(isA(Address.class), eq(method), isA(RestServiceActionLocator.RestPath.class))).thenReturn(restAction);
         when(restServiceActionLocator.locate(isNull(Address.class), eq(method), isA(RestServiceActionLocator.RestPath.class))).thenReturn(restAction);
-        when(restAction.createTask(isA(TaskBuilder.class), isA(RestServiceActionLocator.RestPath.class), any(), eq(content))).thenReturn(restTask);
-        when(restAction.createTask(isNull(TaskBuilder.class), isA(RestServiceActionLocator.RestPath.class), any(), eq(content))).thenReturn(restTask);
+        when(restAction.createTask(isA(TaskBuilder.class), isA(RestServiceActionLocator.IdentityStore.class), isA(RestServiceActionLocator.RestPath.class), any(), eq(content))).thenReturn(restTask);
+        when(restAction.createTask(isNull(TaskBuilder.class), isA(RestServiceActionLocator.IdentityStore.class), isA(RestServiceActionLocator.RestPath.class), any(), eq(content))).thenReturn(restTask);
         when(restTask.addSuccessAction(isA(Task.SuccessAction.class))).thenReturn(restTask);
         when(restTask.addFailedAction(isA(Task.FailedAction.class))).thenReturn(restTask);
         super.setup();
