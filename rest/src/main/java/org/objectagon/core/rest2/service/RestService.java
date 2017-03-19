@@ -7,6 +7,7 @@ import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
@@ -14,6 +15,7 @@ import org.objectagon.core.rest2.service.locator.RestPathImpl;
 import org.objectagon.core.rest2.service.locator.RestServiceActionLocatorImpl;
 import org.objectagon.core.service.*;
 import org.objectagon.core.storage.Identity;
+import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.task.ActionTask;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
@@ -25,21 +27,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
  * Created by christian on 2017-01-09.
  */
-public class RestService extends AbstractService<RestService.RestServiceWorker, Service.ServiceName> implements RestServiceActionLocator.IdentityStore {
+public class RestService extends AbstractService<RestService.RestServiceWorker, Service.ServiceName>  {
 
     enum RestServiceTaksName implements Task.TaskName {
         INITIALIZE_LOCATOR;
     }
 
+    private Map<RestSessionToken, RestServiceActionLocator.RestSession> sessions = new HashMap<>();
+
     private Map<String,Identity> aliases = new HashMap<>();
 
-    @Override
-    public void updateIdentity(Identity identity, String identityAlias) {
+    public void setIdentityAlias(Identity identity, String identityAlias) {
         aliases.put(identityAlias, identity);
     }
 
@@ -103,10 +107,28 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             super(workerContext);
         }
 
-        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) throws UserException {
+        public Task createTaskFromMethodAndPath(RestServiceProtocol.Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params, RestSessionToken token) throws UserException {
             final RestServiceActionLocator.RestPath restPath = RestPathImpl.create(path, this);
             final RestServiceActionLocator.RestAction restAction = restServiceActionLocator.locate(null, method, restPath);
-            return restAction.createTask(getWorkerContext().getTaskBuilder(), RestService.this, restPath, params, content);
+            final RestServiceActionLocator.RestSession restSession = sessions.get(token);
+            final TaskBuilder taskBuilder = getWorkerContext().getTaskBuilder();
+            taskBuilder.addHeader(MessageValue.name(RestServiceProtocol.TOKEN_HEADER, restSession.geRestSessionToken()));
+            restSession.useActiveTransaction(Transaction.addAsHeader(taskBuilder));
+            return restAction.createTask(taskBuilder, new RestServiceActionLocator.IdentityStore() {
+                @Override
+                public void updateIdentity(Identity identity, String identityAlias) {
+                    setIdentityAlias(identity, identityAlias);
+                }
+                @Override
+                public void updateSessionTransaction(Transaction transaction) {
+                    restSession.updateTransaction(transaction);
+                }
+
+                @Override
+                public Optional<Transaction> getActiveTransaction() {
+                    return restSession.getActiveTransaction();
+                }
+            }, restPath, params, content);
         }
 
         @Override
@@ -114,6 +136,21 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             return Optional.ofNullable(aliases.get(identityAlias));
             //return getReceiverCtrl().lookupAddressByAlias(StandardName.name(identityAlias)).map(address -> (Identity) address);
         }
+
+        public RestSessionToken getToken() {
+            return getWorkerContext().getHeader(RestServiceProtocol.TOKEN_HEADER)
+                    .getOptionalValue()
+                    .map(value -> RestSessionToken.name( (String) value))
+                    .orElseGet(() -> createNewToken());
+        }
+    }
+
+    private RestSessionToken createNewToken() {
+        //final RestSessionToken name = RestSessionToken.name(Long.toHexString(System.currentTimeMillis()));
+        final RestSessionToken name = RestSessionToken.name("1234567890");
+        sessions.put(name, new RestSessionImpl(name));
+        System.out.println("RestService.createNewToken "+name);
+        return name;
     }
 
     private class ProcessRestRequestAction extends AsyncAction<RestService,RestServiceWorker> {
@@ -122,6 +159,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         Name path;
         List<KeyValue<ParamName, Message.Value>> params;
         String content;
+        RestSessionToken token;
 
         public ProcessRestRequestAction(RestService initializer, RestServiceWorker context) {
             super(initializer, context);
@@ -135,12 +173,13 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             this.params = context.getValue(RestServiceProtocol.PARAMS_FIELD).asMap().entrySet().stream()
                     .map(entry -> KeyValueUtil.createKeyValue( (ParamName) entry.getKey(), (Message.Value) entry.getValue()))
                     .collect(Collectors.toList());
+            this.token = context.getToken();
             return super.initialize();
         }
 
         @Override
         protected Task internalRun(RestServiceWorker actionContext) throws UserException {
-            return context.createTaskFromMethodAndPath(method, path, content, params);
+            return context.createTaskFromMethodAndPath(method, path, content, params, token);
         }
     }
 
@@ -148,5 +187,38 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         RestServiceActionLocator createRestServiceActionLocator();
     }
 
+    public static class RestSessionImpl implements RestServiceActionLocator.RestSession {
+
+        private RestSessionToken name;
+        private Transaction transaction;
+
+        @Override
+        public RestSessionToken geRestSessionToken() {
+            return name;
+        }
+
+        @Override
+        public void updateTransaction(Transaction transaction) {
+            this.transaction = transaction;
+            System.out.println("RestSessionImpl.updateTransaction !!!!!!!!!!!!!!!! "+transaction);
+        }
+
+        @Override
+        public Optional<Transaction> getActiveTransaction() {
+            return Optional.of(transaction);
+        }
+
+        @Override
+        public void useActiveTransaction(Consumer<Transaction> consumer) {
+            if (transaction!=null) {
+                consumer.accept(transaction);
+            }
+            System.out.println("RestSessionImpl.useActiveTransaction !!!!!!! "+transaction);
+        }
+
+        public RestSessionImpl(RestSessionToken name) {
+            this.name = name;
+        }
+    }
 
 }

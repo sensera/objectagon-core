@@ -2,15 +2,25 @@ package org.objectagon.core.rest2.http;
 
 import io.netty.buffer.ByteBuf;
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.msg.message.MessageValueMessage;
+import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
+import org.objectagon.core.rest2.utils.JsonBuilder;
+import org.objectagon.core.rest2.utils.JsonBuilderImpl;
 import org.objectagon.core.rest2.utils.ReadStream;
 import org.objectagon.core.task.Task;
 
 import java.io.*;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.StreamSupport;
 
 /**
  * Created by christian on 2017-03-05.
@@ -18,13 +28,14 @@ import java.util.function.Consumer;
 class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.SuccessAction, Task.FailedAction, HttpCommunicator.AsyncReply {
 
     private final RestServiceProtocol.SimplifiedSend send;
-    private Consumer<String> consumeReplyContent;
-    private Consumer<Exception> failed;
+    private Consumer<HttpCommunicator.AsyncReplyContent> consumeReplyContent;
+    private Consumer<String> failed;
     private ByteArrayOutputStream out;
     private BufferedWriter writer;
     private String method;
     private String path;
     private List<HttpCommunicator.HttpParamValues> params;
+    private JsonBuilder jsonBuilder = new JsonBuilderImpl();
 
     public SimpleLocalMessageSession(RestServiceProtocol.SimplifiedSend send) {
         this.send = send;
@@ -70,7 +81,6 @@ class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.S
 
     @Override
     public HttpCommunicator.AsyncReply completed() {
-        getContentFromBufferedStream();
         send.restRequest(RestServiceProtocol.getMethodFromString(method),
                 RestServiceProtocol.getPathFromString(path),
                 getContentFromBufferedStream(),
@@ -98,20 +108,89 @@ class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.S
     }
 
     @Override
-    public void receiveReply(Consumer<String> consumeReplyContent, Consumer<Exception> failed) {
+    public void receiveReply(Consumer<HttpCommunicator.AsyncReplyContent> consumeReplyContent, Consumer<String> failed) {
         this.consumeReplyContent = consumeReplyContent;
         this.failed = failed;
     }
 
     @Override
     public void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
-        failed.accept(new Exception(errorClass.name() + " " + errorKind.name()));
+        final JsonBuilder.Builder builder = jsonBuilder.builder();
+        builder.setChildValue(StandardName.name("errorClass"), errorClass.name());
+        builder.setChildValue(StandardName.name("errorKind"), errorKind.name());
+        StreamSupport.stream(values.spliterator(), false)
+                .forEach(childValue -> addJsonChild(builder, StandardName.name("value"), childValue));
+        failed.accept(builder.build().toString());
         send.terminate();
     }
 
     @Override
     public void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException {
-        consumeReplyContent.accept(messageName.toString());
+        final JsonBuilder.Builder builder = jsonBuilder.builder();
+        final Map<? extends Name, ? extends Message.Value> map = MessageValueFieldUtil.create(values).getValueByField(RestServiceProtocol.REST_CONTENT_RESPONSE).asMap();
+        createJson(builder, map);
+        consumeReplyContent.accept(new HttpCommunicator.AsyncReplyContent() {
+            @Override
+            public String getContent() {
+                return builder.build().toString();
+            }
+
+            @Override
+            public Optional<String> token() {
+                return Optional.empty();
+            }
+        });
         send.terminate();
+    }
+
+    private void createJson(JsonBuilder.Builder builder, Map<? extends Name, ? extends Message.Value> map) {
+        map.entrySet().stream().forEach(entry -> addJsonChild(builder, entry.getKey(), entry.getValue()));
+    }
+
+    private void addJsonChild(JsonBuilder.Item item, Name name, Message.Value value) {
+        final JsonBuilder.Item childItem = item.addChild(name);
+        value.writeTo(new Message.Writer() {
+            @Override
+            public void write(Message.Field field, String text) {
+                childItem.set(text);
+            }
+
+            @Override
+            public void write(Message.Field field, Long number) {
+                childItem.set(number);
+            }
+
+            @Override
+            public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
+                map.entrySet().stream().forEach(entry -> addJsonChild(childItem, entry.getKey(), entry.getValue()));
+            }
+
+            @Override
+            public void write(Message.Field field, MessageValueMessage message) {
+                StreamSupport.stream(message.getValues().spliterator(), false)
+                        .forEach(childValue -> addJsonChild(childItem, field.getName(), childValue));
+            }
+
+            @Override
+            public void write(Message.Field field, Message.MessageName messageName) {
+                childItem.setChildValue(field.getName(), Name.getNameAsString(messageName));
+            }
+
+            @Override
+            public void write(Message.Field field, Address address) {
+                childItem.setChildValue(field.getName(), address.toString());
+            }
+
+            @Override
+            public void write(Message.Field field, Name name) {
+                childItem.setChildValue(field.getName(), Name.getNameAsString(name));
+            }
+
+            @Override
+            public void write(Message.Field field, Message.Values values) {
+                StreamSupport.stream(values.values().spliterator(), false)
+                        .forEach(childValue -> addJsonChild(childItem, field.getName(), childValue));
+            }
+        });
     }
 }

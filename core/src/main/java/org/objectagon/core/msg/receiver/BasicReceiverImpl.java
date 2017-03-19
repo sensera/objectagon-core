@@ -18,6 +18,7 @@ import org.objectagon.core.utils.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Created by christian on 2015-10-06.
@@ -139,13 +140,13 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         }
     }
 
-    private static class RelayComposer implements Composer {
-        private Address sender;
+    protected static class RelayComposer implements Composer {
+        private Supplier<Address> sender;
         private Address relay;
         private Name target;
         private Message.Values headers;
 
-        public RelayComposer(Address sender, Address relay, Name target, Message.Values headers) {
+        public RelayComposer(Supplier<Address> sender, Address relay, Name target, Message.Values headers) {
             if (sender == null)
                 throw new SevereError(ErrorClass.RECEIVER, ErrorKind.SENDER_IS_NULL);
             if (target == null)
@@ -164,16 +165,16 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         }
 
         public Envelope create(Message message) {
-            return new StandardEnvelope(sender, relay, toRelayMessage(message), headers);
+            return new StandardEnvelope(sender.get(), relay, toRelayMessage(message), headers);
         }
 
         public Envelope create(Message.MessageName messageName) {
-            return new StandardEnvelope(sender, relay, toRelayMessage(SimpleMessage.simple(messageName)), headers);
+            return new StandardEnvelope(sender.get(), relay, toRelayMessage(SimpleMessage.simple(messageName)), headers);
         }
 
         @Override
         public Envelope create(Message.MessageName messageName, Message.Value... values) {
-            return new StandardEnvelope(sender, relay, toRelayMessage(SimpleMessage.simple(messageName, values)), headers);
+            return new StandardEnvelope(sender.get(), relay, toRelayMessage(SimpleMessage.simple(messageName, values)), headers);
         }
 
         public Builder builder(Message.MessageName messageName) {
@@ -182,12 +183,12 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
         @Override
         public Composer alternateReceiver(Receiver receiver) {
-            return new RelayComposer(receiver.getAddress(), relay, target, headers);
+            return new RelayComposer(() -> receiver.getAddress(), relay, target, headers);
         }
 
         @Override
         public Address getSenderAddress() {
-            return sender;
+            return sender.get();
         }
     }
 
@@ -221,7 +222,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         public Composer createRelayComposer(Service.ServiceName relayService, Name target) throws SevereError {
             return getReceiverCtrl()
                     .lookupAddressByAlias(relayService)
-                    .map(relayServiceAddress -> new RelayComposer(sender, relayServiceAddress, target, headers))
+                    .map(relayServiceAddress -> new RelayComposer(() -> sender, relayServiceAddress, target, headers))
                     .orElseThrow(() -> new SevereError(ErrorClass.RECEIVER, ErrorKind.NAME_NOT_FOUND, MessageValue.name(relayService)));
         }
 
@@ -243,7 +244,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
         @Override
         public Message.Value getHeader(Message.Field field) {
-            return Util.getValueByField(headers.values(), field);
+            return headers != null && headers.values() != null ? Util.getValueByField(headers.values(), field) : MessageValue.empty(field);
         }
 
         @Override

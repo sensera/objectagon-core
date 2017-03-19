@@ -42,6 +42,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value map(Message.Field field, Map<? extends Name,? extends Message.Value> value) { return new MessageValue<>(field, value);}
     public static Message.Value any(Object value) { return new MessageValue<>(StandardField.UNKNOWN, value);}
     public static Message.Value empty() {return UnknownValue.create(StandardField.UNKNOWN);}
+    public static Message.Value empty(Message.Field field) {return UnknownValue.create(field);}
 
     Message.Field field;
     V value;
@@ -125,6 +126,7 @@ public class MessageValue<V> implements Message.Value {
                 case MessageName: writer.write(field, asMessageName()); break;
                 case Message: writer.write(field, asMessage()); break;
                 case Values: writer.write(field, asValues()); break;
+                case Map: writer.write(field, asMap()); break;
                 default:
                     writer.write(field, value != null ? value.toString(): "");
                     //throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.INCONSISTENCY);

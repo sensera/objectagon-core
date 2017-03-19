@@ -80,7 +80,6 @@ public class RestServiceProtocolImpl extends AbstractProtocol<RestServiceProtoco
 
         @Override
         public Task restRequest(Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params) {
-
             return task(MessageName.SIMPLE_REST_CONTENT, send -> {
                 send.send(
                         MessageName.SIMPLE_REST_CONTENT,

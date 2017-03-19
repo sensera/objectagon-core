@@ -40,7 +40,7 @@ public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassP
 */
 
     enum InstanceClassAction implements Action {
-        LIST_CLASSES    (RestServiceProtocol.Method.GET,    CLASSES_PATH);
+        LIST_CLASSES(RestServiceProtocol.Method.GET,    CLASSES_PATH);
 /*
         LIST_INSTANCES( RestServiceProtocol.Method.GET,     INSTANCES_PATH),
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     INSTANCE_NAME_PATH),

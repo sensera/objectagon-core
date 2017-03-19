@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -122,6 +123,11 @@ public class Util {
         @Override
         public void write(Message.Field field, Message.Values values) {
             append(field.getName().toString(), "["+toString(values.values())+"]");
+        }
+
+        @Override
+        public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
+            append(field.getName().toString(), "["+toString(map.values().stream().map(value -> (Message.Value) value).collect(Collectors.toList()))+"]");
         }
 
         @Override

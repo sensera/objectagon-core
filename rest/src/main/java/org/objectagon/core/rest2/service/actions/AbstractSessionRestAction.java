@@ -1,10 +1,10 @@
 package org.objectagon.core.rest2.service.actions;
 
-import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
+import org.objectagon.core.service.Service;
 import org.objectagon.core.task.ProtocolTask;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
@@ -19,10 +19,10 @@ public class AbstractSessionRestAction<U extends Protocol.Send> implements RestS
 
     Task.TaskName taskName;
     Protocol.ProtocolName protocolName;
-    Address target;
+    Service.ServiceName target;
     private CreateSendMessageAction<U> createSendMessageAction;
 
-    public AbstractSessionRestAction(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, CreateSendMessageAction<U> createSendMessageAction) {
+    public AbstractSessionRestAction(Task.TaskName taskName, Protocol.ProtocolName protocolName, Service.ServiceName target, CreateSendMessageAction<U> createSendMessageAction) {
         this.taskName = taskName;
         this.protocolName = protocolName;
         this.target = target;
@@ -35,7 +35,7 @@ public class AbstractSessionRestAction<U extends Protocol.Send> implements RestS
 
     @Override
     public Task createTask(TaskBuilder taskBuilder, RestServiceActionLocator.IdentityStore identityStore, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) {
-        return taskBuilder.protocol(taskName, protocolName, target, createMessage(identityStore, restPath, params, data)).create();
+        return taskBuilder.protocolRelay(taskName, protocolName, target, createMessage(identityStore, restPath, params, data)).create();
     }
 
     @FunctionalInterface

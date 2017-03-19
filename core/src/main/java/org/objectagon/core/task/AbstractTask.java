@@ -83,7 +83,8 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
     }
 
     protected void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
-        if (trace) System.out.println(getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind);
+        //if (trace) System.out.println(getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind);
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!! " + getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind);
         status = Status.Completed;
         intFailed(errorClass, errorKind, values);
         failedActions.stream().forEach(failedAction -> failedAction.failed(errorClass, errorKind, values));

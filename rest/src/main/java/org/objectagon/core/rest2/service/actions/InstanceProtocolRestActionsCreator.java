@@ -1,5 +1,6 @@
 package org.objectagon.core.rest2.service.actions;
 
+import org.objectagon.core.object.Field;
 import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.rest2.service.map.InstanceProtocolRestActionsMap;
 
@@ -13,8 +14,8 @@ public class InstanceProtocolRestActionsCreator implements InstanceProtocolRestA
 
     public AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> getAction(RestActionCreator restActionCreator, InstanceProtocolRestActionsMap.InstanceAction action) {
         switch (action) {
-            case GET_VALUE: return (identityStore, restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
-            case GET_INSTANCE: return (identityStore, restPath, params, data) -> session -> session.getValue(restActionCreator.getIdAtIndex(1, restPath));
+            case GET_VALUE: return (identityStore, restPath, params, data) -> session -> session.getValue( (Field.FieldIdentity) restActionCreator.getIdAtIndex(1, restPath));
+            case GET_INSTANCE: return (identityStore, restPath, params, data) -> session -> session.getValue( (Field.FieldIdentity) restActionCreator.getIdAtIndex(1, restPath));
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
     }

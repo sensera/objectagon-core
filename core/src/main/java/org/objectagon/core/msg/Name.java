@@ -12,4 +12,23 @@ public interface Name {
     interface GetName<T, N extends Name> {
         Named<N> getNameFrom(T target);
     }
+
+    interface Interpret {
+        void setText(String interpretedName);
+        void setDomain(String domainName);
+    }
+
+    default void interpret(Interpret interpret) {
+        interpret.setText(toString());
+    }
+
+    static String getNameAsString(Name name) {
+        StringBuilder buildResponse = new StringBuilder();
+        name.interpret(new Interpret() {
+            @Override public void setText(String interpretedName) {buildResponse.append(interpretedName);}
+            @Override public void setDomain(String domainName) { /*Ignored*/ }
+        });
+        return buildResponse.toString();
+    }
+
 }

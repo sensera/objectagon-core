@@ -11,6 +11,7 @@ import org.objectagon.core.task.Task;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -19,8 +20,8 @@ import java.util.function.Consumer;
 class LocalMessageSession implements HttpCommunicator.AsyncContent, Task.SuccessAction, Task.FailedAction, HttpCommunicator.AsyncReply {
 
     private final RestServiceProtocol.Send send;
-    private Consumer<String> consumeReplyContent;
-    private Consumer<Exception> failed;
+    private Consumer<HttpCommunicator.AsyncReplyContent> consumeReplyContent;
+    private Consumer<String> failed;
     private long contentSequence = 0;
 
     public LocalMessageSession(RestServiceProtocol.Send send) {
@@ -76,20 +77,30 @@ class LocalMessageSession implements HttpCommunicator.AsyncContent, Task.Success
     }
 
     @Override
-    public void receiveReply(Consumer<String> consumeReplyContent, Consumer<Exception> failed) {
+    public void receiveReply(Consumer<HttpCommunicator.AsyncReplyContent> consumeReplyContent, Consumer<String> failed) {
         this.consumeReplyContent = consumeReplyContent;
         this.failed = failed;
     }
 
     @Override
     public void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
-        failed.accept(new Exception(errorClass.name() + " " + errorKind.name()));
+        failed.accept(errorClass.name() + " " + errorKind.name());
         send.terminate();
     }
 
     @Override
     public void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException {
-        consumeReplyContent.accept(messageName.toString());
+        consumeReplyContent.accept(new HttpCommunicator.AsyncReplyContent() {
+            @Override
+            public String getContent() {
+                return messageName.toString();
+            }
+
+            @Override
+            public Optional<String> token() {
+                return Optional.empty();
+            }
+        });
         send.terminate();
     }
 }

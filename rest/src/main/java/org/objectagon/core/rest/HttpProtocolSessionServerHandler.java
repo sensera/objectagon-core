@@ -288,6 +288,11 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
             public void write(Message.Field field, Message.Values values) {
                 StreamSupport.stream(values.values().spliterator(),false).forEach(v -> valueToBuilder(item.addChild(field.getName().toString()), v));
             }
+
+            @Override
+            public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
+                throw new RuntimeException("Not supported!");
+            }
         });
     }
 

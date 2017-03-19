@@ -11,7 +11,11 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.server.LocalServerId;
 import org.objectagon.core.service.AbstractService;
 import org.objectagon.core.service.name.NameServiceProtocol;
+import org.objectagon.core.task.StandardTaskBuilder;
+import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.OneReceiverConfigurations;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Created by christian on 2017-03-05.
@@ -28,6 +32,7 @@ public abstract class AbstractServiceTest<S extends AbstractService> {
     NameServiceProtocol nameServiceProtocol;
     StandardProtocol standardProtocol;
     StandardProtocol.StandardReply standardReply;
+    TaskBuilder taskBuilder;
 
     @Before
     public void setup() {
@@ -45,12 +50,14 @@ public abstract class AbstractServiceTest<S extends AbstractService> {
         nameServiceProtocol = Mockito.mock(NameServiceProtocol.class);
         standardProtocol = Mockito.mock(StandardProtocol.class);
         standardReply = Mockito.mock(StandardProtocol.StandardReply.class);
+        taskBuilder = mock(TaskBuilder.class);
 
         Mockito.when(receiverCtrl.createReceiver(Matchers.eq(NameServiceProtocol.NAME_SERVICE_PROTOCOL), Matchers.isNull(Receiver.Configurations.class))).thenReturn(nameServiceProtocol);
         Mockito.when(receiverCtrl.createReceiver(Matchers.eq(StandardProtocol.STANDARD_PROTOCOL), Matchers.isNull(Receiver.Configurations.class))).thenReturn(standardProtocol);
         Mockito.when(receiverCtrl.createReceiver(Matchers.eq(StandardProtocol.STANDARD_PROTOCOL), Matchers.any(Receiver.Configurations.class))).thenReturn(standardProtocol);
         Mockito.when(receiverCtrl.createReceiver(Matchers.eq(StandardProtocol.STANDARD_PROTOCOL), Matchers.any(Receiver.Configurations.class), Matchers.any(Receiver.Configurations.class))).thenReturn(standardProtocol);
         Mockito.when(receiverCtrl.createReceiver(Matchers.eq(StandardProtocol.STANDARD_PROTOCOL))).thenReturn(standardProtocol);
+        Mockito.when(receiverCtrl.createReceiver(Matchers.eq(StandardTaskBuilder.STANDARD_TASK_BUILDER))).thenReturn(taskBuilder);
         Mockito.when(standardProtocol.createReply(Matchers.any(Protocol.CreateReplyParam.class))).thenReturn(standardReply);
 
         targetService = createTargetService();

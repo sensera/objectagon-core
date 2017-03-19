@@ -4,7 +4,6 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.rest2.service.locator.RestServiceActionLocatorImpl;
@@ -15,7 +14,7 @@ import org.objectagon.core.task.Task;
 /**
  * Created by christian on 2017-02-26.
  */
-public class RestActionCreator {
+public class RestActionCreator<U extends Protocol.Send> {
     protected RestServiceActionLocatorImpl restServiceActionLocator;
     protected Service.ServiceName target;
 
@@ -36,7 +35,7 @@ public class RestActionCreator {
 
     public void addRestAction(
             RestAction restAction,
-            AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> send) {
+            AbstractSessionRestAction.CreateSendMessageAction<U> send) {
         restServiceActionLocator.addRestAction(
                 createRestAction(restAction, restAction.getProtocol(), send),
                 restAction.getMethod(),
@@ -46,7 +45,7 @@ public class RestActionCreator {
     protected RestServiceActionLocator.RestAction createRestAction(
             Task.TaskName taskName,
             Protocol.ProtocolName protocolName,
-            AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send> send) {
+            AbstractSessionRestAction.CreateSendMessageAction<U> send) {
         return new AbstractSessionRestAction<>(taskName, protocolName, target, send);
     }
 

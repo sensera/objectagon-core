@@ -34,10 +34,5 @@ public class StandardName implements Name {
     @Override
     public String toString() {
         return name;
-/*
-        return "StandardName{" +
-                "name='" + name + '\'' +
-                '}';
-*/
     }
 }

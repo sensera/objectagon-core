@@ -1,18 +1,17 @@
 package org.objectagon.core.task;
 
-import org.objectagon.core.msg.Address;
-import org.objectagon.core.msg.Composer;
-import org.objectagon.core.msg.Message;
-import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.*;
+import org.objectagon.core.service.Service;
 
 import java.util.Optional;
 
 /**
  * Created by christian on 2015-11-03.
  */
-public interface TaskBuilder {
+public interface TaskBuilder extends Receiver<StandardTaskBuilderAddress> {
 
     <S extends Protocol.Send> Builder<ProtocolTask<S>> protocol(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction);
+    <S extends Protocol.Send> Builder<ProtocolTask<S>> protocolRelay(Task.TaskName taskName, Protocol.ProtocolName protocolName, Service.ServiceName target, ProtocolTask.SendMessageAction<S> sendMessageAction);
     <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction);
     <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction);
     <S extends Protocol.Send> Builder<StandardTask<S>> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Composer composer, StandardTask.SendMessageAction<S> sendMessageAction);

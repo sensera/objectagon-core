@@ -6,6 +6,8 @@ import org.objectagon.core.msg.composer.ResolveTargetComposer;
 import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.receiver.AbstractReceiver;
+import org.objectagon.core.service.Service;
+import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.OneReceiverConfigurations;
 
@@ -85,6 +87,12 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
     }
 
     @Override
+    public <S extends Protocol.Send> Builder<ProtocolTask<S>> protocolRelay(Task.TaskName taskName, Protocol.ProtocolName protocolName, Service.ServiceName target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
+        Address relayTargetAddress = getReceiverCtrl().lookupAddressByAlias(NameServiceImpl.NAME_SERVICE).get();
+        return new BuilderImpl<>(new ProtocolTask<S>(taskBuilderReceiverCtrl, taskName, protocolName, relayTargetAddress, target, sendMessageAction, headers()));
+    }
+    @Override
+
     public <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
         Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
         S send = (S) protocol.createSend(() -> StandardComposer.create(this, target, headers()));

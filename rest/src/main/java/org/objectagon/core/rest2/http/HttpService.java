@@ -19,6 +19,7 @@ import org.objectagon.core.utils.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by christian on 2017-01-22.
@@ -112,11 +113,14 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
 
         public LocalHttpCommunicator() {
             restServiceProtocol = getReceiverCtrl().createReceiver(RestServiceProtocol.REST_SERVICE_PROTOCOL);
-            createSendParam = () -> new StandardComposer(HttpService.this, restServiceAddress, MessageValue.empty().asValues());
         }
 
         @Override
-        public AsyncContent sendMessageWithAsyncContent(String method, String path, List<HttpParamValues> params) {
+        public AsyncContent sendMessageWithAsyncContent(String method, String path, List<HttpParamValues> params, List<HttpParamValues> headers) {
+            createSendParam = () -> new StandardComposer(
+                    HttpService.this,
+                    restServiceAddress,
+                    () -> headers.stream().map(HttpParamValues::asValue).collect(Collectors.toList()));
             if (simpleCommunication)
                 return new SimpleLocalMessageSession(restServiceProtocol.createSimplifiedSend(createSendParam))
                     .sendRestRequest(method, path, params);

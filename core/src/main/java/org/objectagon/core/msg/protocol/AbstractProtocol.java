@@ -61,6 +61,7 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
         } catch (SevereError severeError) {
             if (!severeError.getErrorKind().equals(ErrorKind.UNKNOWN_TARGET))
                 throw severeError;
+            //severeError.printStackTrace();
         }
         envelope.targets(sessionTasks::find);
     }

@@ -15,6 +15,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandler<HttpObject>  {
@@ -51,7 +52,11 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                     .map(HttpCommunicator.createHttpParamValueFunction(queryStringDecoder.parameters()))
                     .collect(Collectors.toList());
 
-            asyncContent = httpCommunicator.sendMessageWithAsyncContent(method, path, paramValues);
+            List<HttpCommunicator.HttpParamValues> headerValues = request.headers().entries().stream()
+                    .map(HttpCommunicator::createHttpParamValuesFromEntry)
+                    .collect(Collectors.toList());
+
+            asyncContent = httpCommunicator.sendMessageWithAsyncContent(method, path, paramValues, headerValues);
         }
 
         if (msg instanceof HttpContent) {
@@ -65,18 +70,19 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                 this.asyncContent
                         .completed()
                         .receiveReply(
-                                replyContent -> responseAsString(channelHandlerContext, trailer, replyContent),
-                                error -> responseAsString(channelHandlerContext, trailer, error.getLocalizedMessage()));
+                                replyContent -> responseAsString(channelHandlerContext, trailer, replyContent.getContent(), replyContent.token()),
+                                error -> responseAsString(channelHandlerContext, trailer, error, Optional.empty()));
             }
         }
 
     }
 
-    private void responseAsString(ChannelHandlerContext channelHandlerContext, LastHttpContent trailer, String replyContent) {
+    private void responseAsString(ChannelHandlerContext channelHandlerContext, LastHttpContent trailer, String replyContent, Optional<String> mabyToken) {
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1, trailer.getDecoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
                 Unpooled.copiedBuffer(replyContent, CharsetUtil.UTF_8));
 
+        mabyToken.ifPresent(token -> response.headers().set("OBJECTAGON_REST_TOKEN", token));
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 
         boolean keepAlive = false; //HttpHeaders.isKeepAlive(request);

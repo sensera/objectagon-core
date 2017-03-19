@@ -8,6 +8,7 @@ import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.UnknownValue;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -91,6 +92,7 @@ public interface Message {
         void write(Field field, Address address);
         void write(Field field, Name name);
         void write(Field field, Values values);
+        void write(Field field, Map<? extends Name, ? extends Value> map);
     }
 
     @FunctionalInterface

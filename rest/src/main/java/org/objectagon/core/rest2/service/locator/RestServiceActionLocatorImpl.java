@@ -5,13 +5,16 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.object.InstanceClassProtocol;
+import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
-import org.objectagon.core.rest2.service.actions.InstanceClassProtocolRestActionsCreator;
-import org.objectagon.core.rest2.service.actions.InstanceProtocolRestActionsCreator;
-import org.objectagon.core.rest2.service.actions.RestActionCreator;
+import org.objectagon.core.rest2.service.actions.*;
+import org.objectagon.core.storage.EntityProtocol;
+import org.objectagon.core.storage.TransactionServiceProtocol;
+import org.objectagon.core.storage.transaction.TransactionService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +44,10 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
     @Override
     public void configure(ServiceLocator serviceLocator) {
         restActionLocatorList = new ArrayList<>();
-        new InstanceProtocolRestActionsCreator().create(new RestActionCreator(this, InstanceService.NAME));
-        new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator(this, InstanceClassService.NAME));
+        new InstanceProtocolRestActionsCreator().create(new RestActionCreator<InstanceProtocol.Send>(this, InstanceService.NAME));
+        new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator<InstanceClassProtocol.Send>(this, InstanceClassService.NAME));
+        new TransactionProtocolRestActionsCreator().create(new RestActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
+        new EntityProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, InstanceClassService.NAME));
     }
 
     public void addRestAction(RestAction restAction, RestServiceProtocol.Method method, RestServiceActionLocator.RestPathPattern restPathPattern) {

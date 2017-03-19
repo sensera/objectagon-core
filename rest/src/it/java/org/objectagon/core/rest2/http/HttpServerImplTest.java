@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
@@ -96,16 +97,18 @@ public class HttpServerImplTest {
         private String method;
         private String path;
         private List<HttpParamValues> params;
+        private List<HttpParamValues> headers;
         private boolean completed;
         private String totalContent;
         private final Object completedSync = new Object();
         private String replyContent;
 
         @Override
-        public AsyncContent sendMessageWithAsyncContent(String method, String path, List<HttpParamValues> params) {
+        public AsyncContent sendMessageWithAsyncContent(String method, String path, List<HttpParamValues> params, List<HttpParamValues> headers) {
             this.method = method;
             this.path = path;
             this.params = params;
+            this.headers = headers;
             return new TestAsyncContent();
         }
 
@@ -148,7 +151,17 @@ public class HttpServerImplTest {
                     completedSync.notifyAll();
                 }
                 return (consumeReplyContent, failed) -> {
-                    consumeReplyContent.accept(replyContent);
+                    consumeReplyContent.accept(new AsyncReplyContent() {
+                        @Override
+                        public String getContent() {
+                            return replyContent;
+                        }
+
+                        @Override
+                        public Optional<String> token() {
+                            return Optional.of("TOUÖKJHWUHSD");
+                        }
+                    });
                 };
             }
 

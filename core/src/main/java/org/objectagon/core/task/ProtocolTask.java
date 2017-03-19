@@ -6,6 +6,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.composer.StandardComposer;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.service.Service;
 
 /**
  * Created by christian on 2015-11-03.
@@ -24,6 +25,13 @@ public class ProtocolTask<S extends Protocol.Send> extends AbstractTask {
         super(taskCtrl, taskName);
         this.protocolName = protocolName;
         this.composer = new StandardComposer(this, target, headers);
+        this.sendMessageAction = sendMessageAction;
+    }
+
+    ProtocolTask(ReceiverCtrl taskCtrl, TaskName taskName, Protocol.ProtocolName protocolName, Address relayServiceName, Service.ServiceName target, SendMessageAction<S> sendMessageAction, Message.Values headers) {
+        super(taskCtrl, taskName);
+        this.protocolName = protocolName;
+        this.composer = new RelayComposer(this::getAddress, relayServiceName, target, headers);
         this.sendMessageAction = sendMessageAction;
     }
 

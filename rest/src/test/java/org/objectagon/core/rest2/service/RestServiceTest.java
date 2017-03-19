@@ -3,6 +3,7 @@ package org.objectagon.core.rest2.service;
 import org.junit.Before;
 import org.junit.Test;
 import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.SimpleMessage;
 import org.objectagon.core.msg.name.StandardName;
@@ -24,16 +25,30 @@ public class RestServiceTest extends AbstractServiceTest<RestService> {
     private final String content = "content";
     private RestServiceActionLocator.RestAction restAction;
     private Task restTask = mock(Task.class);
+    private RestServiceActionLocator.RestSession restSession;
+
 
     @Before
     public void setUp() throws Exception {
         restServiceActionLocator = mock(RestServiceActionLocator.class);
         restAction =  mock(RestServiceActionLocator.RestAction.class);
         restTask = mock(Task.class);
+        restSession = mock(RestServiceActionLocator.RestSession.class);
         when(restServiceActionLocator.locate(isA(Address.class), eq(method), isA(RestServiceActionLocator.RestPath.class))).thenReturn(restAction);
         when(restServiceActionLocator.locate(isNull(Address.class), eq(method), isA(RestServiceActionLocator.RestPath.class))).thenReturn(restAction);
-        when(restAction.createTask(isA(TaskBuilder.class), isA(RestServiceActionLocator.IdentityStore.class), isA(RestServiceActionLocator.RestPath.class), any(), eq(content))).thenReturn(restTask);
-        when(restAction.createTask(isNull(TaskBuilder.class), isA(RestServiceActionLocator.IdentityStore.class), isA(RestServiceActionLocator.RestPath.class), any(), eq(content))).thenReturn(restTask);
+        when(restAction.createTask(
+                    isA(TaskBuilder.class),
+                    isA(RestServiceActionLocator.IdentityStore.class),
+                    isA(RestServiceActionLocator.RestPath.class),
+                    any(),
+                    eq(content)))
+                .thenReturn(restTask);
+        when(restAction.createTask(
+                    isNull(TaskBuilder.class),
+                    isA(RestServiceActionLocator.IdentityStore.class),
+                    isA(RestServiceActionLocator.RestPath.class),
+                    any(), eq(content)))
+                .thenReturn(restTask);
         when(restTask.addSuccessAction(isA(Task.SuccessAction.class))).thenReturn(restTask);
         when(restTask.addFailedAction(isA(Task.FailedAction.class))).thenReturn(restTask);
         super.setup();
@@ -54,7 +69,6 @@ public class RestServiceTest extends AbstractServiceTest<RestService> {
 
     @Test
     public void testSimpleRequest() {
-        //Task restRequest(Method method, Name path, String content, List<KeyValue<ParamName, Message.Value>> params);
         targetService.receive(createStandardEnvelope(SimpleMessage.simple(RestServiceProtocol.MessageName.SIMPLE_REST_CONTENT,
                 MessageValue.name(RestServiceProtocol.METHOD_FIELD, method),
                 MessageValue.name(RestServiceProtocol.PATH_FIELD, path),
@@ -62,5 +76,6 @@ public class RestServiceTest extends AbstractServiceTest<RestService> {
         )));
 
         verify(restTask, times(1)).start();
+        verify(taskBuilder, times(1)).addHeader(isA(Message.Value.class));
     }
 }

@@ -20,12 +20,14 @@ public interface RestServiceProtocol extends Protocol<RestServiceProtocol.Send, 
 
     ProtocolName REST_SERVICE_PROTOCOL = new ProtocolNameImpl("REST_SERVICE_PROTOCOL");
 
-    Message.Field METHOD_FIELD  = NamedField.name("methodField");
-    Message.Field PATH_FIELD  = NamedField.name("pathField");
-    Message.Field CONTENT_FIELD  = NamedField.text("contentField");
-    Message.Field PARAMS_FIELD  = NamedField.map("paramsField");
-    Message.Field CONTENT_SEQUENCE  = NamedField.number("contentSequence");
-    Message.Field CONTENT_BYTES  = NamedField.blob("contentBytes");
+    Message.Field METHOD_FIELD  =       NamedField.name("methodField");
+    Message.Field PATH_FIELD  =         NamedField.name("pathField");
+    Message.Field CONTENT_FIELD =       NamedField.text("contentField");
+    Message.Field PARAMS_FIELD  =       NamedField.map("paramsField");
+    Message.Field CONTENT_SEQUENCE  =   NamedField.number("contentSequence");
+    Message.Field CONTENT_BYTES  =      NamedField.blob("contentBytes");
+    Message.Field REST_CONTENT_RESPONSE  = NamedField.map("restContentResponse");
+    Message.Field TOKEN_HEADER =        NamedField.name("OBJECTAGON_REST_TOKEN");
 
     ParamName ALIAS_PARAM_NAME  = ParamName.create("alias");
 
@@ -83,4 +85,5 @@ public interface RestServiceProtocol extends Protocol<RestServiceProtocol.Send, 
             @Override public Message.Value getValue() {return value;}
         };
     }
+
 }
