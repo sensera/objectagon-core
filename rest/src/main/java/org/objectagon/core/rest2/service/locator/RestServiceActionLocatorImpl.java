@@ -9,6 +9,7 @@ import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
+import org.objectagon.core.object.meta.MetaService;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.rest2.service.actions.*;
@@ -47,7 +48,9 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         new InstanceProtocolRestActionsCreator().create(new RestActionCreator<InstanceProtocol.Send>(this, InstanceService.NAME));
         new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator<InstanceClassProtocol.Send>(this, InstanceClassService.NAME));
         new TransactionProtocolRestActionsCreator().create(new RestActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
-        new EntityProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, InstanceClassService.NAME));
+        new EntityInstanceClassProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, InstanceClassService.NAME));
+        new EntityMetaProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, MetaService.NAME));
+        new MetaProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, MetaService.NAME));
     }
 
     public void addRestAction(RestAction restAction, RestServiceProtocol.Method method, RestServiceActionLocator.RestPathPattern restPathPattern) {

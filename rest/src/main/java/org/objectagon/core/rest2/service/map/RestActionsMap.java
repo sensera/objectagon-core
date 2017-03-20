@@ -4,9 +4,9 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
-import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
@@ -29,7 +29,7 @@ public interface RestActionsMap<E, A extends RestActionsMap.Action> {
     }
 
     default void create(RestActionCreator restActionCreator) {
-        actions().forEach(action -> restActionCreator.addRestAction(action, (AbstractSessionRestAction.CreateSendMessageAction<InstanceProtocol.Send>) getAction(restActionCreator, action)));
+        actions().forEach(action -> restActionCreator.addRestAction(action, (AbstractSessionRestAction.CreateSendMessageAction<Protocol.Send>) getAction(restActionCreator, action)));
     }
 
     Stream<A> actions();

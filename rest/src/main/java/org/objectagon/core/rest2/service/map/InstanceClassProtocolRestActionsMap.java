@@ -29,9 +29,10 @@ public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassP
 
     */
 
-    RestPathPattern CLASSES_PATH              = base("class").build();                                 // /instance/
-    RestPathPattern CLASS_ID_PATH            = base("class").id().build();                            // /instance/[ID]/
-    RestPathPattern CLASS_NAME_PATH          = base("class").name().build();                          // /instance/[NAME]/
+    RestPathPattern CLASSES_PATH              = base("class").build();                                 // /class/
+    RestPathPattern CLASS_ID_PATH            = base("class").id().build();                            // /class/[ID]/
+    RestPathPattern CLASS_NAME_PATH          = base("class").name().build();                          // /class/[NAME]/
+    RestPathPattern CLASS_INSTANCE_PATH          = base("class").id().text("instance").build();                          // /class/[NAME]/
 /*
     RestPathPattern INSTANCE_FIELD_PATH         = base("instance").id().text("field").name().build();       // /instance/[ID]/field/[NAME]/
     RestPathPattern INSTANCE_RELATION_PATH      = base("instance").id().text("relation").id().build();      // /instance/[ID]/field/[NAME]/
@@ -40,7 +41,9 @@ public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassP
 */
 
     enum InstanceClassAction implements Action {
-        LIST_CLASSES(RestServiceProtocol.Method.GET,    CLASSES_PATH);
+        LIST_CLASSES(RestServiceProtocol.Method.GET,    CLASSES_PATH),
+        CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH)
+        ;
 /*
         LIST_INSTANCES( RestServiceProtocol.Method.GET,     INSTANCES_PATH),
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     INSTANCE_NAME_PATH),

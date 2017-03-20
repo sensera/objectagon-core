@@ -16,7 +16,7 @@ import java.util.stream.Stream;
  */
 public class RestPathImpl implements RestServiceActionLocator.RestPath {
 
-    public static RestServiceActionLocator.RestPath create(Name path, RestServiceActionLocator.IdentityLookup identityLookup) {
+    public static RestServiceActionLocator.RestPath create(Name path, RestServiceActionLocator.RestSession identityLookup) {
         Indexer indexer = new Indexer(identityLookup);
         if (path == null || path.toString().equals("/") || path.toString().equals(""))
             return new RestPathImpl(Collections.EMPTY_LIST);
@@ -52,9 +52,9 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
     private static class RestPathValueImpl implements RestPathValue {
         private int index;
         private String value;
-        RestServiceActionLocator.IdentityLookup identityLookup;
+        RestServiceActionLocator.RestSession identityLookup;
 
-        public RestPathValueImpl(int index, String value, RestServiceActionLocator.IdentityLookup identityLookup) {
+        public RestPathValueImpl(int index, String value, RestServiceActionLocator.RestSession identityLookup) {
             this.index = index;
             this.value = value;
             this.identityLookup = identityLookup;
@@ -80,12 +80,12 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
                 return RestServiceActionLocator.RestMatchRating.None;
             if (!matchPatternDetails.isId())
                 return RestServiceActionLocator.RestMatchRating.None;
-            return identityLookup.find(value).isPresent() ? RestServiceActionLocator.RestMatchRating.Perfect : RestServiceActionLocator.RestMatchRating.Vague;
+            return identityLookup.getIdentityByAlias(value).isPresent() ? RestServiceActionLocator.RestMatchRating.Perfect : RestServiceActionLocator.RestMatchRating.Vague;
         }
 
         @Override
         public <E extends Identity> Optional<E> getIdentity() {
-            return  identityLookup.find(value).map(identity -> (E) identity);
+            return  identityLookup.getIdentityByAlias(value).map(identity -> (E) identity);
         }
 
         @Override
@@ -96,9 +96,9 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
 
     private static class Indexer {
         int index = 0;
-        RestServiceActionLocator.IdentityLookup identityLookup;
+        RestServiceActionLocator.RestSession identityLookup;
 
-        public Indexer(RestServiceActionLocator.IdentityLookup identityLookup) {
+        public Indexer(RestServiceActionLocator.RestSession identityLookup) {
             this.identityLookup = identityLookup;
         }
 

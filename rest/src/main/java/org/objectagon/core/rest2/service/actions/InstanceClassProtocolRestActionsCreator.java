@@ -1,5 +1,6 @@
 package org.objectagon.core.rest2.service.actions;
 
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.rest2.service.map.InstanceClassProtocolRestActionsMap;
 
@@ -13,7 +14,7 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
 
     public AbstractSessionRestAction.CreateSendMessageAction<InstanceClassProtocol.Send> getAction(RestActionCreator restActionCreator, InstanceClassAction action) {
         switch (action) {
-            case LIST_CLASSES: return (identityStore, restPath, params, data) -> session -> session.getName();
+            case CREATE_INSTANCE: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.createInstance());
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
     }

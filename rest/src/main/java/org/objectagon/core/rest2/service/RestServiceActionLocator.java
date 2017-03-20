@@ -51,10 +51,6 @@ public interface RestServiceActionLocator {
         int size();
     }
 
-    interface IdentityLookup {
-        Optional<Identity> find(String identityAlias);
-    }
-
     interface IdentityStore {
         void updateIdentity(Identity identity, String identityAlias);
         void updateSessionTransaction(Transaction transaction);
@@ -104,8 +100,11 @@ public interface RestServiceActionLocator {
     interface RestSession {
         RestSessionToken geRestSessionToken();
         void updateTransaction(Transaction transaction);
+        void updateAlias(Identity identity, String alias);
+        Optional<Identity> getIdentityByAlias(String alias);
         Optional<Transaction> getActiveTransaction();
         void useActiveTransaction(Consumer<Transaction> consumer);
+
     }
 
     enum RestMatchRating {

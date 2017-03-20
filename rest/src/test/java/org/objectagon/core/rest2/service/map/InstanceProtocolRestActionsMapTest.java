@@ -17,7 +17,10 @@ import org.objectagon.core.storage.Identity;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by christian on 2017-03-13.
@@ -27,6 +30,7 @@ public class InstanceProtocolRestActionsMapTest {
     private RestServiceActionLocatorImpl restServiceActionLocator;
     private Address protocolSessionId;
     private Identity addressForAlias;
+    private RestServiceActionLocator.RestSession restSession;
 
     @Before
     public void setup() {
@@ -35,6 +39,9 @@ public class InstanceProtocolRestActionsMapTest {
 
         protocolSessionId = mock(Address.class);
         addressForAlias = mock(Identity.class);
+        restSession = mock(RestServiceActionLocator.RestSession.class);
+
+        when(restSession.getIdentityByAlias(anyString())).thenReturn(Optional.empty());
     }
 
     @Test
@@ -65,10 +72,11 @@ public class InstanceProtocolRestActionsMapTest {
     }
 
     private RestServiceActionLocator.RestPath getPath(String path) {
-        return RestPathImpl.create(StandardName.name(path), identityAlias -> Optional.empty());
+        return RestPathImpl.create(StandardName.name(path), restSession);
     }
 
     private RestServiceActionLocator.RestPath getPathWithAlias(String path, String alias, Identity addressForAlias) {
-        return RestPathImpl.create(StandardName.name(path), identityAlias -> identityAlias.equals(alias) ? Optional.of(addressForAlias) : Optional.empty());
+        when(restSession.getIdentityByAlias(eq(alias))).thenReturn(Optional.ofNullable(addressForAlias));
+        return RestPathImpl.create(StandardName.name(path), restSession);
     }
 }
