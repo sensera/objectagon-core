@@ -137,7 +137,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             return getWorkerContext().getHeader(RestServiceProtocol.TOKEN_HEADER)
                     .getOptionalValue()
                     .map(value -> RestSessionToken.name( (String) value))
-                    .orElseGet(() -> createNewToken());
+                    .orElseGet(RestService.this::createNewToken);
         }
     }
 

@@ -172,7 +172,7 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
                 FullHttpResponse response = new DefaultFullHttpResponse(
                         HttpVersion.HTTP_1_1, trailer.getDecoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
                         replyContent);
-                //response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+                //exec.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
                 response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 
                 boolean keepAlive = HttpHeaders.isKeepAlive(request);

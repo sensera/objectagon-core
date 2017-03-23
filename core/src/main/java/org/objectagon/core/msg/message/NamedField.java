@@ -41,7 +41,7 @@ public class NamedField implements Message.Field {
         if (this == o) return true;
         if (!(o instanceof NamedField)) return false;
         NamedField that = (NamedField) o;
-        return Objects.equals(getName(), that.getName());
+        return getName().equals(that.getName());
     }
 
     @Override

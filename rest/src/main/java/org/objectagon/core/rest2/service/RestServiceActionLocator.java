@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 public interface RestServiceActionLocator {
     Predicate<RestActionMatchResult> ONLY_VALID_RESULTS = restActionMatchResult -> !restActionMatchResult.getRestMatchRating().equals(RestMatchRating.None);
 
+    enum TaskName implements Task.TaskName { Login }
+
     RestAction locate(Address protocolSessionId, RestServiceProtocol.Method method, RestPath path) throws UserException;
 
     void configure(ServiceLocator serviceLocator);

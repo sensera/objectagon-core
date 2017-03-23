@@ -19,7 +19,7 @@ public class FieldNameImpl implements Message.FieldName {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FieldNameImpl fieldName = (FieldNameImpl) o;
-        return Objects.equals(name, fieldName.name);
+        return name.equals(fieldName.name);
     }
 
     @Override

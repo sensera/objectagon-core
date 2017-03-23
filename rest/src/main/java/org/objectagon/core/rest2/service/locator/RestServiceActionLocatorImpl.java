@@ -51,6 +51,13 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         new EntityInstanceClassProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, InstanceClassService.NAME));
         new EntityMetaProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, MetaService.NAME));
         new MetaProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, MetaService.NAME));
+
+        // Dummy login to return new token
+        this.addRestAction(
+                (taskBuilder, identityStore, restPath, params, data) -> taskBuilder.action(TaskName.Login, data::toString).create(),
+                RestServiceProtocol.Method.GET,
+                RestPathPatternBuilderImpl.base("session").text("login").build()
+                );
     }
 
     public void addRestAction(RestAction restAction, RestServiceProtocol.Method method, RestServiceActionLocator.RestPathPattern restPathPattern) {
