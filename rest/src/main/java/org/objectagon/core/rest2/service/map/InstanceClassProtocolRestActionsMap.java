@@ -6,58 +6,41 @@ import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathPattern;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 
-import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.base;
+import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.urlPattern;
 
 /**
  * Created by christian on 2017-02-26.
  */
 public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProtocolRestActionsMap.InstanceClassAction> extends RestActionsMap<InstanceClassProtocol.Send, A> {
 
-    /*
-| URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
-|-------------------------------|:-------------------:|:-----------------:|:---------------:|:----------------:|
-| /class/                       | List classes        | Create new class  | -               | -                |
-| /class/{id}                   | Get class info      | -                 | Update class    | -                |
-| /class/{id}/name              | Get class name      | -                 | Set class name  | -                |
-| /class/{id}/field             | List fields         | Create new field  | -               | -                |
-| /class/{id}/relation          | Get relations       | Create new relation | -             | -                |
-| /class/{id}/relation/{classId} |                    | Create new relation | -             | -                |
-| /class/{id}/method            | List methods        |                   |                 | -                |
-| /class/{id}/method/{id}       |                     | Attache method    |                 | -                |
-| /class/{id}/instance          | -                   | Create new instance | -             | -                |
-| /class/{id}/instance/{name}   | get instanceAlias   | Create new alias  | -               | remove alias     |
-
-    */
-
-    RestPathPattern CLASSES_PATH              = base("class").build();                                 // /class/
-    RestPathPattern CLASS_ID_PATH            = base("class").id().build();                            // /class/[ID]/
-    RestPathPattern CLASS_NAME_PATH          = base("class").name().build();                          // /class/[NAME]/
-    RestPathPattern CLASS_INSTANCE_PATH          = base("class").id().text("instance").build();                          // /class/[NAME]/
-/*
-    RestPathPattern INSTANCE_FIELD_PATH         = base("instance").id().text("field").name().build();       // /instance/[ID]/field/[NAME]/
-    RestPathPattern INSTANCE_RELATION_PATH      = base("instance").id().text("relation").id().build();      // /instance/[ID]/field/[NAME]/
-    RestPathPattern INSTANCE_RELATION_ID_PATH   = base("instance").id().text("relation").id().id().build(); // /instance/[ID]/field/[NAME]/
-    RestPathPattern INSTANCE_METHOD_PATH        = base("instance").id().text("method").name().build();      // /instance/[ID]/field/[NAME]/
-*/
+    RestPathPattern CLASSES_PATH                = urlPattern("/class/{id}/");
+    RestPathPattern CLASS_ID_PATH               = urlPattern("/class/{id}/");
+    RestPathPattern CLASS_NAME_PATH             = urlPattern("/class/{id}/name/");
+    RestPathPattern CLASS_INSTANCE_PATH         = urlPattern("/class/{id}/instance/");
+    RestPathPattern CLASS_INSTANCE_ALIAS_PATH   = urlPattern("/class/{id}/instance/{name}/");
+    RestPathPattern CLASS_FIELD_PATH            = urlPattern("/class/{id}/field/");
+    RestPathPattern CLASS_RELATION_PATH         = urlPattern("/class/{id}/relation/");
+    RestPathPattern CLASS_RELATION_ID_PATH      = urlPattern("/class/{id}/relation/{id}/");
+    RestPathPattern CLASS_METHOD_PATH           = urlPattern("/class/{id}/method/");
+    RestPathPattern CLASS_METHOD_ID_PATH        = urlPattern("/class/{id}/method/{id}/");
 
     enum InstanceClassAction implements Action {
-        CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1)
+        SET_NAME(RestServiceProtocol.Method.POST,           CLASS_NAME_PATH, 1),
+
+        CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1),
+        NAME_INSTANCE(RestServiceProtocol.Method.PUT,       CLASS_INSTANCE_ALIAS_PATH, 1),
+        GET_NAMED_INSTANCE(RestServiceProtocol.Method.GET,  CLASS_INSTANCE_ALIAS_PATH, 1),
+
+        LIST_FIELDS(RestServiceProtocol.Method.GET,         CLASS_FIELD_PATH, 1),
+        ADD_FIELD(RestServiceProtocol.Method.PUT,           CLASS_FIELD_PATH, 1),
+
+        LIST_ALL_RELATIONS(RestServiceProtocol.Method.GET,  CLASS_RELATION_PATH, 1),
+        LIST_RELATIONS_BY_ID(RestServiceProtocol.Method.GET,CLASS_RELATION_ID_PATH, 1),
+        ADD_RELATION(RestServiceProtocol.Method.PUT,        CLASS_RELATION_ID_PATH, 1),
+
+        LIST_METHODS(RestServiceProtocol.Method.GET,        CLASS_METHOD_PATH, 1),
+        ATTACHE_METHOD(RestServiceProtocol.Method.PUT,      CLASS_METHOD_ID_PATH, 1),
         ;
-/*
-        LIST_INSTANCES( RestServiceProtocol.Method.GET,     INSTANCES_PATH),
-        CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     INSTANCE_NAME_PATH),
-        GET_INSTANCE(   RestServiceProtocol.Method.GET,     INSTANCE_ID_PATH),
-        DELETE_INSTANCE(RestServiceProtocol.Method.DELETE,  INSTANCE_ID_PATH),
-        GET_VALUE(      RestServiceProtocol.Method.GET,     INSTANCE_FIELD_PATH),
-        ADD_VALUE(      RestServiceProtocol.Method.PUT,     INSTANCE_FIELD_PATH),
-        UPDATE_VALUE(   RestServiceProtocol.Method.POST,    INSTANCE_FIELD_PATH),
-        REMOVE_VALUE(   RestServiceProtocol.Method.DELETE,  INSTANCE_FIELD_PATH),
-        GET_RELATION(   RestServiceProtocol.Method.GET,     INSTANCE_RELATION_PATH),
-        DELETE_RELATION(RestServiceProtocol.Method.DELETE,  INSTANCE_RELATION_PATH),
-        SET_RELATION(   RestServiceProtocol.Method.POST,    INSTANCE_RELATION_ID_PATH),
-        ADD_RELATION(   RestServiceProtocol.Method.PUT,     INSTANCE_RELATION_ID_PATH),
-        INVOKE_METHOD(  RestServiceProtocol.Method.PUT,     INSTANCE_METHOD_PATH);
-*/
 
         RestServiceProtocol.Method method;
         RestPathPattern restPathPattern;
@@ -69,7 +52,6 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
             this.identityTargetAtPathIndex = identityTargetAtPathIndex;
         }
 
-        //@Override public String getName() { return name(); }
         @Override public RestServiceActionLocator.RestMatchRating check(RestServiceActionLocator.RestPath restPath) {
             return restPathPattern.check(restPath);
         }

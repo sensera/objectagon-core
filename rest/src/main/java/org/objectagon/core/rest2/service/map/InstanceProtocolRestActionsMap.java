@@ -6,20 +6,20 @@ import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathPattern;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 
-import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.base;
+import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.urlPattern;
 
 /**
  * Created by christian on 2017-02-26.
  */
 public interface InstanceProtocolRestActionsMap<A extends InstanceProtocolRestActionsMap.InstanceAction> extends RestActionsMap<InstanceProtocol.Send, A> {
 
-    RestPathPattern INSTANCES_PATH              = base("instance").build();                                 // /instance/
-    RestPathPattern INSTANCE_ID_PATH            = base("instance").id().build();                            // /instance/[ID]/
-    RestPathPattern INSTANCE_NAME_PATH          = base("instance").name().build();                          // /instance/[NAME]/
-    RestPathPattern INSTANCE_FIELD_PATH         = base("instance").id().text("field").name().build();       // /instance/[ID]/field/[NAME]/
-    RestPathPattern INSTANCE_RELATION_PATH      = base("instance").id().text("relation").id().build();      // /instance/[ID]/field/[NAME]/
-    RestPathPattern INSTANCE_RELATION_ID_PATH   = base("instance").id().text("relation").id().id().build(); // /instance/[ID]/field/[NAME]/
-    RestPathPattern INSTANCE_METHOD_PATH        = base("instance").id().text("method").name().build();      // /instance/[ID]/field/[NAME]/
+    RestPathPattern INSTANCES_PATH              = urlPattern("/instance/");
+    RestPathPattern INSTANCE_ID_PATH            = urlPattern("/instance/{id}/");
+    RestPathPattern INSTANCE_NAME_PATH          = urlPattern("/instance/{name}/");
+    RestPathPattern INSTANCE_FIELD_PATH         = urlPattern("/instance/{id}/field/{id}/");
+    RestPathPattern INSTANCE_RELATION_PATH      = urlPattern("/instance/{id}/relation/");
+    RestPathPattern INSTANCE_RELATION_ID_PATH   = urlPattern("/instance/{id}/relation/{id}/");
+    RestPathPattern INSTANCE_METHOD_PATH        = urlPattern("/instance/{id}/method/{id}/");
 
     enum InstanceAction implements Action {
         LIST_INSTANCES( RestServiceProtocol.Method.GET,     INSTANCES_PATH),

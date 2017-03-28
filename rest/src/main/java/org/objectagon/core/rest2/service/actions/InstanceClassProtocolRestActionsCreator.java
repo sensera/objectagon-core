@@ -16,6 +16,7 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
     public <C extends CreateSendMessageAction<InstanceClassProtocol.Send>> CreateSendMessageAction<InstanceClassProtocol.Send> getAction(AddAction<InstanceClassProtocol.Send> restServiceActionCreator, InstanceClassAction action) {
         switch (action) {
             case CREATE_INSTANCE: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.createInstance());
+            case ADD_FIELD: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.addField());
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
     }

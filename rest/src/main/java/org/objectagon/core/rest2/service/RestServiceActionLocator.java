@@ -88,6 +88,7 @@ public interface RestServiceActionLocator {
         RestPathPatternBuilder text(String text);
         RestPathPatternBuilder id();
         RestPathPatternBuilder name();
+        RestPathPatternBuilder parsePart(String input);
         RestPathPattern build();
     }
 
