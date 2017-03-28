@@ -9,9 +9,10 @@ import java.util.stream.Stream;
 /**
  * Created by christian on 2017-02-22.
  */
-public class MetaProtocolRestActionsCreator implements MetaProtocolRestActionsMap<AbstractSessionRestAction.CreateSendMessageAction<MetaProtocol.Send>,MetaProtocolRestActionsMap.MetaAction> {
+public class MetaProtocolRestActionsCreator implements MetaProtocolRestActionsMap<MetaProtocolRestActionsMap.MetaAction> {
 
-    public AbstractSessionRestAction.CreateSendMessageAction<MetaProtocol.Send> getAction(RestActionCreator restActionCreator, MetaAction action) {
+    @Override
+    public <C extends CreateSendMessageAction<MetaProtocol.Send>> CreateSendMessageAction<MetaProtocol.Send> getAction(AddAction<MetaProtocol.Send> restServiceActionCreator, MetaAction action) {
         switch (action) {
             case CREATE_METHOD: return (identityStore, restPath, params, data) -> session -> session.createMethod();
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);

@@ -10,9 +10,10 @@ import java.util.stream.Stream;
 /**
  * Created by christian on 2017-02-22.
  */
-public class InstanceClassProtocolRestActionsCreator implements InstanceClassProtocolRestActionsMap<AbstractSessionRestAction.CreateSendMessageAction<InstanceClassProtocol.Send>,InstanceClassProtocolRestActionsMap.InstanceClassAction> {
+public class InstanceClassProtocolRestActionsCreator implements InstanceClassProtocolRestActionsMap<InstanceClassProtocolRestActionsMap.InstanceClassAction> {
 
-    public AbstractSessionRestAction.CreateSendMessageAction<InstanceClassProtocol.Send> getAction(RestActionCreator restActionCreator, InstanceClassAction action) {
+    @Override
+    public <C extends CreateSendMessageAction<InstanceClassProtocol.Send>> CreateSendMessageAction<InstanceClassProtocol.Send> getAction(AddAction<InstanceClassProtocol.Send> restServiceActionCreator, InstanceClassAction action) {
         switch (action) {
             case CREATE_INSTANCE: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.createInstance());
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);

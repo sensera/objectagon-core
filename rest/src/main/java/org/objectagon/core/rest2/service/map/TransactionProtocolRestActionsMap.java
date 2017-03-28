@@ -11,7 +11,7 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
 /**
  * Created by christian on 2017-02-26.
  */
-public interface TransactionProtocolRestActionsMap<E, A extends TransactionProtocolRestActionsMap.TransactionAction> extends RestActionsMap<E, A> {
+public interface TransactionProtocolRestActionsMap<A extends TransactionProtocolRestActionsMap.TransactionAction> extends RestActionsMap<TransactionServiceProtocol.Send, A> {
 
     RestPathPattern TRANSACTION_PATH            = base("transaction").build();
 

@@ -45,6 +45,11 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
     }
 
     @Override
+    public <E extends Identity> Optional<E> getIdentityAtIndex(int index) {
+        return pathValues.get(index).getIdentity();
+    }
+
+    @Override
     public int size() {
         return pathValues.size();
     }

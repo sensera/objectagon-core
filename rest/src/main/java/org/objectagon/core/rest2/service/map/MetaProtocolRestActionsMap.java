@@ -11,7 +11,7 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
 /**
  * Created by christian on 2017-02-26.
  */
-public interface MetaProtocolRestActionsMap<E, A extends MetaProtocolRestActionsMap.MetaAction> extends RestActionsMap<E, A> {
+public interface MetaProtocolRestActionsMap<A extends MetaProtocolRestActionsMap.MetaAction> extends RestActionsMap<MetaProtocol.Send, A> {
 /*
 
     | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |

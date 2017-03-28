@@ -7,13 +7,14 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.InstanceProtocol;
-import org.objectagon.core.object.instance.InstanceService;
+import org.objectagon.core.object.MetaProtocol;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
 import org.objectagon.core.object.meta.MetaService;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.rest2.service.actions.*;
-import org.objectagon.core.storage.EntityProtocol;
+import org.objectagon.core.rest2.service.map.RestActionsMap;
+import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.TransactionServiceProtocol;
 import org.objectagon.core.storage.transaction.TransactionService;
 
@@ -45,12 +46,15 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
     @Override
     public void configure(ServiceLocator serviceLocator) {
         restActionLocatorList = new ArrayList<>();
-        new InstanceProtocolRestActionsCreator().create(new RestActionCreator<InstanceProtocol.Send>(this, InstanceService.NAME));
-        new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator<InstanceClassProtocol.Send>(this, InstanceClassService.NAME));
-        new TransactionProtocolRestActionsCreator().create(new RestActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
-        new EntityInstanceClassProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, InstanceClassService.NAME));
-        new EntityMetaProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, MetaService.NAME));
-        new MetaProtocolRestActionsCreator().create(new RestActionCreator<EntityProtocol.Send>(this, MetaService.NAME));
+        new TransactionProtocolRestActionsCreator().create(new RestServiceActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
+
+        new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>create(new RestServiceActionCreator<EntityServiceProtocol.Send>(this, InstanceClassService.NAME));
+        new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>create(new RestServiceActionCreator<EntityServiceProtocol.Send>(this, MetaService.NAME));
+
+        new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator<InstanceClassProtocol.Send>(this));
+        new InstanceProtocolRestActionsCreator().create(new RestActionCreator<InstanceProtocol.Send>(this));
+
+        new MetaProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<MetaProtocol.Send>>create(new RestActionCreator<MetaProtocol.Send>(this));
 
         // Dummy login to return new token
         this.addRestAction(

@@ -11,7 +11,7 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
 /**
  * Created by christian on 2017-02-26.
  */
-public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassProtocolRestActionsMap.InstanceClassAction> extends RestActionsMap<E, A> {
+public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProtocolRestActionsMap.InstanceClassAction> extends RestActionsMap<InstanceClassProtocol.Send, A> {
 
     /*
 | URL PATTERN                   | GET                 | PUT               | POST            | DELETE           |
@@ -41,8 +41,7 @@ public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassP
 */
 
     enum InstanceClassAction implements Action {
-        LIST_CLASSES(RestServiceProtocol.Method.GET,    CLASSES_PATH),
-        CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH)
+        CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1)
         ;
 /*
         LIST_INSTANCES( RestServiceProtocol.Method.GET,     INSTANCES_PATH),
@@ -62,10 +61,12 @@ public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassP
 
         RestServiceProtocol.Method method;
         RestPathPattern restPathPattern;
+        int identityTargetAtPathIndex;
 
-        InstanceClassAction(RestServiceProtocol.Method method, RestPathPattern restPathPattern) {
+        InstanceClassAction(RestServiceProtocol.Method method, RestPathPattern restPathPattern, int identityTargetAtPathIndex) {
             this.method = method;
             this.restPathPattern = restPathPattern;
+            this.identityTargetAtPathIndex = identityTargetAtPathIndex;
         }
 
         //@Override public String getName() { return name(); }
@@ -76,6 +77,7 @@ public interface InstanceClassProtocolRestActionsMap<E, A extends InstanceClassP
             return method;
         }
         @Override public Protocol.ProtocolName getProtocol() {return InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL;}
+        @Override public int identityTargetAtPathIndex() {return identityTargetAtPathIndex;}
 
     }
 }

@@ -11,7 +11,7 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
 /**
  * Created by christian on 2017-02-26.
  */
-public interface InstanceProtocolRestActionsMap<E, A extends InstanceProtocolRestActionsMap.InstanceAction> extends RestActionsMap<E, A> {
+public interface InstanceProtocolRestActionsMap<A extends InstanceProtocolRestActionsMap.InstanceAction> extends RestActionsMap<InstanceProtocol.Send, A> {
 
     RestPathPattern INSTANCES_PATH              = base("instance").build();                                 // /instance/
     RestPathPattern INSTANCE_ID_PATH            = base("instance").id().build();                            // /instance/[ID]/

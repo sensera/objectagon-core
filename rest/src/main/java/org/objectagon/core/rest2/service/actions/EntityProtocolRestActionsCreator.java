@@ -10,10 +10,12 @@ import java.util.stream.Stream;
 /**
  * Created by christian on 2017-02-22.
  */
-public class EntityInstanceClassProtocolRestActionsCreator implements EntityProtocolRestActionsMap<AbstractSessionRestAction.CreateSendMessageAction<EntityServiceProtocol.Send>,EntityProtocolRestActionsMap.EntityAction> {
+public class EntityProtocolRestActionsCreator implements EntityProtocolRestActionsMap<EntityProtocolRestActionsMap.EntityAction> {
 
-    public AbstractSessionRestAction.CreateSendMessageAction<EntityServiceProtocol.Send> getAction(RestActionCreator restActionCreator, EntityProtocolRestActionsMap.EntityAction action) {
+    @Override
+    public <C extends CreateSendMessageAction<EntityServiceProtocol.Send>> CreateSendMessageAction<EntityServiceProtocol.Send> getAction(AddAction<EntityServiceProtocol.Send> restServiceActionCreator, EntityAction action) {
         switch (action) {
+            case CREATE_META: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.create());
             case CREATE_CLASS: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.create());
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }

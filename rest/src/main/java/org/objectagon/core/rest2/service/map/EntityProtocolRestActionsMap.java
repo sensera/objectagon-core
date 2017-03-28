@@ -9,11 +9,11 @@ import org.objectagon.core.storage.EntityServiceProtocol;
 /**
  * Created by christian on 2017-02-26.
  */
-public interface EntityProtocolRestActionsMap<E, A extends EntityProtocolRestActionsMap.EntityAction> extends RestActionsMap<E, A> {
+public interface EntityProtocolRestActionsMap<A extends EntityProtocolRestActionsMap.EntityAction> extends RestActionsMap<EntityServiceProtocol.Send, A> {
 
     enum EntityAction implements Action {
         CREATE_CLASS( RestServiceProtocol.Method.PUT,     InstanceClassProtocolRestActionsMap.CLASSES_PATH),
-        CREATE_META( RestServiceProtocol.Method.PUT,     MetaProtocolRestActionsMap.META_PATH),
+        CREATE_META( RestServiceProtocol.Method.PUT,      MetaProtocolRestActionsMap.META_PATH),
         //EXTEND_TRANSACTION
         ;
 
@@ -34,5 +34,6 @@ public interface EntityProtocolRestActionsMap<E, A extends EntityProtocolRestAct
             return method;
         }
         @Override public Protocol.ProtocolName getProtocol() {return EntityServiceProtocol.ENTITY_SERVICE_PROTOCOL;}
+
     }
 }

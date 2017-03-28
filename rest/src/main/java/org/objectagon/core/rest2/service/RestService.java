@@ -225,7 +225,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         @Override
         public Optional<Identity> getIdentityByAlias(String alias) {
-            System.out.println("RestSessionImpl.getIdentityByAlias "+alias);
+            System.out.println("RestSessionImpl.getIdentityByAlias "+alias+"="+aliases.get(alias));
             return Optional.ofNullable(aliases.get(alias));
         }
     }

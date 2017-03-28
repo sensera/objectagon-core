@@ -34,7 +34,7 @@ public interface RestServiceActionLocator {
 
     @FunctionalInterface
     interface RestAction {
-        Task createTask(TaskBuilder taskBuilder, IdentityStore identityStore, RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);
+        Task createTask(TaskBuilder taskBuilder, IdentityStore identityStore, RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) throws UserException;
     }
 
     interface RestActionKey {
@@ -50,6 +50,7 @@ public interface RestServiceActionLocator {
         Stream<RestPathValue> values();
         Message.Value asValue();
         Message.Value valueAtIndex(int index);
+        <E extends Identity> Optional<E> getIdentityAtIndex(int index);
         int size();
     }
 

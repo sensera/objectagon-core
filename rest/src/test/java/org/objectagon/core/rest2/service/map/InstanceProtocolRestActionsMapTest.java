@@ -9,7 +9,7 @@ import org.objectagon.core.object.instance.InstanceService;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.rest2.service.actions.InstanceProtocolRestActionsCreator;
-import org.objectagon.core.rest2.service.actions.RestActionCreator;
+import org.objectagon.core.rest2.service.actions.RestServiceActionCreator;
 import org.objectagon.core.rest2.service.locator.RestPathImpl;
 import org.objectagon.core.rest2.service.locator.RestServiceActionLocatorImpl;
 import org.objectagon.core.storage.Identity;
@@ -35,7 +35,7 @@ public class InstanceProtocolRestActionsMapTest {
     @Before
     public void setup() {
         restServiceActionLocator = new RestServiceActionLocatorImpl();
-        new InstanceProtocolRestActionsCreator().create(new RestActionCreator(restServiceActionLocator, InstanceService.NAME));
+        new InstanceProtocolRestActionsCreator().create(new RestServiceActionCreator(restServiceActionLocator, InstanceService.NAME));
 
         protocolSessionId = mock(Address.class);
         addressForAlias = mock(Identity.class);

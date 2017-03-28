@@ -13,9 +13,10 @@ import java.util.stream.Stream;
 /**
  * Created by christian on 2017-02-22.
  */
-public class TransactionProtocolRestActionsCreator implements TransactionProtocolRestActionsMap<AbstractSessionRestAction.CreateSendMessageAction<TransactionServiceProtocol.Send>,TransactionProtocolRestActionsMap.TransactionAction> {
+public class TransactionProtocolRestActionsCreator implements TransactionProtocolRestActionsMap<TransactionProtocolRestActionsMap.TransactionAction> {
 
-    public AbstractSessionRestAction.CreateSendMessageAction<TransactionServiceProtocol.Send> getAction(RestActionCreator restActionCreator, TransactionAction action) {
+    @Override
+    public <C extends CreateSendMessageAction<TransactionServiceProtocol.Send>> CreateSendMessageAction<TransactionServiceProtocol.Send> getAction(AddAction<TransactionServiceProtocol.Send> restServiceActionCreator, TransactionAction action) {
         switch (action) {
             case CREATE_TRANSACTION: return (identityStore, restPath, params, data) -> session -> session.create()
                     .addSuccessAction(captureTransaction(identityStore));
