@@ -6,6 +6,7 @@ import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.InstanceClassProtocol;
 import org.objectagon.core.object.Method;
 import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
 import org.objectagon.core.rest2.service.map.InstanceClassProtocolRestActionsMap;
 
 import java.util.Arrays;
@@ -41,7 +42,7 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
                     session.getInstanceByAlias(restPath.getNameAtIndex(3, StandardName::name).get());
             case GET_NAME: return (identityStore, restPath, params, data) -> InstanceClassProtocol.Send::getName;
             case SET_NAME: return (identityStore, restPath, params, data) -> session ->
-                    session.setName((InstanceClass.InstanceClassName) restPath.getNameAtIndex(3, StandardName::name).get());
+                    session.setName((InstanceClass.InstanceClassName) restPath.getNameAtIndex(3, InstanceClassNameImpl::create).get());
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
     }

@@ -13,7 +13,7 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
  */
 public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProtocolRestActionsMap.InstanceClassAction> extends RestActionsMap<InstanceClassProtocol.Send, A> {
 
-    RestPathPattern CLASSES_PATH                = urlPattern("/class/{id}/");
+    RestPathPattern CLASSES_PATH                = urlPattern("/class/");
     RestPathPattern CLASS_ID_PATH               = urlPattern("/class/{id}/");
     RestPathPattern CLASS_NAME_PATH             = urlPattern("/class/{id}/name");
     RestPathPattern CLASS_NAME_NAME_PATH        = urlPattern("/class/{id}/name/{name}");
@@ -30,7 +30,8 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
         SET_NAME(RestServiceProtocol.Method.POST,           CLASS_NAME_NAME_PATH, 1),
 
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1),
-        NAME_INSTANCE(RestServiceProtocol.Method.PUT,       CLASS_INSTANCE_ALIAS_PATH, 1),
+
+        NAME_INSTANCE(RestServiceProtocol.Method.POST,      CLASS_INSTANCE_ALIAS_PATH, 1),
         GET_NAMED_INSTANCE(RestServiceProtocol.Method.GET,  CLASS_INSTANCE_ALIAS_PATH, 1),
 
         LIST_FIELDS(RestServiceProtocol.Method.GET,         CLASS_FIELD_PATH, 1),

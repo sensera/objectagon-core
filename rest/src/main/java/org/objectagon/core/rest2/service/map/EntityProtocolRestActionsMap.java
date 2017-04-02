@@ -12,8 +12,8 @@ import org.objectagon.core.storage.EntityServiceProtocol;
 public interface EntityProtocolRestActionsMap<A extends EntityProtocolRestActionsMap.EntityAction> extends RestActionsMap<EntityServiceProtocol.Send, A> {
 
     enum EntityAction implements Action {
-        CREATE_CLASS( RestServiceProtocol.Method.PUT,     InstanceClassProtocolRestActionsMap.CLASSES_PATH),
-        CREATE_META( RestServiceProtocol.Method.PUT,      MetaProtocolRestActionsMap.META_PATH),
+        CREATE_CLASS(RestServiceProtocol.Method.PUT,            InstanceClassProtocolRestActionsMap.CLASSES_PATH),
+        CREATE_META(RestServiceProtocol.Method.PUT,             MetaProtocolRestActionsMap.META_PATH),
         //EXTEND_TRANSACTION
         ;
 

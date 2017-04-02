@@ -6,7 +6,7 @@ import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathPattern;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 
-import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.base;
+import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.urlPattern;
 
 /**
  * Created by christian on 2017-02-26.
@@ -23,8 +23,8 @@ public interface MetaProtocolRestActionsMap<A extends MetaProtocolRestActionsMap
 */
 
 
-    RestPathPattern META_PATH = base("meta").build();
-    RestPathPattern META_METHOD_PATH = base("meta").id().text("method").build();
+    RestPathPattern META_PATH = urlPattern("/meta/");
+    RestPathPattern META_METHOD_PATH = urlPattern("/meta/{id}/method/");
 
     enum MetaAction implements Action {
         CREATE_METHOD( RestServiceProtocol.Method.PUT, META_METHOD_PATH),
