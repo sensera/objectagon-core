@@ -15,7 +15,8 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
 
     RestPathPattern CLASSES_PATH                = urlPattern("/class/{id}/");
     RestPathPattern CLASS_ID_PATH               = urlPattern("/class/{id}/");
-    RestPathPattern CLASS_NAME_PATH             = urlPattern("/class/{id}/name/");
+    RestPathPattern CLASS_NAME_PATH             = urlPattern("/class/{id}/name");
+    RestPathPattern CLASS_NAME_NAME_PATH        = urlPattern("/class/{id}/name/{name}");
     RestPathPattern CLASS_INSTANCE_PATH         = urlPattern("/class/{id}/instance/");
     RestPathPattern CLASS_INSTANCE_ALIAS_PATH   = urlPattern("/class/{id}/instance/{name}/");
     RestPathPattern CLASS_FIELD_PATH            = urlPattern("/class/{id}/field/");
@@ -25,7 +26,8 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
     RestPathPattern CLASS_METHOD_ID_PATH        = urlPattern("/class/{id}/method/{id}/");
 
     enum InstanceClassAction implements Action {
-        SET_NAME(RestServiceProtocol.Method.POST,           CLASS_NAME_PATH, 1),
+        GET_NAME(RestServiceProtocol.Method.GET,           CLASS_NAME_PATH, 1),
+        SET_NAME(RestServiceProtocol.Method.POST,           CLASS_NAME_NAME_PATH, 1),
 
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1),
         NAME_INSTANCE(RestServiceProtocol.Method.PUT,       CLASS_INSTANCE_ALIAS_PATH, 1),

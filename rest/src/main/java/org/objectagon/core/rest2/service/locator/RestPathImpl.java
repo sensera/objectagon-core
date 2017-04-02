@@ -7,7 +7,10 @@ import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathValue;
 import org.objectagon.core.storage.Identity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,6 +50,11 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
     @Override
     public <E extends Identity> Optional<E> getIdentityAtIndex(int index) {
         return pathValues.get(index).getIdentity();
+    }
+
+    @Override
+    public <E extends Name> Optional<E> getNameAtIndex(int index, RestServiceActionLocator.RestPathName restPathName) {
+        return pathValues.get(index).getName(restPathName);
     }
 
     @Override
@@ -91,6 +99,11 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
         @Override
         public <E extends Identity> Optional<E> getIdentity() {
             return  identityLookup.getIdentityByAlias(value).map(identity -> (E) identity);
+        }
+
+        @Override
+        public <E extends Name> Optional<E> getName(RestServiceActionLocator.RestPathName restPathName) {
+            return Optional.of( (E) restPathName.createNameFromText(value));
         }
 
         @Override

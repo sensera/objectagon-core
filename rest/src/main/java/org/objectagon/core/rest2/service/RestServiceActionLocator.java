@@ -51,7 +51,13 @@ public interface RestServiceActionLocator {
         Message.Value asValue();
         Message.Value valueAtIndex(int index);
         <E extends Identity> Optional<E> getIdentityAtIndex(int index);
+        <E extends Name> Optional<E> getNameAtIndex(int index, RestPathName restPathName);
         int size();
+    }
+
+    @FunctionalInterface
+    interface RestPathName {
+        Name createNameFromText(String nameAsText);
     }
 
     interface IdentityStore {
@@ -65,6 +71,7 @@ public interface RestServiceActionLocator {
         RestServiceActionLocator.RestMatchRating isText(RestPathPatternImpl.MatchPatternDetails matchPatternDetails);
         RestServiceActionLocator.RestMatchRating isId(RestPathPatternImpl.MatchPatternDetails matchPatternDetails);
         <E extends Identity> Optional<E> getIdentity();
+        <E extends Name> Optional<E> getName(RestPathName restPathName);
     }
 
     interface RestKeyCheck {

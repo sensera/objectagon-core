@@ -46,10 +46,10 @@ public class InstanceProtocolRestActionsMapTest {
 
     @Test
     public void testPaths() throws UserException {
-        verify(InstanceProtocolRestActionsMap.InstanceAction.LIST_INSTANCES, RestServiceProtocol.Method.GET, "/instance");
-        verify(InstanceProtocolRestActionsMap.InstanceAction.LIST_INSTANCES, RestServiceProtocol.Method.GET, "/instance/");
-        verify(InstanceProtocolRestActionsMap.InstanceAction.CREATE_INSTANCE, "Item", RestServiceProtocol.Method.PUT, "/instance/Item");
         verify(InstanceProtocolRestActionsMap.InstanceAction.GET_INSTANCE, "78767623", RestServiceProtocol.Method.GET, "/instance/78767623");
+        verify(InstanceProtocolRestActionsMap.InstanceAction.GET_VALUE, "Item1", RestServiceProtocol.Method.GET, "/instance/Item1/field/ItemName/");
+        verify(InstanceProtocolRestActionsMap.InstanceAction.ADD_RELATION, "Item2", RestServiceProtocol.Method.PUT, "/instance/Item2/relation/Arm/Body/");
+        verify(InstanceProtocolRestActionsMap.InstanceAction.INVOKE_METHOD, "Item3", RestServiceProtocol.Method.PUT, "/instance/Item3/method/Walk/");
     }
 
     @Test(expected = UserException.class)

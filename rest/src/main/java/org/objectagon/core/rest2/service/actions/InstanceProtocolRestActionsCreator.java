@@ -1,10 +1,17 @@
 package org.objectagon.core.rest2.service.actions;
 
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.InstanceProtocol;
+import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.object.*;
+import org.objectagon.core.object.method.ParamNameImpl;
+import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.map.InstanceProtocolRestActionsMap;
+import org.objectagon.core.utils.KeyValue;
+import org.objectagon.core.utils.KeyValueUtil;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -15,10 +22,33 @@ public class InstanceProtocolRestActionsCreator implements InstanceProtocolRestA
     @Override
     public <C extends CreateSendMessageAction<InstanceProtocol.Send>> CreateSendMessageAction<InstanceProtocol.Send> getAction(AddAction<InstanceProtocol.Send> restServiceActionCreator, InstanceAction action) {
         switch (action) {
-            case GET_VALUE: return (identityStore, restPath, params, data) -> session -> session.getValue( (Field.FieldIdentity) restServiceActionCreator.getIdAtIndex(1, restPath));
-            case GET_INSTANCE: return (identityStore, restPath, params, data) -> session -> session.getValue( (Field.FieldIdentity) restServiceActionCreator.getIdAtIndex(1, restPath));
+            case GET_VALUE: return (identityStore, restPath, params, data) -> session ->
+                    session.getValue( (Field.FieldIdentity) restServiceActionCreator.getIdAtIndex(3, restPath));
+            case SET_VALUE: return (identityStore, restPath, params, data) -> session ->
+                    session.setValue(
+                            (Field.FieldIdentity) restServiceActionCreator.getIdAtIndex(3, restPath),
+                            MessageValue.text(data));
+            case INVOKE_METHOD: return (identityStore, restPath, params, data) -> session ->
+                    session.invokeMethod(
+                            (Method.MethodIdentity) restServiceActionCreator.getIdAtIndex(3, restPath),
+                            KeyValueUtil.transformList(params, ParamNameImpl::create));
+            case GET_RELATION: return (identityStore, restPath, params, data) -> session ->
+                    session.getRelation((RelationClass.RelationClassIdentity) restServiceActionCreator.getIdAtIndex(3, restPath));
+            case SET_RELATION:
+            case ADD_RELATION: return (identityStore, restPath, params, data) -> session ->
+                    session.addRelation(
+                            (RelationClass.RelationClassIdentity) restServiceActionCreator.getIdAtIndex(3, restPath),
+                            (Instance.InstanceIdentity) restServiceActionCreator.getIdAtIndex(4, restPath));
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }
+    }
+
+    List<KeyValue<Method.ParamName, Message.Value>> createKeyValueParamsFromRestParams(List<KeyValue<ParamName, Message.Value>> params) {
+        return params.stream()
+                .map(paramNameValueKeyValue -> KeyValueUtil.createKeyValue(
+                        ParamNameImpl.create(paramNameValueKeyValue.getKey().toString()),
+                        paramNameValueKeyValue.getValue()))
+                .collect(Collectors.toList());
     }
 
     @Override

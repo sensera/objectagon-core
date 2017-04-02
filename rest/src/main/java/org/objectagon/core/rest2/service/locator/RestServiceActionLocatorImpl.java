@@ -5,8 +5,6 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.message.MessageValue;
-import org.objectagon.core.object.InstanceClassProtocol;
-import org.objectagon.core.object.InstanceProtocol;
 import org.objectagon.core.object.MetaProtocol;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
 import org.objectagon.core.object.meta.MetaService;
@@ -48,11 +46,15 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         restActionLocatorList = new ArrayList<>();
         new TransactionProtocolRestActionsCreator().create(new RestServiceActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
 
-        new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>create(new RestServiceActionCreator<EntityServiceProtocol.Send>(this, InstanceClassService.NAME));
-        new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>create(new RestServiceActionCreator<EntityServiceProtocol.Send>(this, MetaService.NAME));
+        new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>
+                create(new RestServiceActionCreator<>(this, InstanceClassService.NAME));
+        new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>
+                create(new RestServiceActionCreator<>(this, MetaService.NAME));
 
-        new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator<InstanceClassProtocol.Send>(this));
-        new InstanceProtocolRestActionsCreator().create(new RestActionCreator<InstanceProtocol.Send>(this));
+        new InstanceClassProtocolRestActionsCreator().create(new RestActionCreator<>(this));
+        new InstanceProtocolRestActionsCreator().create(new RestActionCreator<>(this));
+        new MethodProtocolRestActionsCreator().create(new RestActionCreator<>(this));
+        new FieldProtocolRestActionsCreator().create(new RestActionCreator<>(this));
 
         new MetaProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<MetaProtocol.Send>>create(new RestActionCreator<MetaProtocol.Send>(this));
 

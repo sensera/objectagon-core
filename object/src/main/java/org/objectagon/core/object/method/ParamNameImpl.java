@@ -1,5 +1,6 @@
 package org.objectagon.core.object.method;
 
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.object.Method;
 
 import java.util.Objects;
@@ -10,6 +11,7 @@ import java.util.Objects;
 public class ParamNameImpl implements Method.ParamName {
 
     public static Method.ParamName create(String name) { return new ParamNameImpl(name);}
+    public static Method.ParamName create(Name name) { return new ParamNameImpl(Name.getNameAsString(name)); }
 
     String name;
 

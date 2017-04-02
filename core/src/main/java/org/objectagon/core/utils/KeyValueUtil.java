@@ -68,16 +68,20 @@ public class KeyValueUtil<Key,Value> {
 
     public static <Key,Value> KeyValue<Key,Value> createKeyValue(Key key, Value value) {
         return new KeyValue<Key, Value>() {
-            @Override
-            public Key getKey() {
+            @Override public Key getKey() {
                 return key;
             }
-
-            @Override
-            public Value getValue() {
+            @Override public Value getValue() {
                 return value;
             }
         };
+    }
+
+    public static <OriginalKey, NewKey, Value> List<KeyValue<NewKey,Value>> transformList(List<KeyValue<OriginalKey,Value>> originalList, Function<OriginalKey, NewKey> transformKey) {
+        return originalList.stream()
+                .map(paramNameValueKeyValue -> createKeyValue(transformKey.apply(paramNameValueKeyValue.getKey()),
+                        paramNameValueKeyValue.getValue()))
+                .collect(Collectors.toList());
     }
 
     public Map<Key,Value> asMap() {
