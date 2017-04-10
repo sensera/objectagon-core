@@ -1,5 +1,7 @@
 FROM ubuntu:16.04
 
+ENV OBJECTAGON_VERSION="1.0-SNAPSHOT"
+
 RUN apt-get update \
     && apt-get install -y software-properties-common \
     && add-apt-repository -y ppa:webupd8team/java \
@@ -10,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     oracle-java8-installer \
     && apt-get autoclean
 
-COPY objectagon-core.jar /
-COPY start-objectagon.sh /
+COPY target/objectagon-core-$OBJECTAGON_VERSION-jar-with-dependencies.jar /objectagon-core.jar
+COPY resources/start-objectagon.sh /.
 
 EXPOSE 9900
 
