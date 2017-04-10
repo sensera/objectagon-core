@@ -33,7 +33,7 @@ public class JsonBuilderImpl implements JsonBuilder {
 
         @Override
         public Json build() {
-            JsonFormatter sf = new JsonFormatter();
+            JsonFormatter sf = new JsonFormatter(false);
             build(sf);
             return new LocalJson(sf.buffer());
         }
@@ -157,21 +157,50 @@ public class JsonBuilderImpl implements JsonBuilder {
                         });
                         json.endBracket(level);
                     }
+                    json.addComma();
                 });
                 json.endBrace(level);
             }
         }
     }
 
-    private class JsonFormatter {
+    static class JsonFormatter {
         StringBuilder json = new StringBuilder();
-        void append(int level, String value) {
-            json.append(JSON_SPACE.substring(0,level*4)+value);
-        }
+
         Map<Integer, Boolean> bracketIndex = new HashMap<>();
+        boolean comma;
+        boolean spaced;
+
+        public JsonFormatter(boolean spaced) {
+            this.spaced = spaced;
+        }
+
+        void append(int level, String value) {
+            if (spaced) {
+                json.append(JSON_SPACE.substring(0,level*4));
+            }
+            json.append(value);
+        }
+
+        void appendln(int level, String value) {
+            if (spaced) {
+                json.append(JSON_SPACE.substring(0,level*4));
+            }
+            json.append(value);
+            if (spaced) {
+                json.append("\n");
+            }
+        }
 
         void append(String value) {
             json.append(value);
+        }
+
+        void appendln(String value) {
+            json.append(value);
+            if (spaced) {
+                json.append("\n");
+            }
         }
 
         public byte[] buffer() {
@@ -179,23 +208,29 @@ public class JsonBuilderImpl implements JsonBuilder {
         }
 
         public void setValue(String value) {
-            append("\""+value+"\"\n");
+            appendln("\""+value+"\"");
         }
 
         public void startBrace() {
-            append("{\n");
+            appendln("{");
+            comma = false;
         }
 
         public void endBrace(int level) {
-            append(level, "}\n");
+            appendln(level, "}");
+            comma = false;
         }
 
         public void setKey(int level, String key) {
+            if (comma) {
+                appendln(", ");
+                comma = false;
+            }
             append(level, "\""+ key + "\"" + ": ");
         }
 
         public int startBracket() {
-            append("[\n");
+            appendln("[");
             int size = bracketIndex.size();
             bracketIndex.put(size, false);
             return size;
@@ -212,9 +247,13 @@ public class JsonBuilderImpl implements JsonBuilder {
                 this.bracketIndex.put(bracketIndex, true);
             }
         }
+
+        public void addComma() {
+            comma = true;
+        }
     }
 
-    private class LocalJson implements Json {
+    static class LocalJson implements Json {
         private final byte[] data;
 
         public LocalJson(byte[] data) {

@@ -3,21 +3,23 @@ package org.objectagon.core.object.method;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.protocol.StandardProtocol;
-import org.objectagon.core.object.InstanceClassProtocol;
-import org.objectagon.core.object.Method;
-import org.objectagon.core.object.MethodProtocol;
+import org.objectagon.core.object.*;
 import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
 import org.objectagon.core.object.method.data.MethodDataImpl;
+import org.objectagon.core.object.utils.ObjectagonCompiler;
 import org.objectagon.core.storage.DataVersion;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.KeyValue;
-import org.objectagon.core.object.utils.ObjectagonCompiler;
 
 import java.io.File;
 import java.util.*;
@@ -60,6 +62,19 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
             super(workerContext);
         }
 
+        public InstanceClassProtocol.Send createInstanceClassProtocolSend(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress,InstanceClassProtocol>createReceiver(
+                            InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL)
+                    .createSend(() -> getWorkerContext().createSend(InstanceClassProtocol.INSTANCE_CLASS_PROTOCOL, instanceClassIdentity));
+        }
+
+        public InstanceProtocol.Send createInstanceProtocolSend(Instance.InstanceIdentity instanceIdentity) {
+            return getWorkerContext()
+                    .<Protocol.ProtocolAddress,InstanceProtocol>createReceiver(
+                            InstanceProtocol.INSTANCE_PROTOCOL)
+                    .createSend(() -> getWorkerContext().createSend(InstanceProtocol.INSTANCE_PROTOCOL, instanceIdentity));
+        }
     }
 
     @Override
@@ -178,6 +193,27 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
             @Override
             public <T> ValueCreator<T> setValue(ParamName paramName) {
                 return value -> { replyParams.add(methodMessageValueTransform.createKeyValue(paramName, MessageValue.any(value))); };
+            }
+
+            @Override
+            public Task createInstance(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
+                return methodWorker.createInstanceClassProtocolSend(instanceClassIdentity)
+                        .createInstance()
+                        .addFailedAction(methodWorker::failed);
+            }
+
+            @Override
+            public Task createInstanceAndAddToRelation(InstanceClass.InstanceClassIdentity instanceClassIdentity, RelationClass.RelationClassIdentity relationClassIdentity) {
+                return methodWorker.createInstanceClassProtocolSend(instanceClassIdentity)
+                        .createInstance()
+                        .addSuccessAction((messageName, values) -> {
+                            Instance.InstanceIdentity newInstance = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
+
+                            methodWorker.createInstanceProtocolSend(newInstance).addRelation(
+                                    relationClassIdentity,
+                                    methodWorker.getValue(Instance.INSTANCE_IDENTITY).asAddress());
+                        })
+                        .addFailedAction(methodWorker::failed);
             }
         });
         if (replyParams.isEmpty())

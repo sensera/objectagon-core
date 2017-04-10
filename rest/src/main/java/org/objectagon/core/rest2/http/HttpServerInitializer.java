@@ -5,6 +5,10 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.cors.CorsConfig;
+import io.netty.handler.codec.http.cors.CorsHandler;
+
+import static io.netty.handler.codec.http.HttpMethod.*;
 
 /**
  * Created by christian on 2016-02-11.
@@ -18,6 +22,10 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
     @Override
     public void initChannel(SocketChannel ch) {
+        CorsConfig corsConfig = CorsConfig.withAnyOrigin()
+                .allowedRequestHeaders("OBJECTAGON_REST_TOKEN")
+                .allowedRequestMethods(PUT,POST,GET,DELETE)
+                .build();
         ChannelPipeline p = ch.pipeline();
         p.addLast(new HttpRequestDecoder());
         // Uncomment the following line if you don't want to handle HttpChunks.
@@ -25,6 +33,7 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
         p.addLast(new HttpResponseEncoder());
         // Remove the following line if you don't want automatic content compression.
         //p.addLast(new HttpContentCompressor());
+        p.addLast(new CorsHandler(corsConfig));
         p.addLast(new HttpProtocolSessionServerHandler(httpCommunicator));
         p.addLast(new HttpSnoopServerHandler());
     }

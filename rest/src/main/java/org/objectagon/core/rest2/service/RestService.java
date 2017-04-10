@@ -5,6 +5,7 @@ import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.message.MessageValue;
@@ -66,8 +67,18 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         TaskBuilder taskBuilder = serviceWorker.getTaskBuilder();
         final TaskBuilder.Builder<ActionTask> action = taskBuilder.action(RestServiceTaksName.INITIALIZE_LOCATOR, () -> {
             System.out.println("RestService.internalCreateStartServiceTask 1");
-            restServiceActionLocator.configure(name -> (ServiceName) getReceiverCtrl().lookupAddressByAlias(name)
-                    .orElseThrow(() -> new SevereError(ErrorClass.UNKNOWN, ErrorKind.MISSING_CONFIGURATION)));
+            restServiceActionLocator.configure(new RestServiceActionLocator.ServiceLocator() {
+                @Override
+                public ServiceName getService(Name name) {
+                    return (ServiceName) getReceiverCtrl().lookupAddressByAlias(name)
+                            .orElseThrow(() -> new SevereError(ErrorClass.UNKNOWN, ErrorKind.MISSING_CONFIGURATION));
+                }
+                @Override
+                public Address lookupAddressByName(Name name) {
+                    return getReceiverCtrl().lookupAddressByAlias(name)
+                            .orElseThrow(() -> new SevereError(ErrorClass.UNKNOWN, ErrorKind.MISSING_CONFIGURATION));
+                }
+            });
             System.out.println("RestService.internalCreateStartServiceTask 2");
         });
         return Optional.of(action);
@@ -126,7 +137,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
                 if (token==null)
                     throw new NullPointerException("token is null!");
                 if (!Objects.equals(STATIC_REST_TOKEN,token))
-                    throw new NullPointerException("restSession is null!");
+                    throw new NullPointerException("restSession is null '"+token+"'!");
                 createNewToken();
                 restSession = sessions.get(token);
             }

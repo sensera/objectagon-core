@@ -130,16 +130,10 @@ class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.S
         final Map<? extends Name, ? extends Message.Value> map = MessageValueFieldUtil.create(values).getValueByField(RestServiceProtocol.REST_CONTENT_RESPONSE).asMap();
         createJson(builder, map);
         consumeReplyContent.accept(new HttpCommunicator.AsyncReplyContent() {
-            @Override
-            public String getContent() {
-                return builder.build().toString();
-            }
-
-            @Override
-            public Optional<String> token() {
+            @Override public String getContent() {return builder.build().toString();}
+            @Override public Optional<String> token() {
                 return Optional.empty();
-            }
-        });
+            } });
         send.terminate();
     }
 

@@ -3,7 +3,10 @@ package org.objectagon.core.object.utils;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.object.Method;
+import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.task.Task;
 
 import javax.tools.*;
 import java.io.*;
@@ -159,6 +162,16 @@ public class ObjectagonCompiler<T> {
             @Override
             public void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values) {
 
+            }
+
+            @Override
+            public Task createInstance(InstanceClass.InstanceClassIdentity instanceClassIdentity) {
+                return null;
+            }
+
+            @Override
+            public Task createInstanceAndAddToRelation(InstanceClass.InstanceClassIdentity instanceClassIdentity, RelationClass.RelationClassIdentity relationClassIdentity) {
+                return null;
             }
 
             @Override

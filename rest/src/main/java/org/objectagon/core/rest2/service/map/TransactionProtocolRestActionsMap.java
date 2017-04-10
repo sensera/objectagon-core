@@ -16,7 +16,7 @@ public interface TransactionProtocolRestActionsMap<A extends TransactionProtocol
     RestPathPattern TRANSACTION_PATH            = base("transaction").build();
 
     enum TransactionAction implements Action {
-        CREATE_TRANSACTION( RestServiceProtocol.Method.GET,     TRANSACTION_PATH),
+        CREATE_TRANSACTION( RestServiceProtocol.Method.PUT,     TRANSACTION_PATH),
         //EXTEND_TRANSACTION
         ;
 

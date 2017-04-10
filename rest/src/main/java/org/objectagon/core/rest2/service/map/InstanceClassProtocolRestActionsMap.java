@@ -2,6 +2,7 @@ package org.objectagon.core.rest2.service.map;
 
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.object.InstanceClassProtocol;
+import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathPattern;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
@@ -12,6 +13,8 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
  * Created by christian on 2017-02-26.
  */
 public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProtocolRestActionsMap.InstanceClassAction> extends RestActionsMap<InstanceClassProtocol.Send, A> {
+
+    ParamName SET_NAME_PARAM = ParamName.create("name");
 
     RestPathPattern CLASSES_PATH                = urlPattern("/class/");
     RestPathPattern CLASS_ID_PATH               = urlPattern("/class/{id}/");
@@ -27,7 +30,8 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
 
     enum InstanceClassAction implements Action {
         GET_NAME(RestServiceProtocol.Method.GET,           CLASS_NAME_PATH, 1),
-        SET_NAME(RestServiceProtocol.Method.POST,           CLASS_NAME_NAME_PATH, 1),
+        SET_NAME(RestServiceProtocol.Method.POST,          CLASS_NAME_NAME_PATH, 1),
+        SET_NAME_PARAM(RestServiceProtocol.Method.POST,    CLASS_NAME_PATH, 1),
 
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1),
 

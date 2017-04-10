@@ -12,6 +12,7 @@ import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.rest2.service.actions.*;
 import org.objectagon.core.rest2.service.map.RestActionsMap;
+import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.storage.EntityServiceProtocol;
 import org.objectagon.core.storage.TransactionServiceProtocol;
 import org.objectagon.core.storage.transaction.TransactionService;
@@ -57,6 +58,8 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         new FieldProtocolRestActionsCreator().create(new RestActionCreator<>(this));
 
         new MetaProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<MetaProtocol.Send>>create(new RestActionCreator<MetaProtocol.Send>(this));
+
+        new NameProtocolRestActionsCreator().create(new RestTargetActionCreator<>(this, serviceLocator.lookupAddressByName(NameServiceImpl.NAME_SERVICE)));
 
         // Dummy login to return new token
         this.addRestAction(

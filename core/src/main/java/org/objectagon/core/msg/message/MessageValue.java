@@ -19,6 +19,7 @@ public class MessageValue<V> implements Message.Value {
 
     public static Message.Value text(Message.Field field, String value) { return new MessageValue<>(field, value);}
     public static Message.Value text(String value) { return new MessageValue<>(NamedField.text("TEXT"), value);}
+    public static Message.Value number(Long value) { return new MessageValue<>(NamedField.number("NUMBER"), value);}
     public static Message.Value number(Message.Field field, Long value) { return new MessageValue<>(field, value);}
     public static Message.Value name(Message.Field field, Name value) { return value != null ? new MessageValue<>(field, value) : empty();}
     public static Message.Value name(Name value) { return new MessageValue<>(StandardField.NAME, value);}

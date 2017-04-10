@@ -5,6 +5,7 @@ package org.objectagon.core.rest2.http;
  */
 
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -37,8 +38,10 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, HttpObject msg) throws Exception {
+        System.out.println("HttpProtocolSessionServerHandler.channelRead0 "+msg);
         if (msg instanceof HttpRequest) {
             HttpRequest request = this.request = (HttpRequest) msg;
+            System.out.println("HttpProtocolSessionServerHandler.channelRead0 HttpRequest");
 
             final URI uri = new URI(request.getUri());
             final String path = uri.getPath();
@@ -60,24 +63,30 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         }
 
         if (msg instanceof HttpContent) {
+            System.out.println("HttpProtocolSessionServerHandler.channelRead0 HttpContent");
             HttpContent httpContent = (HttpContent) msg;
+            if (this.asyncContent != null) {
+                this.asyncContent.pushContent(httpContent.content());
 
-            this.asyncContent.pushContent(httpContent.content());
+                if (msg instanceof LastHttpContent) {
+                    LastHttpContent trailer = (LastHttpContent) msg;
 
-            if (msg instanceof LastHttpContent) {
-                LastHttpContent trailer = (LastHttpContent) msg;
-
-                this.asyncContent
-                        .completed()
-                        .receiveReply(
-                                replyContent -> responseAsString(channelHandlerContext, trailer, replyContent.getContent(), replyContent.token()),
-                                error -> responseAsString(channelHandlerContext, trailer, error, Optional.empty()));
+                    this.asyncContent
+                            .completed()
+                            .receiveReply(
+                                    replyContent -> responseAsString(channelHandlerContext, trailer, replyContent.getContent(), replyContent.token()),
+                                    error -> responseAsStringFailed(channelHandlerContext, trailer, error, Optional.empty()));
+                    this.asyncContent = null;
+                }
             }
         }
 
     }
 
     private void responseAsString(ChannelHandlerContext channelHandlerContext, LastHttpContent trailer, String replyContent, Optional<String> mabyToken) {
+        if (replyContent==null || replyContent.equals("")) {
+            replyContent = "{}";
+        }
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1, trailer.getDecoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
                 Unpooled.copiedBuffer(replyContent, CharsetUtil.UTF_8));
@@ -85,15 +94,42 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
         mabyToken.ifPresent(token -> response.headers().set("OBJECTAGON_REST_TOKEN", token));
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
 
-        boolean keepAlive = false; //HttpHeaders.isKeepAlive(request);
+        //boolean keepAlive = false;
+        boolean keepAlive = HttpHeaders.isKeepAlive(request);
 
         if (keepAlive) {
             response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
             response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
-        channelHandlerContext.write(response);
+        final ChannelFuture writeCompleted = channelHandlerContext.write(response);
         if (!keepAlive) {
-            channelHandlerContext.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+            writeCompleted.addListener(future -> channelHandlerContext.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE));
+        }
+
+        asyncContent = null;
+    }
+
+    private void responseAsStringFailed(ChannelHandlerContext channelHandlerContext, LastHttpContent trailer, String replyContent, Optional<String> mabyToken) {
+        if (replyContent==null || replyContent.equals("")) {
+            replyContent = "{}";
+        }
+        FullHttpResponse response = new DefaultFullHttpResponse(
+                HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                Unpooled.copiedBuffer(replyContent, CharsetUtil.UTF_8));
+
+        mabyToken.ifPresent(token -> response.headers().set("OBJECTAGON_REST_TOKEN", token));
+        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
+
+        //boolean keepAlive = false;
+        boolean keepAlive = HttpHeaders.isKeepAlive(request);
+
+        if (keepAlive) {
+            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
+            response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+        }
+        final ChannelFuture writeCompleted = channelHandlerContext.write(response);
+        if (!keepAlive) {
+            writeCompleted.addListener(future -> channelHandlerContext.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE));
         }
 
         asyncContent = null;

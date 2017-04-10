@@ -101,6 +101,7 @@ public interface RestServiceActionLocator {
 
     interface ServiceLocator {
         Service.ServiceName getService(Name name);
+        Address lookupAddressByName(Name name);
     }
 
     interface CreateServiceLocator {

@@ -11,6 +11,7 @@ import org.objectagon.core.storage.Identity;
 import org.objectagon.core.storage.data.DataType;
 import org.objectagon.core.storage.entity.EntityName;
 import org.objectagon.core.storage.standard.StandardVersion;
+import org.objectagon.core.task.Task;
 
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +67,8 @@ public interface Method extends Entity<Method.MethodIdentity,Method.MethodData> 
         List<ParamName> getInvokeParams();
         Message.Value getValue(String name);
         Message.Value getValue(ParamName paramName);
+        Task createInstance(InstanceClass.InstanceClassIdentity instanceClassIdentity);
+        Task createInstanceAndAddToRelation(InstanceClass.InstanceClassIdentity instanceClassIdentity, RelationClass.RelationClassIdentity relationClassIdentity);
         void replyOk();
         void replyOkWithParams(Message.Value... values);
         void failed(ErrorClass errorClass, ErrorKind errorKind, Message.Value... values);

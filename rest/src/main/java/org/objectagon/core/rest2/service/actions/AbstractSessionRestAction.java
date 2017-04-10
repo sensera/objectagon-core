@@ -5,6 +5,8 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.map.RestActionsMap;
@@ -40,7 +42,12 @@ public class AbstractSessionRestAction<U extends Protocol.Send> implements RestS
     public Task createTask(TaskBuilder taskBuilder, RestServiceActionLocator.IdentityStore identityStore, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data) throws UserException {
         return restPath.getIdentityAtIndex(identityTargetAtPathIndex)
                 .map(target -> taskBuilder.protocol(taskName, protocolName, target, createMessage(identityStore, restPath, params, data)).create())
-                .orElseThrow(() -> new UserException(ErrorClass.REST_SERVICE, ErrorKind.TARGET_IS_NULL));
+                .orElseThrow(() -> new UserException(
+                        ErrorClass.REST_SERVICE,
+                        ErrorKind.TARGET_IS_NULL,
+                        MessageValue.name(taskName),
+                        MessageValue.name(protocolName),
+                        MessageValue.number(NamedField.number("identityTargetAtPathIndex"), (long) identityTargetAtPathIndex)));
     }
 
     @Override

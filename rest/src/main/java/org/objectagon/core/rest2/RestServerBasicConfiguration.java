@@ -67,6 +67,7 @@ public class RestServerBasicConfiguration {
         EventServiceImpl.registerAtServer(server);
         EventServiceProtocolImpl.registerAtServer(server);
         BroadcastEventServiceProtocolImpl.registerAtServer(server);
+
         nameService = server.createReceiver(NameServiceImpl.NAME_SERVICE).getAddress();
         eventService = server.createReceiver(EventServiceImpl.EVENT_SERVICE_NAME).getAddress();
 
