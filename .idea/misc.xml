@@ -13,6 +13,7 @@
       <set>
         <option value="$PROJECT_DIR$/bdd/pom.xml" />
         <option value="$PROJECT_DIR$/demo/pom.xml" />
+        <option value="$PROJECT_DIR$/docker/pom.xml" />
       </set>
     </option>
   </component>

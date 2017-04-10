@@ -26,7 +26,6 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="core" />
-        <module name="docker" />
         <module name="object" />
         <module name="rest" />
         <module name="shop" />
