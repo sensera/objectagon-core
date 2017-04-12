@@ -24,7 +24,7 @@ public class NameProtocolRestActionsCreator implements NameProtocolRestActionsMa
                             session.lookupAddressByName(restPath.getNameAtIndex(1, StandardName::name).get()));
             case UPDATE: return (identityStore, restPath, params, data) -> session ->
                     session.registerName(
-                            restPath.getIdentityAtIndex(2).get(),
+                            restPath.getIdentityAtIndex(3).get(),
                             restPath.getNameAtIndex(1, StandardName::name).get()
                     );
 

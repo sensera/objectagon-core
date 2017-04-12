@@ -14,7 +14,7 @@ import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderIm
 public interface NameProtocolRestActionsMap<A extends NameProtocolRestActionsMap.NameAction> extends RestActionsMap<NameServiceProtocol.Send, A> {
 
     RestPathPattern NAME_PATH                = urlPattern("/name/{name}/");
-    RestPathPattern NAME_ID_PATH                = urlPattern("/name/{name}/{id}/");
+    RestPathPattern NAME_ID_PATH                = urlPattern("/name/{name}/id/{id}/");
 
     enum NameAction implements Action {
         FIND(RestServiceProtocol.Method.GET,            NAME_PATH),

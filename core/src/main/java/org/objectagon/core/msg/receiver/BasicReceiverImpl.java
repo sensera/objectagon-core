@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.objectagon.core.msg.Message.MESSAGE_HEADER_TRACE_ACTIVE;
+import static org.objectagon.core.utils.Util.printValuesToString;
+
 /**
  * Created by christian on 2015-10-06.
  */
@@ -42,7 +45,7 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
             handle(worker);
             if (!worker.isHandled()) {
                 if (worker.messageHasName(StandardProtocol.MessageName.ERROR_MESSAGE)) {
-                    System.out.println("BasicReceiverImpl.receive IGNORED ERROR " + worker.getMessageName() + Util.printValuesToString(worker.getValues()));
+                    System.out.println("BasicReceiverImpl.receive IGNORED ERROR " + worker.getMessageName() + printValuesToString(worker.getValues()));
                 } else {
                     worker.replyWithError(new SevereError(ErrorClass.RECEIVER, ErrorKind.UNKNOWN_MESSAGE, MessageValue.messageName(message.getName())));
                 }
@@ -53,6 +56,8 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
     protected BasicWorkerContext getBasicWorkerContext(Address sender, Message message, Message.Values headers) {
         return new BasicWorkerContext(this, sender, message, headers);
     }
+
+    protected boolean logLevelCheck(Receiver.WorkerContextLogKind logKind) { return false; }
 
     protected abstract W createWorker(Receiver.WorkerContext workerContext);
 
@@ -271,6 +276,14 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         @Override
         public TaskBuilder getTaskBuilder() {
             return getReceiverCtrl().createReceiver(StandardTaskBuilder.STANDARD_TASK_BUILDER);
+        }
+
+        @Override
+        public void log(WorkerContextLogKind kind, String message, Message.Value[] params) {
+            if (logLevelCheck(kind)
+                || "TRACE".equalsIgnoreCase(Util.getValueByField(headers.values(), MESSAGE_HEADER_TRACE_ACTIVE).asText())) {
+                System.out.println(kind+" "+message +" "+ printValuesToString(params));
+            }
         }
 
         @Override

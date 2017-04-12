@@ -20,4 +20,8 @@ public interface BasicWorker extends Receiver.Worker {
     void start(Task task);
 
     TaskBuilder getTaskBuilder();
+
+    void info(String message, Message.Value... values);
+    void trace(String message, Message.Value... values);
+    void error(String message, Message.Value... values);
 }

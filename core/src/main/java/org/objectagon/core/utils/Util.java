@@ -6,6 +6,7 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.UnknownValue;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -70,6 +71,10 @@ public class Util {
     }
 
     public static ValuePrinter createValuePrinter() { return new ValuePrinter();}
+
+    public static String printValuesToString(Message.Value[] params) {
+        return printValuesToString(Arrays.asList(params));
+    }
 
     public static String printValuesToString(Iterable<Message.Value> params) {
         boolean paramsIsEmpty = params == null || !params.iterator().hasNext();
@@ -141,5 +146,17 @@ public class Util {
             params.forEach(value -> value.writeTo(this) );
             return toString();
         }
+    }
+
+    public static <T> T[] concatenate(T[] a, T[] b) {
+        int aLen = a.length;
+        int bLen = b.length;
+
+        @SuppressWarnings("unchecked")
+        T[] c = (T[]) Array.newInstance(a.getClass().getComponentType(), aLen+bLen);
+        System.arraycopy(a, 0, c, 0, aLen);
+        System.arraycopy(b, 0, c, aLen, bLen);
+
+        return c;
     }
 }

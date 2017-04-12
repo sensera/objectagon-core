@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static org.objectagon.core.utils.Util.concatenate;
+
 /**
  * Created by christian on 2016-03-06.
  */
@@ -16,6 +18,10 @@ public class MessageValueFieldUtil {
     public static MessageValueFieldUtil create(Message.Values values) { return new MessageValueFieldUtil(values.values());}
     public static MessageValueFieldUtil create(Message.Value[] values) { return new MessageValueFieldUtil(Arrays.asList(values));}
     public static MessageValueFieldUtil create(Iterable<Message.Value> values) { return new MessageValueFieldUtil(values);}
+
+    public static Message.Value[] append(Message.Value[] values, Message.Value... appendValues) {
+        return concatenate(values, appendValues);
+    }
 
     private MessageValueFieldUtil(Iterable<Message.Value> values) {
         this.values = values;

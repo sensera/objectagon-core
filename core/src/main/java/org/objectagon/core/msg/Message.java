@@ -5,6 +5,7 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueMessage;
+import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.message.UnknownValue;
 
 import java.util.Collections;
@@ -15,6 +16,8 @@ import java.util.Optional;
  * Created by christian on 2015-10-06.
  */
 public interface Message {
+    Message.Field MESSAGE_HEADER_TRACE_ACTIVE = NamedField.text("trace");
+
     Iterable<Value> NO_VALUES = Collections.EMPTY_LIST;
 
     MessageName getName();

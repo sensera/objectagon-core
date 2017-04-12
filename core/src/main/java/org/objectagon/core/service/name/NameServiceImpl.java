@@ -9,6 +9,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.receiver.ForwardAction;
@@ -20,6 +21,7 @@ import org.objectagon.core.utils.FindNamedConfiguration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Created by christian on 2015-10-13.
@@ -47,6 +49,11 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     }
 
     @Override
+    protected boolean logLevelCheck(WorkerContextLogKind logKind) {
+        return true;
+    }
+
+    @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {
         super.buildReactor(reactorBuilder);
         reactorBuilder.add(
@@ -63,6 +70,8 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
                 (initializer, context) -> new Forward((NameServiceImpl) initializer, (NameServiceImpl.NameServiceWorkerImpl) context)
         );
     }
+
+    public Stream<Name> names() { return addressByName.keySet().stream(); }
 
     public Optional<Address> getAddressByName(Name name) {
         Address address = addressByName.get(name);
@@ -116,6 +125,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         @Override
         public Optional<Message.Value> internalRun() throws UserException {
             initializer.setAddressName(address, name);
+            context.trace("register name", MessageValue.name(name), MessageValue.address(address));
             return Optional.empty();
         }
     }
@@ -138,6 +148,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         @Override
         public Optional<Message.Value> internalRun() throws UserException {
             initializer.removeAddressName(name);
+            context.trace("unregister name", MessageValue.name(name));
             return Optional.empty();
         }
     }
@@ -160,8 +171,12 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
         @Override
         public Optional<Message.Value> internalRun() throws UserException {
             Address address = initializer.getAddressByName(name)
-                    .orElseThrow(() -> new UserException(ErrorClass.NAME_SERVICE, ErrorKind.NAME_NOT_FOUND));
-            //System.out.println("LookupAddressByName.internalRun found address "+address);
+                    .orElseThrow(() -> new UserException(
+                            ErrorClass.NAME_SERVICE,
+                            ErrorKind.NAME_NOT_FOUND,
+                            MessageValue.name(name),
+                            MessageValue.values(initializer.names().map(MessageValue::name))));
+            context.trace("Lookup address by ame", MessageValue.name(name), MessageValue.address(address));
             return Optional.of(VolatileAddressValue.address(address));
         }
     }

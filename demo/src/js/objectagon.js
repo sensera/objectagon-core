@@ -11,6 +11,7 @@ var SESSION_PATH="session/";
 var RELATION_PATH="relation/";
 var FIELD_PATH="field/";
 var NAME_PATH="name/";
+var ID_PATH="id/";
 var METHOD_PATH="method/";
 
 function getInstanceByName(instanceName) {
@@ -33,7 +34,7 @@ function nameSearch(name, alias) {
 }
 
 function indexName(name, alias) {
-    return get(NAME_PATH+name+"/"+alias);
+    return put(NAME_PATH+name+"/"+ID_PATH+alias);
 }
 
 // ----------------- Create domain --------------------------

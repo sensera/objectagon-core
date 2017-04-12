@@ -86,6 +86,14 @@ public interface Receiver<A extends Address> {
         }
     }
 
+
+
+    enum WorkerContextLogKind {
+        Trace,
+        Info,
+        Error
+    }
+
     interface WorkerContext  {
 
         Composer createReplyToSenderComposer();
@@ -117,6 +125,8 @@ public interface Receiver<A extends Address> {
         <U extends Protocol.Reply> U createReply(Protocol.ProtocolName protocolName);
 
         TaskBuilder getTaskBuilder();
+
+        void log(WorkerContextLogKind kind, String message, Message.Value[] params);
     }
 
 

@@ -196,4 +196,18 @@ public class BasicWorkerImpl implements BasicWorker {
         });
     }
 
+    @Override
+    public void info(String message, Message.Value... values) {
+        getWorkerContext().log(Receiver.WorkerContextLogKind.Info, message, values);
+    }
+
+    @Override
+    public void trace(String message, Message.Value... values) {
+        getWorkerContext().log(Receiver.WorkerContextLogKind.Trace, message, values);
+    }
+
+    @Override
+    public void error(String message, Message.Value... values) {
+        getWorkerContext().log(Receiver.WorkerContextLogKind.Error, message, values);
+    }
 }
