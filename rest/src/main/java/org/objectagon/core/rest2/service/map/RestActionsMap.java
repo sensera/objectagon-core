@@ -43,7 +43,7 @@ public interface RestActionsMap<U extends Protocol.Send, A extends RestActionsMa
         Protocol.ProtocolName getProtocol();
 
         default int identityTargetAtPathIndex() {
-            return 0;
+            return 1;
         }
     }
 

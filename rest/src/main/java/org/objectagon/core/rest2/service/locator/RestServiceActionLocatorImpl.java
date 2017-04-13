@@ -45,7 +45,7 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
     @Override
     public void configure(ServiceLocator serviceLocator) {
         restActionLocatorList = new ArrayList<>();
-        new TransactionProtocolRestActionsCreator().create(new RestServiceActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
+        new TransactionServiceProtocolRestActionsCreator().create(new RestServiceActionCreator<TransactionServiceProtocol.Send>(this, TransactionService.NAME));
 
         new EntityProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<EntityServiceProtocol.Send>>
                 create(new RestServiceActionCreator<>(this, InstanceClassService.NAME));
@@ -56,6 +56,8 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
         new InstanceProtocolRestActionsCreator().create(new RestActionCreator<>(this));
         new MethodProtocolRestActionsCreator().create(new RestActionCreator<>(this));
         new FieldProtocolRestActionsCreator().create(new RestActionCreator<>(this));
+
+        new TransactionProtocolRestActionsCreator().create(new RestActionCreator<>(this));
 
         new MetaProtocolRestActionsCreator().<RestActionsMap.CreateSendMessageAction<MetaProtocol.Send>>create(new RestActionCreator<MetaProtocol.Send>(this));
 

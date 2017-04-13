@@ -7,10 +7,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.name.StandardName;
-import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.InstanceClassProtocol;
-import org.objectagon.core.object.Method;
-import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.*;
 import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
 import org.objectagon.core.rest2.service.ParamName;
 import org.objectagon.core.rest2.service.map.InstanceClassProtocolRestActionsMap;
@@ -49,6 +46,10 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
                                     Collections.emptyList()));
             case GET_NAMED_INSTANCE: return (identityStore, restPath, params, data) -> session ->
                     session.getInstanceByAlias(restPath.getNameAtIndex(3, StandardName::name).get());
+            case NAME_INSTANCE: return (identityStore, restPath, params, data) -> session ->
+                    session.addInstanceAlias(
+                            (Instance.InstanceIdentity) restPath.getIdentityAtIndex(3).get(),
+                            restPath.getNameAtIndex(5, StandardName::name).get());
             case GET_NAME: return (identityStore, restPath, params, data) -> InstanceClassProtocol.Send::getName;
             case SET_NAME: return (identityStore, restPath, params, data) -> session ->
                     session.setName((InstanceClass.InstanceClassName) restPath.getNameAtIndex(3, InstanceClassNameImpl::create).get());

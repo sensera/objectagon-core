@@ -5,6 +5,7 @@ var HEADER_TOKEN_NAME = "OBJECTAGON_REST_TOKEN";
 
 var TRANSACTION_PATH="transaction/";
 var INSTANCE_PATH="instance/";
+var INSTANCENAME_PATH="instancename/";
 var CLASS_PATH="class/";
 var META_PATH="meta/";
 var SESSION_PATH="session/";
@@ -47,6 +48,16 @@ function useTransaction(alias) {
 function createTransaction(alias) {
     console.log("createTransaction",alias);
     return put(TRANSACTION_PATH, alias);
+}
+
+function commitTransaction(alias) {
+    console.log("commmitTransaction",alias);
+    return post(TRANSACTION_PATH+alias+"/commit", alias);
+}
+
+function rollbackTransaction(alias) {
+    console.log("rollbackTransaction",alias);
+    return post(TRANSACTION_PATH+alias+"/rollback", alias);
 }
 
 function extendTransaction(targetAlias, newAlias) {
@@ -92,12 +103,26 @@ function attacheMetaMethod(alias, method) {
     return post(CLASS_PATH+alias+"/"+METHOD_PATH+method);
 }
 
+function createInstanceOfClass(alias, instanceAlias) {
+    return put(CLASS_PATH+alias+"/"+INSTANCE_PATH, instanceAlias);
+}
+
+function setNameInstanceOfClass(alias, instanceAlias, instanceName) {
+    return post(CLASS_PATH+alias+"/"+INSTANCENAME_PATH+instanceAlias+"/name/"+instanceName);
+}
+
+function getNameInstanceOfClass(alias, instanceAlias) {
+    return get(CLASS_PATH+alias+"/"+INSTANCENAME_PATH, instanceAlias);
+}
+
 // ----------------- Create Objects --------------------------
 
 function createTransactionObject(transactionId, alias) {
     return {
         id: transactionId,
         alias: alias ,
+        commit: function () { return commitTransaction(alias); },
+        rollback: function () { return rollbackTransaction(alias); },
         extend: function (newAlias) { return extendTransaction(alias, newAlias); }
     }
 }
@@ -124,8 +149,11 @@ function createClassObject(id, alias) {
         alias: alias,
         setName: function (name) { return setClassName(alias, name); },
         addField: function (fieldAlias) { return addField(alias, fieldAlias); },
+        setInstanceName: function (instanceAlias, instanceName) { return setNameInstanceOfClass(alias, instanceAlias, instanceName); },
+        getInstanceName: function (instanceAlias) { return getNameInstanceOfClass(alias, instanceAlias); },
         addRelation: function (instanceClass, newAlias) { return createRelationClass(alias, instanceClass.alias, newAlias); },
-        attacheMethod: function (method) { return attacheMetaMethod(alias, method); }
+        attacheMethod: function (method) { return attacheMetaMethod(alias, method); },
+        createInstance: function (instanceAlias) { return createInstanceOfClass(alias, instanceAlias); }
     }
 }
 

@@ -3,7 +3,7 @@ var transactionAlias = "mainTrans";
 
 function createApplicationDomain() {
     createTransaction(transactionAlias).done(function () {
-        createDomain(transactionAlias, update);
+        createDomain(transactionAlias, commitTransaction(transactionAlias).done(update));
     });
 }
 
@@ -25,16 +25,15 @@ function showCreateDomain() {
 
 function connectToObjectagon() {
     objectagon_url = document.getElementById("objectagon-url").value;
-    console.log("Create initial transaction");
-    createTransaction(transactionAlias).done(function () {
-        nameSearch(MAIN_CLASS_NAME, MAIN_CLASS_ALIAS).done(function (data) {
-            //console.log("Found class");
-            showMain();
-        }).fail(function (err) {
-            //console.log("Failed to get class", err);
-            showCreateDomain()
-        });
+    nameSearch(MAIN_CLASS_NAME, MAIN_CLASS_ALIAS).done(function (data) {
+        console.log("Found class", data);
+        showMain();
     }).fail(function (err) {
-        alert("Unable to connect to objectagon server!");
+        console.log("Failed to get class", err);
+        if (err.statusText==="error") {
+            alert("Unable to connect to objectagon server!");
+        } else {
+            showCreateDomain();
+        }
     });
 }

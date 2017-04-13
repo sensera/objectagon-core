@@ -22,7 +22,9 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         REMOVE_ENTITY_FROM,
         REMOVE,
         COMMIT,
-        TARGETS, EXTEND, ROLLBACK
+        TARGETS,
+        EXTEND,
+        ROLLBACK
     }
 
     interface Send extends Protocol.Send {

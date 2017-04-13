@@ -21,7 +21,8 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
     RestPathPattern CLASS_NAME_PATH             = urlPattern("/class/{id}/name");
     RestPathPattern CLASS_NAME_NAME_PATH        = urlPattern("/class/{id}/name/{name}");
     RestPathPattern CLASS_INSTANCE_PATH         = urlPattern("/class/{id}/instance/");
-    RestPathPattern CLASS_INSTANCE_ALIAS_PATH   = urlPattern("/class/{id}/instance/{name}/");
+    RestPathPattern CLASS_INSTANCE_ID_NAME_PATH = urlPattern("/class/{id}/instancename/{id}/name/{name}/");
+    RestPathPattern CLASS_INSTANCE_NAME_PATH    = urlPattern("/class/{id}/instancename/{name}/");
     RestPathPattern CLASS_FIELD_PATH            = urlPattern("/class/{id}/field/");
     RestPathPattern CLASS_RELATION_PATH         = urlPattern("/class/{id}/relation/");
     RestPathPattern CLASS_RELATION_ID_PATH      = urlPattern("/class/{id}/relation/{id}/");
@@ -35,8 +36,8 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
 
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1),
 
-        NAME_INSTANCE(RestServiceProtocol.Method.POST,      CLASS_INSTANCE_ALIAS_PATH, 1),
-        GET_NAMED_INSTANCE(RestServiceProtocol.Method.GET,  CLASS_INSTANCE_ALIAS_PATH, 1),
+        NAME_INSTANCE(RestServiceProtocol.Method.POST,      CLASS_INSTANCE_ID_NAME_PATH, 1),
+        GET_NAMED_INSTANCE(RestServiceProtocol.Method.GET,  CLASS_INSTANCE_NAME_PATH, 1),
 
         LIST_FIELDS(RestServiceProtocol.Method.GET,         CLASS_FIELD_PATH, 1),
         ADD_FIELD(RestServiceProtocol.Method.PUT,           CLASS_FIELD_PATH, 1),

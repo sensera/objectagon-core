@@ -32,6 +32,7 @@ var PERSON_CLASS_ALIAS = "person.class";
 var MAIN_PERSON_RELATION_ALIAS = "main.person.relation";
 
 var MAIN_CLASS_NAME = "Main";
+var MAIN_CLASS_INSTANCE_NAME = "Main1";
 var PERSON_CLASS_NAME = "Person";
 var PERSON_CLASS_AGE_FIELD_NAME = "Age";
 var PERSON_CLASS_NAME_FIELD_NAME = "Name";
@@ -41,6 +42,7 @@ var main_transaction;
 var main_meta;
 var create_person_method;
 var main_class;
+var main_class_1;
 var person_class;
 var main_person_relation;
 
@@ -72,6 +74,14 @@ function createMainClass(completed) {
         main_class = createClassObject(classId, MAIN_CLASS_ALIAS);
         main_class.setName(MAIN_CLASS_NAME);
         indexName(MAIN_CLASS_NAME, MAIN_CLASS_ALIAS);
+        createMainInstance(completed)
+    });
+}
+
+function createMainInstance(completed) {
+    main_class.createInstance(MAIN_CLASS_INSTANCE_NAME).done(function (instanceId) {
+        main_class_1 = createInstanceObject(instanceId, MAIN_CLASS_INSTANCE_NAME);
+        main_class.setInstanceName(MAIN_CLASS_INSTANCE_NAME,MAIN_CLASS_INSTANCE_NAME);
         createPersonClass(completed)
     });
 }
@@ -87,6 +97,12 @@ function createPersonClass(completed) {
         person_class.addRelation(main_class, MAIN_PERSON_RELATION_ALIAS).done(function (relationClassId) {
             main_person_relation = createRelationClassObject(relationClassId, MAIN_PERSON_RELATION_ALIAS);
         });
+        commitDomain(completed); //TODO check for uncompleted changes
+    })
+}
+
+function commitDomain(completed) {
+    main_transaction.commit().done(function (data) {
         if (typeof completed !== 'undefined') {
             completed();
         }
