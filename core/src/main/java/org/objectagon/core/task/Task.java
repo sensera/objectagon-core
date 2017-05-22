@@ -27,6 +27,8 @@ public interface Task<A extends Address> extends BasicReceiver<A>, Name.Named<Ta
 
     Task addSuccessAction(SuccessAction successAction);
 
+    Task addFirstSuccessAction(SuccessAction successAction);
+
     Task addFailedAction(FailedAction failedAction);
 
     interface TaskName extends Name { }

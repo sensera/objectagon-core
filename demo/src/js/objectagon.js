@@ -5,7 +5,8 @@ var HEADER_TOKEN_NAME = "OBJECTAGON_REST_TOKEN";
 
 var TRANSACTION_PATH="transaction/";
 var INSTANCE_PATH="instance/";
-var INSTANCENAME_PATH="instancename/";
+var BATCH_PATH="batch/";
+var INSTANCE_NAME_PATH="instancename/";
 var CLASS_PATH="class/";
 var META_PATH="meta/";
 var SESSION_PATH="session/";
@@ -15,10 +16,9 @@ var NAME_PATH="name/";
 var ID_PATH="id/";
 var METHOD_PATH="method/";
 
-function getInstanceByName(instanceName) {
-
-
-
+function getInstanceByName(className, instanceName) {
+    console.log("getInstanceByName ",className, instanceName);
+    return get(CLASS_PATH+className+"/"+INSTANCE_NAME_PATH+instanceName)
 }
 
 function getValue(id, fieldName) {
@@ -39,6 +39,12 @@ function indexName(name, alias) {
 }
 
 // ----------------- Create domain --------------------------
+
+function batchUpdate(data) {
+    console.log("batch",data);
+    return post(BATCH_PATH, data);
+}
+
 
 function useTransaction(alias) {
     console.log("useTransaction", alias);
@@ -66,7 +72,7 @@ function extendTransaction(targetAlias, newAlias) {
 }
 
 function createMeta(alias) {
-    console.log("extendTransaction",alias);
+    console.log("createMeta",alias);
     return put(META_PATH, alias);
 }
 
@@ -111,8 +117,8 @@ function setNameInstanceOfClass(alias, instanceAlias, instanceName) {
     return post(CLASS_PATH+alias+"/"+INSTANCENAME_PATH+instanceAlias+"/name/"+instanceName);
 }
 
-function getNameInstanceOfClass(alias, instanceAlias) {
-    return get(CLASS_PATH+alias+"/"+INSTANCENAME_PATH, instanceAlias);
+function getInstanceRelations(instanceAlias, relationAlias) {
+    return get(CLASS_PATH+alias+"/"+INSTANCENAME_PATH, instanceAlias+RELATION_PATH+relationAlias);
 }
 
 // ----------------- Create Objects --------------------------

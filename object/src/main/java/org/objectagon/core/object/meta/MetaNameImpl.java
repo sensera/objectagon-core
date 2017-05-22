@@ -1,5 +1,6 @@
 package org.objectagon.core.object.meta;
 
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.object.Meta;
 
 import java.util.Objects;
@@ -18,6 +19,10 @@ public class MetaNameImpl implements Meta.MetaName {
         return new MetaNameImpl(name);
     }
 
+    public static MetaNameImpl create(Name name) {
+        return name.to(MetaNameImpl::create);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -33,8 +38,6 @@ public class MetaNameImpl implements Meta.MetaName {
 
     @Override
     public String toString() {
-        return "MetaNameImpl{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
 }

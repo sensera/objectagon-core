@@ -19,6 +19,7 @@ public class RelationClassDataImpl extends AbstractData<RelationClass.RelationCl
         return new RelationClassDataImpl(
                 relationClassIdentity,
                 standardVersion,
+                null,
                 relationClassIdentity.getInstanceClassIdentity(RelationClass.RelationDirection.RELATION_FROM),
                 relationClassIdentity.getInstanceClassIdentity(RelationClass.RelationDirection.RELATION_TO),
                 relationClassIdentity.getRelationType());
@@ -27,14 +28,17 @@ public class RelationClassDataImpl extends AbstractData<RelationClass.RelationCl
     private InstanceClass.InstanceClassIdentity instanceClassIdentityFrom;
     private InstanceClass.InstanceClassIdentity instanceClassIdentityTo;
     private RelationClass.RelationType relationType;
+    private RelationClass.RelationName relationName;
 
     public RelationClassDataImpl(
             RelationClass.RelationClassIdentity identity,
             StandardVersion version,
+            RelationClass.RelationName relationName,
             InstanceClass.InstanceClassIdentity instanceClassIdentityFrom,
             InstanceClass.InstanceClassIdentity instanceClassIdentityTo,
             RelationClass.RelationType relationType) {
         super(identity, version);
+        this.relationName = relationName;
         this.instanceClassIdentityFrom = instanceClassIdentityFrom;
         this.instanceClassIdentityTo = instanceClassIdentityTo;
         this.relationType = relationType;
@@ -44,6 +48,8 @@ public class RelationClassDataImpl extends AbstractData<RelationClass.RelationCl
         return RelationDirectionUtil.create(relationDirection).getInstanceClassIdentity(() -> instanceClassIdentityFrom, () -> instanceClassIdentityTo);
     }
     @Override public RelationClass.RelationType getRelationType() {return relationType;}
+
+    @Override public RelationClass.RelationName getName() {return relationName;}
 
     @Override
     public <C extends Change<RelationClass.RelationClassIdentity, StandardVersion>> C change() {

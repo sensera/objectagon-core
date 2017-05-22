@@ -3,6 +3,7 @@ package org.objectagon.core.object.relationclass;
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.UserException;
+import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
@@ -82,9 +83,19 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
     @Override
     protected void handle(RelationClassEntityWorker worker) {
         triggerBuilder(worker)
+                .trigger(RelationClassProtocol.MessageName.GET_NAME, read(this::getName))
+                .trigger(RelationClassProtocol.MessageName.SET_NAME, write(this::<RelationClassDataChange>setName))
                 .trigger(RelationClassProtocol.MessageName.CREATE_RELATION, read(this::createRelation))
                 .trigger(RelationClassProtocol.MessageName.DESTROY_RELATION, read(this::destroyRelation))
                 .orElse(w -> super.handle(w));
+    }
+
+    private void getName(RelationClassEntityWorker fieldEntityWorker, RelationClassData relationClassData) {
+        fieldEntityWorker.replyWithParam(MessageValue.name(RELATION_NAME, relationClassData.getName()));
+    }
+
+    private void setName(RelationClassEntityWorker fieldEntityWorker, RelationClassData relationClassData, RelationClassDataChange relationClassDataChange, Message.Values values) {
+        relationClassDataChange.setName(MessageValueFieldUtil.create(values).getValueByField(RELATION_NAME).asName());
     }
 
     private void createRelation(RelationClassEntityWorker entityWorker, RelationClassData relationClassData) throws UserException {

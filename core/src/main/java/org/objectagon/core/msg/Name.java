@@ -1,5 +1,7 @@
 package org.objectagon.core.msg;
 
+import java.util.function.Function;
+
 /**
  * Created by christian on 2015-10-08.
  */
@@ -29,6 +31,10 @@ public interface Name {
             @Override public void setDomain(String domainName) { /*Ignored*/ }
         });
         return buildResponse.toString();
+    }
+
+    default <N extends Name> N to(Function<String,N> trans) {
+        return trans.apply(toString());
     }
 
 }

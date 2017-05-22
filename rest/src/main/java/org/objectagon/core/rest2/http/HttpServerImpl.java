@@ -44,6 +44,8 @@ public class HttpServerImpl extends AbstractStartStopController implements HttpS
             System.out.println("HttpServerImpl.protectedStart LISTENING on "+port);
         } catch (InterruptedException e) {
             throw new FailedToStartException(e);
+        } catch (Exception e) {
+            throw new FailedToStartException(e);
         }
     }
 

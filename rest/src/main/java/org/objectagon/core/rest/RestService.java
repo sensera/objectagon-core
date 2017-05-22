@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 public class RestService extends AbstractService<RestService.RestServiceWorker, StandardAddress> {
 
-    public static final Name REST_SERVICE_NAME = StandardName.name("REST_SERVICE_NAME");
+    public static final Name REST_SERVICE_NAME = StandardName.name("REST_SERVICE");
 
     public void registerAt(Server server) {
         server.registerFactory(REST_SERVICE_NAME, RestService::new);

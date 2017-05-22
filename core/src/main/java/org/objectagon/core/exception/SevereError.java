@@ -5,6 +5,7 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.utils.Util;
 
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import static org.objectagon.core.utils.Util.getValueByField;
 
@@ -39,5 +40,9 @@ public class SevereError extends RuntimeException implements StandardProtocol.Er
 
     private static String paramsToString(Iterable<Message.Value> params) {
         return Util.printValuesToString(params);
+    }
+
+    public static Supplier<SevereError> supply(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Message.Value...params) {
+        return () -> new SevereError(errorClass, errorKind, params);
     }
 }

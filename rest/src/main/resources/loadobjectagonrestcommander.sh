@@ -35,7 +35,7 @@ function objectagon() {
     RESULT=""
     if [ "$1/$2" == "create/transaction" ] ; then
         echo "curl $TOKEN {$OBJECTAGON_REST_URL}transaction/"
-        RESULT=$(curl -s $TOKEN {$OBJECTAGON_REST_URL}transaction/)
+        RESULT=$(curl -s -X PUT $TOKEN {$OBJECTAGON_REST_URL}transaction/)
     fi
 
     if [ "$1/$2" == "create/class" ] ; then

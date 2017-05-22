@@ -28,6 +28,7 @@ public interface TransactionManager extends Receiver<Transaction> {
         default Type getDataType() {return DATA_TYPE;}
         Stream<Identity> getIdentities();
         Optional<Transaction> getExtendsTransaction();
+        int countIdentities();
     }
 
     interface TransactionDataChange extends Data.Change<Transaction,StandardVersion> {

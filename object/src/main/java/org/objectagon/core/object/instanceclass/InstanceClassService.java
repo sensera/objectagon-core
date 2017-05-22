@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 public class InstanceClassService extends EntityService<Service.ServiceName, InstanceClass.InstanceClassIdentity, InstanceClass.InstanceClassData, EntityService.EntityServiceWorker>  {
 
-    public static ServiceName NAME = StandardServiceName.name("INSTANCE_CLASS_SERVICE");
+    public static final ServiceName NAME = StandardServiceName.name("INSTANCE_CLASS_SERVICE");
 
     public static void registerAt(Server server) {
         server.registerFactory(NAME, InstanceClassService::new);

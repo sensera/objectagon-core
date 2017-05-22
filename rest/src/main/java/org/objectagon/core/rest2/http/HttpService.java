@@ -1,6 +1,9 @@
 package org.objectagon.core.rest2.http;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -16,10 +19,13 @@ import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.objectagon.core.msg.message.MessageValue.*;
 
 /**
  * Created by christian on 2017-01-22.
@@ -27,13 +33,13 @@ import java.util.stream.Collectors;
 public class HttpService extends AbstractService<HttpService.HttpServiceWorker, Service.ServiceName> {
 
     public static final Name HTTP_SERVICE_CONFIGURATION_NAME = StandardName.name("HTTP_SERVICE_CONFIGURATION_NAME");
-    public static final ServiceName HTTP_SERVICE_NAME = StandardServiceName.name("HTTP_SERVICE_NAME");
+    public static final ServiceName HTTP_SERVICE = StandardServiceName.name("HTTP_SERVICE");
 
     public static void registerAtServer(Server server) {
-        server.registerFactory(HTTP_SERVICE_NAME, HttpService::new);
+        server.registerFactory(HTTP_SERVICE, HttpService::new);
     }
 
-    enum HttpServiceTaskName implements Task.TaskName { StartHttpServer, StopHttpServer, SendHttpMessage}
+    enum HttpServiceTaskName implements Task.TaskName, Message.MessageName { StartHttpServer, StopHttpServer, SendHttpMessage}
 
     private HttpServer httpServer;
     private Address restServiceAddress = null;
@@ -43,7 +49,7 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
 
     public HttpService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
-        setServiceName(HTTP_SERVICE_NAME);
+        setServiceName(HTTP_SERVICE);
     }
 
     @Override
@@ -58,35 +64,43 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
     @Override
     protected Service.ServiceName createAddress(Configurations... configurations) {
         return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) ->
-                StandardServiceNameAddress.name(HTTP_SERVICE_NAME, serverId, timestamp, addressId)
+                StandardServiceNameAddress.name(HTTP_SERVICE, serverId, timestamp, addressId)
         );
     }
 
     @Override
     protected Optional<TaskBuilder.Builder> internalCreateStartServiceTask(HttpServiceWorker serviceWorker) {
-        return Optional.of(serviceWorker.getTaskBuilder().action(HttpServiceTaskName.StartHttpServer, () -> {
+        return Optional.of(serviceWorker.getTaskBuilder().action(HttpServiceTaskName.StartHttpServer, (success, failed) -> {
             httpServer = createHttpServer.create(new LocalHttpCommunicator(), port);
             try {
                 httpServer.start();
-                System.out.println("HttpService.internalCreateStartServiceTask started");
+                success.success(HttpServiceTaskName.StartHttpServer, Collections.emptyList());
+                serviceWorker.trace("HttpService.internalCreateStartServiceTask started");
+            } catch (UserException e) {
+                failed.failed(ErrorClass.REST_SERVICE, ErrorKind.UNABLE_TO_COMPLETE_TASK, singleValues(error(e)));
             } catch (FailedToStartException e) {
-                e.printStackTrace();
+                failed.failed(ErrorClass.REST_SERVICE, ErrorKind.UNABLE_TO_COMPLETE_TASK, singleValues(exception(e)));
             }
         }));
     }
 
     @Override
     protected Optional<TaskBuilder.Builder> internalCreateStopServiceTask(HttpServiceWorker serviceWorker) {
-        return Optional.of(serviceWorker.getTaskBuilder().action(HttpServiceTaskName.StopHttpServer, () -> {
-            if (httpServer == null)
-                return;
-            try {
-                httpServer.stop();
-                System.out.println("HttpService.internalCreateStopServiceTask stopped");
-            } catch (FailedToStopException e) {
-                e.printStackTrace();
+        return Optional.of(serviceWorker.getTaskBuilder().action(HttpServiceTaskName.StopHttpServer, (success, failed) -> {
+            if (httpServer != null) {
+                try {
+                    httpServer.stop();
+                    serviceWorker.trace("HttpService.internalCreateStopServiceTask stopped");
+                } catch (FailedToStopException e) {
+                    failed.failed(ErrorClass.REST_SERVICE, ErrorKind.UNEXPECTED, singleValues(any(e)));
+                }
+                httpServer = null;
             }
-            httpServer = null;
+            try {
+                success.success(HttpServiceTaskName.StopHttpServer, emptyValues());
+            } catch (UserException e) {
+                failed.failed(ErrorClass.REST_SERVICE, ErrorKind.UNEXPECTED, singleValues(any(e)));
+            }
         }));
     }
 

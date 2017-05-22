@@ -34,24 +34,32 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
 
     @Override
     public InstanceClass.ChangeInstanceClass addField(Field.FieldIdentity fieldIdentity) {
+        if (fieldIdentity==null)
+            throw new NullPointerException("fieldIdentity is null!");
         fieldChanges.add(fieldIdentities -> fieldIdentities.add(fieldIdentity));
         return this;
     }
 
     @Override
     public InstanceClass.ChangeInstanceClass addRelation(RelationClass.RelationClassIdentity relationClassIdentity) {
+        if (relationClassIdentity==null)
+            throw new NullPointerException("relationClassIdentity is null!");
         relationClassChanges.add(relationClassIdentities -> relationClassIdentities.add(relationClassIdentity));
         return this;
     }
 
     @Override
     public InstanceClass.ChangeInstanceClass removeField(Field.FieldIdentity fieldIdentity) {
+        if (fieldIdentity==null)
+            throw new NullPointerException("fieldIdentity is null!");
         fieldChanges.add(fieldIdentities -> fieldIdentities.remove(fieldIdentity));
         return this;
     }
 
     @Override
     public InstanceClass.ChangeInstanceClass removeRelation(RelationClass.RelationClassIdentity relationClassIdentity) {
+        if (relationClassIdentity==null)
+            throw new NullPointerException("relationClassIdentity is null!");
         relationClassChanges.add(relationClassIdentities -> relationClassIdentities.remove(relationClassIdentity));
         return this;
     }
@@ -64,18 +72,26 @@ public class ChangeInstanceClassImpl implements InstanceClass.ChangeInstanceClas
 
     @Override
     public InstanceClass.ChangeInstanceClass addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name alias) {
+        if (instanceIdentity==null)
+            throw new NullPointerException("instanceIdentity is null!");
+        if (alias==null)
+            throw new NullPointerException("alias is null!");
         instanceAliasChanges.add(nameInstanceIdentityMap -> nameInstanceIdentityMap.put(alias, instanceIdentity));
         return this;
     }
 
     @Override
     public InstanceClass.ChangeInstanceClass removeInstanceAlias(Name alias) {
+        if (alias==null)
+            throw new NullPointerException("alias is null!");
         instanceAliasChanges.add(nameInstanceIdentityMap -> nameInstanceIdentityMap.remove(alias));
         return this;
     }
 
     @Override
     public InstanceClass.ChangeInstanceClass addMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings, List<KeyValue<Method.ParamName, Message.Value>> defaultValues) {
+        if (methodIdentity==null)
+            throw new NullPointerException("methodIdentity is null!");
         methodChanges.add(methodIdentities -> methodIdentities.add(MethodClassImpl.create(methodIdentity, fieldMappings, defaultValues)));
         return this;
     }

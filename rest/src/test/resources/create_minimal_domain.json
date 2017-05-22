@@ -1,0 +1,27 @@
+[
+  {
+    "person.class": {
+      "type": "class",
+      "fields": [
+        {
+          "person.class.Name": {
+            "type": "Text"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "person.1": {
+      "type": "instance",
+      "class": "person.class",
+      "values": [
+        {
+          "person.class.Name": {
+            "value": "Lars Gurra Aktersnurra"
+          }
+        }
+      ]
+    }
+  }
+]

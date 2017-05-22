@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
+import static org.objectagon.core.object.Instance.INSTANCE_IDENTITY;
 import static org.objectagon.core.task.TaskFailed.failedWithUserException;
 
 /**
@@ -45,7 +46,8 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
                                     Collections.emptyList(),
                                     Collections.emptyList()));
             case GET_NAMED_INSTANCE: return (identityStore, restPath, params, data) -> session ->
-                    session.getInstanceByAlias(restPath.getNameAtIndex(3, StandardName::name).get());
+                    session.getInstanceByAlias(restPath.getNameAtIndex(3, StandardName::name).get())
+                    .addSuccessAction(findAliasAndMessageIdentityToUpdateAlias(identityStore, INSTANCE_IDENTITY, restPath.valueAtIndex(3).asText()));
             case NAME_INSTANCE: return (identityStore, restPath, params, data) -> session ->
                     session.addInstanceAlias(
                             (Instance.InstanceIdentity) restPath.getIdentityAtIndex(3).get(),

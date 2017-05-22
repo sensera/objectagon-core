@@ -126,18 +126,17 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     private Optional<Task> createValue(InstanceWorker instanceWorker, InstanceData instanceData) {
-        Message.Value value = instanceWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
-        //System.out.println("InstanceImpl.createValue "+value+" <"+instanceWorker.currentTransaction()+">");
+        final Message.Value value = instanceWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
+        final Field.FieldIdentity fieldIdentity = instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress();
+        instanceWorker.trace("InstanceImpl.setValue", value, MessageValue.address(fieldIdentity), MessageValue.address(instanceWorker.currentTransaction()));
         try {
-            FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(
-                    instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress(),
-                    instanceData);
+            FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(fieldIdentity, instanceData);
             instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
                     .setValue(value);
-            instanceWorker.replyOk();
+            //instanceWorker.replyOk();
         } catch (UserException e) {
             if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
-                return Optional.of(instanceWorker.createFieldProtocolSend(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress())
+                return Optional.of(instanceWorker.createFieldProtocolSend(fieldIdentity)
                         .createFieldValue(getAddress(), value));
             } else
                 instanceWorker.replyWithError(e);
@@ -221,7 +220,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
     private void setValue(InstanceWorker instanceWorker, InstanceData instanceData, InstanceDataChange change, Message.Values values) {
         FieldValue.FieldValueIdentity fieldValueIdentity = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS).asAddress();
-        //System.out.println("InstanceImpl.setValue "+fieldValueIdentity+" <"+instanceWorker.currentTransaction()+">");
+        instanceWorker.trace("InstanceImpl.setValue", MessageValue.address(fieldValueIdentity), MessageValue.address(instanceWorker.currentTransaction()));
         change.addField(fieldValueIdentity);
     }
 

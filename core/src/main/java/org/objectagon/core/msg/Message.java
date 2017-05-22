@@ -41,7 +41,7 @@ public interface Message {
         <N extends Name> N asName();
         Field asField();
         Values asValues();
-        java.util.Map<? extends Name, ? extends Value> asMap();
+        <N extends Name, V extends Value> java.util.Map<N, V> asMap();
 
         default boolean isUnknown() { return this instanceof UnknownValue; }
 
@@ -84,7 +84,8 @@ public interface Message {
         Name,
         Password,
         Values,
-        Map;
+        Map,
+        Error;
     }
 
     interface Writer {

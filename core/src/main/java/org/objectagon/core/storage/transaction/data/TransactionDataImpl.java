@@ -27,15 +27,13 @@ public class TransactionDataImpl extends AbstractData<Transaction,StandardVersio
     private List<Identity> identities;
     private Optional<Transaction> extendsTransaction;
 
-    @Override
-    public Stream<Identity> getIdentities() {
+    @Override public Stream<Identity> getIdentities() {
         return identities.stream();
     }
-
-    @Override
-    public Optional<Transaction> getExtendsTransaction() {
+    @Override public Optional<Transaction> getExtendsTransaction() {
         return extendsTransaction;
     }
+    @Override public int countIdentities() {return identities.size();}
 
     TransactionDataImpl(Transaction identity, StandardVersion version, List<Identity> identities, Optional<Transaction> extendsTransaction) {
         super(identity, version);

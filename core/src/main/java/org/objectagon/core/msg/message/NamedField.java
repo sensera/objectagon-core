@@ -48,4 +48,9 @@ public class NamedField implements Message.Field {
     public int hashCode() {
         return Objects.hash(getName());
     }
+
+    @Override
+    public String toString() {
+        return name.toString()+" of "+fieldType;
+    }
 }

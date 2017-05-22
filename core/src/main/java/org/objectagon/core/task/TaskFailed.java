@@ -19,6 +19,7 @@ public class TaskFailed {
             @Override public void start() {}
             @Override public void trace() {}
             @Override public Task addSuccessAction(SuccessAction successAction) {return this;}
+            @Override public Task addFirstSuccessAction(SuccessAction successAction) {return this;}
             @Override public Name getName() {return StandardName.name(e.getErrorClass().name());}
             @Override public Address getAddress() {return null;}
             @Override public void receive(Envelope envelope) {}

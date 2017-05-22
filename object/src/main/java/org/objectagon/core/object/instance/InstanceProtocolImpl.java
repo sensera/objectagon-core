@@ -58,6 +58,8 @@ public class InstanceProtocolImpl extends AbstractProtocol<InstanceProtocol.Send
 
         @Override
         public Task setValue(Field.FieldIdentity fieldIdentity, Message.Value value) {
+            if (fieldIdentity==null)
+                throw new NullPointerException("fieldIdentity is null!");
             return task(MessageName.SET_VALUE, send -> send.send(MessageName.SET_VALUE, address(Field.FIELD_IDENTITY, fieldIdentity), MessageValue.values(FieldValue.VALUE, value)));
         }
 

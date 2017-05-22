@@ -33,8 +33,6 @@ public class InstanceClassNameImpl implements InstanceClass.InstanceClassName {
 
     @Override
     public String toString() {
-        return "InstanceClassNameImpl{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
 }

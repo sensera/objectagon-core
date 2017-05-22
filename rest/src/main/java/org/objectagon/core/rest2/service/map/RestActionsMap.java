@@ -72,6 +72,10 @@ public interface RestActionsMap<U extends Protocol.Send, A extends RestActionsMa
         return (messageName, values) -> identityStore.updateIdentity(MessageValueFieldUtil.create(values).getValueByField(field).asAddress(), alias.asValues().values().iterator().next().asText());
     }
 
+    default Task.SuccessAction findAliasAndMessageIdentityToUpdateAlias(RestServiceActionLocator.IdentityStore identityStore, Message.Field field, String alias) {
+        return (messageName, values) -> identityStore.updateIdentity(MessageValueFieldUtil.create(values).getValueByField(field).asAddress(), alias);
+    }
+
     @FunctionalInterface
     interface CreateSendMessageAction<U extends Protocol.Send> {
         ProtocolTask.SendMessageAction<U> createProtocolSend(RestServiceActionLocator.IdentityStore identityStore, RestServiceActionLocator.RestPath restPath, List<KeyValue<ParamName, Message.Value>> params, String data);

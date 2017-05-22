@@ -38,8 +38,6 @@ public class FieldNameImpl implements Field.FieldName {
 
     @Override
     public String toString() {
-        return "FieldNameImpl{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
 }

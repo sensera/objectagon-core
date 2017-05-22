@@ -178,7 +178,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         @Override
         public boolean initialize() throws UserException {
             if (context.currentTransaction()==null)
-                throw new UserException(ErrorClass.ENTITY_SERVICE, ErrorKind.TRANSACTION_NOT_FOUND);
+                throw new UserException(ErrorClass.ENTITY_SERVICE, ErrorKind.TRANSACTION_NOT_FOUND, MessageValue.name(context.getEntityName()));
             initialParams = context.getValue(StandardField.VALUES).asValues();
             return super.initialize();
         }

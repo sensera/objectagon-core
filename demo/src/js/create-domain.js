@@ -31,8 +31,8 @@ var CREATE_PERSON_METHOD_ALIAS = "create.person.method";
 var PERSON_CLASS_ALIAS = "person.class";
 var MAIN_PERSON_RELATION_ALIAS = "main.person.relation";
 
-var MAIN_CLASS_NAME = "Main";
-var MAIN_CLASS_INSTANCE_NAME = "Main1";
+var MAIN_CLASS_NAME = "main.class"; //"Main";
+var MAIN_CLASS_INSTANCE_NAME = "main.class.demo";
 var PERSON_CLASS_NAME = "Person";
 var PERSON_CLASS_AGE_FIELD_NAME = "Age";
 var PERSON_CLASS_NAME_FIELD_NAME = "Name";
@@ -46,8 +46,125 @@ var main_class_1;
 var person_class;
 var main_person_relation;
 
+var create_person_method_code = 'invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() + invokeWorker.getValue("addValue").asNumber());';
+
+var create_domain_json = [
+    {
+        "main.meta": {
+            "type": "meta",
+            "methods": [
+                {
+                    "create.person.method": {
+                        "code": "create_person_method_code"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "main.class": {
+            "type": "class",
+            "relations": [
+                {
+                    "main.person.relation": {
+                        "targetClass": "person.class"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "person.class": {
+            "type": "class",
+            "fields": [
+                {
+                    "person.class.Name": {
+                        "type": "Text"
+                    }
+                },
+                {
+                    "person.class.Age": {
+                        "type": "Number"
+                    }
+                },
+                {
+                    "person.class.Comment": {
+                        "type": "Text"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "main.class.demo": {
+            "type": "instance",
+            "class": "main.class",
+            "alias": "main.class.demo",
+            "relations": [
+                {
+                    "main.person.relation": [
+                        {"person.1":"invalid"}
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "person.1": {
+            "type": "instance",
+            "class": "person.class",
+            "values": [
+                {
+                    "person.class.Name": {
+                        "value": "Lars Gurra Aktersnurra"
+                    }
+                },
+                {
+                    "person.class.Age": {
+                        "value": "44"
+                    }
+                },
+                {
+                    "person.class.Comment": {
+                        "value": "Mera Gurra tack"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "person.2": {
+            "type": "instance",
+            "class": "person.class",
+            "values": [
+                {
+                    "person.class.Name": {
+                        "value": "Svempa Snyltström"
+                    }
+                },
+                {
+                    "person.class.Age": {
+                        "value": "78"
+                    }
+                },
+                {
+                    "person.class.Comment": {
+                        "value": "Svempsson är en torsk"
+                    }
+                }
+            ]
+        }
+    }
+];
+
 function createDomain(transaction, completed) {
-    if (typeof transaction !== 'undefined') {
+    batchUpdate(JSON.stringify(create_domain_json)).done(function (data) {
+        if (typeof completed !== 'undefined') {
+            completed();
+        }
+    });
+
+    /*if (typeof transaction !== 'undefined') {
         createTransaction(MAIN_TRANSACTION_ALIAS).done(function (transactionId) {
             main_transaction = createTransactionObject(transactionId, MAIN_TRANSACTION_ALIAS);
             createDomainMeta(completed);
@@ -55,7 +172,7 @@ function createDomain(transaction, completed) {
     } else {
         main_transaction = transaction;
         createDomainMeta(completed);
-    }
+    } */
 }
 
 function createDomainMeta(completed) {
@@ -97,7 +214,10 @@ function createPersonClass(completed) {
         person_class.addRelation(main_class, MAIN_PERSON_RELATION_ALIAS).done(function (relationClassId) {
             main_person_relation = createRelationClassObject(relationClassId, MAIN_PERSON_RELATION_ALIAS);
         });
-        commitDomain(completed); //TODO check for uncompleted changes
+        if (typeof completed !== 'undefined') {
+            completed();
+        }
+        //commitDomain(completed); //TODO check for uncompleted changes
     })
 }
 

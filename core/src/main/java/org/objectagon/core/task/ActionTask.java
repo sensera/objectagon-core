@@ -2,10 +2,8 @@ package org.objectagon.core.task;
 
 import org.objectagon.core.exception.ErrorClass;
 import org.objectagon.core.exception.ErrorKind;
-import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.message.MessageValue;
-import org.objectagon.core.msg.protocol.StandardProtocol;
 
 /**
  * Created by christian on 2015-11-03.
@@ -21,10 +19,10 @@ public class ActionTask extends AbstractTask {
     @Override
     protected void internalStart() {
         try {
-            action.run();
-            success(StandardProtocol.MessageName.OK_MESSAGE, Message.NO_VALUES);
+            action.run(this::success, this::failed);
         } catch (Throwable e) {
-            failed(ErrorClass.UNKNOWN, ErrorKind.NOT_IMPLEMENTED, MessageValue.text(e.getMessage()));
+            e.printStackTrace();
+            failed(ErrorClass.UNKNOWN, ErrorKind.UNEXPECTED, MessageValue.name(getName()), MessageValue.exception(e));
         }
     }
 

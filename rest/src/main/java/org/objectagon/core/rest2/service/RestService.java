@@ -28,6 +28,10 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static org.objectagon.core.msg.message.MessageValue.any;
+import static org.objectagon.core.msg.message.MessageValue.emptyValues;
+import static org.objectagon.core.msg.message.MessageValue.singleValues;
+
 /**
  * Created by christian on 2017-01-09.
  */
@@ -35,24 +39,24 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
     private final RestSessionToken STATIC_REST_TOKEN = RestSessionToken.name("1234567890");
 
-    enum RestServiceTaksName implements Task.TaskName {
+    enum RestServiceTaksName implements Task.TaskName, Message.MessageName {
         INITIALIZE_LOCATOR;
     }
 
     private Map<RestSessionToken, RestServiceActionLocator.RestSession> sessions = new HashMap<>();
 
-    public static ServiceName REST_SERVICE_NAME = StandardServiceName.name("REST_SERVICE_NAME");
+    public static final ServiceName REST_SERVICE = StandardServiceName.name("REST_SERVICE");
     public static final Name REST_SERVICE_CONFIGURATION_NAME = StandardName.name("REST_SERVICE_CONFIGURATION_NAME");
 
     public static void registerAtServer(Server server) {
-        server.registerFactory(REST_SERVICE_NAME, RestService::new);
+        server.registerFactory(REST_SERVICE, RestService::new);
     }
 
     private RestServiceActionLocator restServiceActionLocator = new RestServiceActionLocatorImpl();
 
     public RestService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
-        setServiceName(REST_SERVICE_NAME);
+        setServiceName(REST_SERVICE);
     }
 
     @Override
@@ -65,7 +69,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     @Override
     protected Optional<TaskBuilder.Builder> internalCreateStartServiceTask(RestServiceWorker serviceWorker) {
         TaskBuilder taskBuilder = serviceWorker.getTaskBuilder();
-        final TaskBuilder.Builder<ActionTask> action = taskBuilder.action(RestServiceTaksName.INITIALIZE_LOCATOR, () -> {
+        final TaskBuilder.Builder<ActionTask> action = taskBuilder.action(RestServiceTaksName.INITIALIZE_LOCATOR, (success, failed) -> {
             System.out.println("RestService.internalCreateStartServiceTask 1");
             restServiceActionLocator.configure(new RestServiceActionLocator.ServiceLocator() {
                 @Override
@@ -80,6 +84,11 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
                 }
             });
             System.out.println("RestService.internalCreateStartServiceTask 2");
+            try {
+                success.success(RestServiceTaksName.INITIALIZE_LOCATOR, emptyValues());
+            } catch (UserException e) {
+                failed.failed(ErrorClass.REST_SERVICE, ErrorKind.UNEXPECTED, singleValues(any(e)));
+            }
         });
         return Optional.of(action);
     }
@@ -87,7 +96,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
     @Override
     protected Service.ServiceName createAddress(Configurations... configurations) {
         return FindNamedConfiguration.finder(configurations).createConfiguredAddress((serverId, timestamp, addressId) ->
-                StandardServiceNameAddress.name(REST_SERVICE_NAME, serverId, timestamp, addressId)
+                StandardServiceNameAddress.name(REST_SERVICE, serverId, timestamp, addressId)
         );
     }
 
@@ -120,6 +129,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             restSession.useActiveTransaction(Transaction.addAsHeader(taskBuilder));
             return restAction.createTask(taskBuilder, new RestServiceActionLocator.IdentityStore() {
                 @Override public void updateIdentity(Identity identity, String identityAlias) {
+                    System.out.println("RestServiceWorker.updateIdentity new alias "+identityAlias+" with "+identity);
                     restSession.updateAlias(identity, identityAlias);
                 }
                 @Override public void updateSessionTransaction(Transaction transaction) {
@@ -208,7 +218,6 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         @Override
         public void updateTransaction(Transaction transaction) {
             this.transaction = transaction;
-            System.out.println("RestSessionImpl.updateTransaction !!!!!!!!!!!!!!!! "+transaction);
         }
 
         @Override
@@ -221,7 +230,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             if (transaction!=null) {
                 consumer.accept(transaction);
             }
-            System.out.println("RestSessionImpl.useActiveTransaction !!!!!!! "+transaction);
+            //System.out.println("RestSessionImpl.useActiveTransaction !!!!!!! "+transaction);
         }
 
         public RestSessionImpl(RestSessionToken name) {
@@ -230,7 +239,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         @Override
         public void updateAlias(Identity identity, String alias) {
-            System.out.println("!!!!!!!!!!!!!!!!!! RestSessionImpl.updateAlias "+alias);
+            //System.out.println("!!!!!!!!!!!!!!!!!! RestSessionImpl.updateAlias "+alias);
             aliases.put(alias, identity);
         }
 

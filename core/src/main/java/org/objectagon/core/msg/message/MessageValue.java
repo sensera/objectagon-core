@@ -4,11 +4,11 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 
@@ -33,6 +33,7 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value address(Message.Field field, Address value) { return new MessageValue<>(field, value);}
     public static Message.Value address(Address value) { return new MessageValue<>(StandardField.ADDRESS, value);}
     public static Message.Value values(Message.Values value) { return new MessageValue<>(StandardField.VALUES, value);}
+    public static Message.Value values(Message.Field field, Message.Values value) { return new MessageValue<>(field, value);}
     public static Message.Value values(Stream<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, streamToValues(values));}
     public static Message.Value values(Iterable<Message.Value> values) { return new MessageValue<Message.Values>(StandardField.VALUES, iterableToValues(values));}
     public static Message.Value values(Message.Value... values) { return new MessageValue<Message.Values>(StandardField.VALUES, () -> asList(values));}
@@ -41,9 +42,31 @@ public class MessageValue<V> implements Message.Value {
     public static Message.Value field(Message.Field field, Message.Field value) { return new MessageValue<>(field, value);}
     public static Message.Value blob(Message.Field field, byte[] value) { return new MessageValue<>(field, value);}
     public static Message.Value map(Message.Field field, Map<? extends Name,? extends Message.Value> value) { return new MessageValue<>(field, value);}
+    public static Message.Value map(Map<? extends Name,? extends Message.Value> value) { return new MessageValue<>(StandardField.MAP, value);}
     public static Message.Value any(Object value) { return new MessageValue<>(StandardField.UNKNOWN, value);}
     public static Message.Value empty() {return UnknownValue.create(StandardField.UNKNOWN);}
     public static Message.Value empty(Message.Field field) {return UnknownValue.create(field);}
+    public static Iterable<Message.Value> singleValues(Message.Value value) { return Collections.singletonList(value); }
+    public static Iterable<Message.Value> emptyValues() { return Collections.emptyList(); }
+    public static Message.Value error(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
+        return values(StandardField.ERROR,
+                text(StandardField.ERROR_CLASS, errorClass.name()),
+                text(StandardField.ERROR_KIND, errorKind.name()),
+                values(StandardField.ERROR_VALUES, values));
+    }
+    public static Message.Value error(StandardProtocol.ErrorMessageProfile errorMessageProfile) {
+        return values(StandardField.ERROR,
+                text(StandardField.ERROR_CLASS, errorMessageProfile.getErrorClass().name()),
+                text(StandardField.ERROR_KIND, errorMessageProfile.getErrorKind().name()),
+                values(StandardField.ERROR_VALUES, errorMessageProfile.getParams()));
+    }
+    public static Message.Value exception(Throwable exception) {
+        return values(StandardField.ERROR,
+                text(StandardField.ERROR_CLASS, exception.getClass().getName()),
+                text(StandardField.ERROR_KIND, exception.getMessage()),
+                text(StandardField.ERROR_STACK_TRACE, Stream.of(exception.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.joining(", "))));
+    }
+
 
     Message.Field field;
     V value;
@@ -128,6 +151,7 @@ public class MessageValue<V> implements Message.Value {
                 case Message: writer.write(field, asMessage()); break;
                 case Values: writer.write(field, asValues()); break;
                 case Map: writer.write(field, asMap()); break;
+                case Error: writer.write(field, asValues()); break;
                 default:
                     writer.write(field, value != null ? value.toString(): "");
                     //throw new SevereError(ErrorClass.UNKNOWN, ErrorKind.INCONSISTENCY);
@@ -139,8 +163,8 @@ public class MessageValue<V> implements Message.Value {
     }
 
     @Override
-    public Map<? extends Name, ? extends Message.Value> asMap() {
-        return (Map<? extends Name, ? extends Message.Value>) value;
+    public <N extends Name, V extends Message.Value> java.util.Map<N, V> asMap() {
+        return (java.util.Map<N, V>) value;
     }
 
     @Override
@@ -167,8 +191,7 @@ public class MessageValue<V> implements Message.Value {
     private static Message.Values iterableToValues(Iterable<Message.Value> values) {
         if (values==null)
             return () -> Collections.EMPTY_LIST;
-        List<Message.Value> valuesListCopy = StreamSupport.stream(values.spliterator(), false).collect(Collectors.toList());
-        return () -> valuesListCopy;
+        return () -> values;
     }
 
     private static Message.Values streamToValues(Stream<Message.Value> values) {

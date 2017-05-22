@@ -130,8 +130,8 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
     }
 
     @Override
-    public Optional<Task> current() {
-        return hook.map(Hook::current);
+    public ParallelBuilder parallel(Task.TaskName taskName) {
+        return new ParallelBuilderImpl(new ParallelTask(taskBuilderReceiverCtrl, taskName));
     }
 
     private class BuilderImpl<S extends Task> implements Builder<S> {
@@ -161,6 +161,12 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         @Override
         public Builder<S> success(Task.SuccessAction successAction) {
             task.addSuccessAction(successAction);
+            return this;
+        }
+
+        @Override
+        public Builder<S> firstSuccess(Task.SuccessAction successAction) {
+            task.addFirstSuccessAction(successAction);
             return this;
         }
 
@@ -249,6 +255,60 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         public <S extends Protocol.Send> Builder<Task> addTask(SequenceTask.TaskSupplier taskSupplier) {
             task.add( (msg, values) -> {
                 Optional<Task> newTaskOpt = taskSupplier.createTask(msg, values);
+                newTaskOpt.ifPresent(StandardTaskBuilder.this::createdTask);
+                return newTaskOpt;
+            });
+            return null;
+        }
+    }
+
+    private class ParallelBuilderImpl extends BuilderImpl<ParallelTask> implements ParallelBuilder {
+        public ParallelBuilderImpl(ParallelTask task) {
+            super(task);
+        }
+
+        @Override
+        public <S extends Protocol.Send> Builder<StandardTask> message(Task.TaskName taskName, Protocol.ProtocolName protocolName, Address target, StandardTask.SendMessageAction<S> sendMessageAction) {
+            StandardTask<S> subTask = new StandardTask<>(taskBuilderReceiverCtrl, taskName, protocolName, target, sendMessageAction);
+            task.add(subTask);
+            return new BuilderImpl<>(subTask);
+        }
+
+        @Override
+        public <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Address target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
+            Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
+            S send = (S) protocol.createSend(() -> StandardComposer.create(task, target, headers()));
+            Task subTask = sendMessageAction.run(send);
+            task.add(subTask);
+            return new BuilderImpl<>(subTask);
+        }
+
+        @Override
+        public <S extends Protocol.Send> Builder<Task> protocol(Protocol.ProtocolName protocolName, Composer.ResolveTarget target, ProtocolTask.SendMessageAction<S> sendMessageAction) {
+            Protocol protocol = getReceiverCtrl().createReceiver(protocolName);
+            S send = (S) protocol.createSend(() -> ResolveTargetComposer.create(task, target, headers()));
+            Task subTask = sendMessageAction.run(send);
+            task.add(subTask);
+            return new BuilderImpl<>(subTask);
+        }
+
+        @Override
+        public Builder<ActionTask> action(Task.TaskName taskName, Action action) {
+            ActionTask subTask = new ActionTask(taskBuilderReceiverCtrl, taskName, action);
+            task.add(subTask);
+            return new BuilderImpl<>(subTask);
+        }
+
+        @Override
+        public <S extends Protocol.Send> Builder<Task> addTask(Task subTask) {
+            task.add(subTask);
+            return new BuilderImpl<>(subTask);
+        }
+
+        @Override
+        public <S extends Protocol.Send> Builder<Task> addTask(ParallelTask.TaskSupplier taskSupplier) {
+            task.add( () -> {
+                Optional<Task> newTaskOpt = taskSupplier.createTask();
                 newTaskOpt.ifPresent(StandardTaskBuilder.this::createdTask);
                 return newTaskOpt;
             });

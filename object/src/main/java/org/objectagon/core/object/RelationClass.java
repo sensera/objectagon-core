@@ -48,9 +48,12 @@ public interface RelationClass extends Entity<RelationClass.RelationClassIdentit
 
         InstanceClass.InstanceClassIdentity getInstanceClassIdentity(RelationDirection relationDirection);
         RelationType getRelationType();
+
+        RelationName getName();
     }
 
     interface RelationClassDataChange extends Data.Change<RelationClassIdentity, StandardVersion> {
 
+        void setName(RelationName name);
     }
 }

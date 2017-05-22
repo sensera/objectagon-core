@@ -39,6 +39,8 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
     private TransactionManager.TransactionData transactionData;
 
+    //@Override protected boolean logLevelCheck(WorkerContextLogKind logKind) {return true;}
+
     public TransactionManagerImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
@@ -107,8 +109,7 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
         Task persist(TransactionManager.TransactionData newTransactionData) {
             return createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                    .pushData(newTransactionData)
-                    .addSuccessAction((messageName, values) -> transactionData = newTransactionData);
+                    .pushData(newTransactionData);
         }
     }
 
@@ -127,11 +128,12 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
 
         @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
-            //System.out.println("AddEntityToAction.internalRun "+identity);
+            context.trace("AddEntityToAction.internalRun Add to transaction",MessageValue.address(identity), MessageValue.address(getAddress()));
             TransactionManager.TransactionDataChange change = transactionData.change();
             change.add(identity);
             TransactionManager.TransactionData newTransactionData = change.create(transactionData.getVersion().nextVersion());
-            return actionContext.persist(newTransactionData);
+            transactionData = newTransactionData;
+            return actionContext.persist(newTransactionData); // TODO what if persitance failes. Use lock instead?
         }
     }
 
@@ -145,14 +147,14 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
         public boolean initialize() throws UserException {
             if (transactionData.getIdentities().findAny().isPresent())
                 return super.initialize();
-            System.out.println("CommitAction.initialize NOTHING TO COMMIT!");
+            context.trace("CommitAction.initialize NOTHING TO COMMIT!");
             context.replyOk();
             return false;
         }
 
         @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
-
+            actionContext.trace("Commit "+transactionData.countIdentities()+" items");
             Stream<Identity> identities = transactionData.getIdentities(); // TODO implement EntityProtocol and registerAt
             TaskBuilder taskBuilder = actionContext.getTaskBuilder();
             taskBuilder.addHeader(MessageValue.address(Transaction.TRANSACTION, getAddress()));

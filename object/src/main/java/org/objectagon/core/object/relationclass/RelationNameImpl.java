@@ -37,8 +37,6 @@ public class RelationNameImpl implements RelationClass.RelationName {
 
     @Override
     public String toString() {
-        return "RelationNameImpl{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
 }

@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 public class MetaService extends EntityService<Service.ServiceName, Meta.MetaIdentity, Meta.MetaData, EntityService.EntityServiceWorker>  {
 
-    public static ServiceName NAME = StandardServiceName.name("META_SERVICE");
+    public static final ServiceName NAME = StandardServiceName.name("META_SERVICE");
 
     public static void registerAt(Server server) {
         server.registerFactory(NAME, MetaService::new);

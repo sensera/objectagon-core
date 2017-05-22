@@ -71,13 +71,13 @@ public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, Fi
     }
 
     public void getValue(FieldValueWorker fieldValueWorker, FieldValueData data) {
-        System.out.println("FieldValueImpl.getValue "+data.getValue()+" <"+fieldValueWorker.currentTransaction()+">");
+        //System.out.println("FieldValueImpl.getValue "+data.getValue()+" <"+fieldValueWorker.currentTransaction()+">");
         fieldValueWorker.replyWithParam(MessageValue.values(FieldValue.VALUE, data.getValue()));
     }
 
     private void setValue(FieldValueWorker fieldValueWorker, FieldValueData fieldValueData, ChangeFieldValue fieldValueIdentityStandardVersionChange, Message.Values preparedValues) {
         Message.Value value = fieldValueWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
-        System.out.println("FieldValueImpl.setValue "+value+" <"+fieldValueWorker.currentTransaction()+">");
+        //System.out.println("FieldValueImpl.setValue "+value+" <"+fieldValueWorker.currentTransaction()+">");
         fieldValueIdentityStandardVersionChange.setValue(value);
     }
 

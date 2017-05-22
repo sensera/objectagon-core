@@ -6,6 +6,7 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
+import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
@@ -44,6 +45,8 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     static final MethodMessageValueTransform methodMessageValueTransform = new MethodMessageValueTransform();
 
     Service.ServiceName eventService;
+
+    @Override protected boolean logLevelCheck(WorkerContextLogKind logKind) {return true;}
 
     public InstanceClassImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl, InstanceClass.DATA_TYPE);
@@ -136,13 +139,15 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
 
     private void getInstanceByAlias(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData) throws UserException {
         Name instanceAlias = instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME).asName();
-        instanceClassWorker.replyWithParam(MessageValue.address(Instance.INSTANCE_IDENTITY,
-                instanceClassData.getInstanceByAliasName(instanceAlias)
+        final Optional<Instance.InstanceIdentity> instanceByAliasName = instanceClassData.getInstanceByAliasName(instanceAlias);
+        instanceClassWorker.trace("InstanceClassImpl.getInstanceByAlias", MessageValue.name(instanceAlias), MessageValue.address(Transaction.TRANSACTION, instanceClassWorker.currentTransaction()), MessageValue.address(instanceByAliasName.orElse(null)));
+        instanceClassWorker.replyWithParam(MessageValue.address(Instance.INSTANCE_IDENTITY, instanceByAliasName
                         .orElseThrow(() -> new UserException(ErrorClass.INSTANCE_CLASS, ErrorKind.INSTANCE_NOT_FOUND, instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME)))));
     }
 
     private void addInstanceAlias(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
         Name instanceAlias = instanceClassWorker.getValue(InstanceClassProtocol.ALIAS_NAME).asName();
+        instanceClassWorker.trace("InstanceClassImpl.addInstanceAlias", MessageValue.name(instanceAlias), MessageValue.address(instanceClassWorker.currentTransaction()));
         Instance.InstanceIdentity instanceIdentity = instanceClassWorker.getValue(Instance.INSTANCE_IDENTITY).asAddress();
         changeInstanceClass.addInstanceAlias(instanceIdentity, instanceAlias);
     }
@@ -184,7 +189,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void addField(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
-        Field.FieldIdentity fieldIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(Identity.IDENTITY).asAddress();
+        Field.FieldIdentity fieldIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(StandardField.ADDRESS).asAddress();
         changeInstanceClass.addField(fieldIdentity);
     }
 
@@ -196,7 +201,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void setRelationClass(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
-        RelationClass.RelationClassIdentity relationClassIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(Identity.IDENTITY).asAddress();
+        RelationClass.RelationClassIdentity relationClassIdentity = MessageValueFieldUtil.create(preparedValues).getValueByField(StandardField.ADDRESS).asAddress();
         changeInstanceClass.addRelation(relationClassIdentity);
     }
 

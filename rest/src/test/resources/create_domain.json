@@ -1,0 +1,108 @@
+[
+  {
+    "main.meta": {
+      "type": "meta",
+      "methods": [
+        {
+          "create.person.method": {
+            "code": "create_person_method_code"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "main.class": {
+      "type": "class",
+      "relations": [
+        {
+          "main.person.relation": {
+            "targetClass": "person.class"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "person.class": {
+      "type": "class",
+      "fields": [
+        {
+          "person.class.Name": {
+            "type": "Text"
+          }
+        },
+        {
+          "person.class.Age": {
+            "type": "Number"
+          }
+        },
+        {
+          "person.class.Comment": {
+            "type": "Text"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "main.class.demo": {
+      "type": "instance",
+      "class": "main.class",
+      "alias": "main.class.demo",
+      "relations": [
+        {
+          "main.person.relation": [
+            {"person.1":"invalid"}
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "person.1": {
+      "type": "instance",
+      "class": "person.class",
+      "values": [
+        {
+          "person.class.Name": {
+            "value": "Lars Gurra Aktersnurra"
+          }
+        },
+        {
+          "person.class.Age": {
+            "value": "44"
+          }
+        },
+        {
+          "person.class.Comment": {
+            "value": "Mera Gurra tack"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "person.2": {
+      "type": "instance",
+      "class": "person.class",
+      "values": [
+        {
+          "person.class.Name": {
+            "value": "Svempa Snyltström"
+          }
+        },
+        {
+          "person.class.Age": {
+            "value": "78"
+          }
+        },
+        {
+          "person.class.Comment": {
+            "value": "Svempsson är en torsk"
+          }
+        }
+      ]
+    }
+  }
+]

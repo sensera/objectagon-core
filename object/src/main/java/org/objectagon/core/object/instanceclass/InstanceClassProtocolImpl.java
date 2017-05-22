@@ -48,6 +48,8 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
 
         @Override
         public Task addRelation(RelationClass.RelationType type, InstanceClass.InstanceClassIdentity relatedClass) {
+            if (relatedClass == null)
+                throw new NullPointerException("relatedClass is null!");
             return task(MessageName.ADD_RELATION, send -> send.send(
                     MessageName.ADD_RELATION,
                     text(RelationClass.RELATION_TYPE, type.name()),
@@ -71,6 +73,10 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
 
         @Override
         public Task addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name aliasName) {
+            if (instanceIdentity == null)
+                throw new NullPointerException("instanceIdentity is null!");
+            if (aliasName == null)
+                throw new NullPointerException("aliasName is null!");
             return task(MessageName.ADD_INSTANCE_ALIAS, send -> send.send(MessageName.ADD_INSTANCE_ALIAS, address(Instance.INSTANCE_IDENTITY,instanceIdentity), name(ALIAS_NAME, aliasName)));
         }
 

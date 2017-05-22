@@ -124,9 +124,9 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 return true;
 //            if (first.extendsTransaction().map(extendedTrans -> deepEquals(extendedTrans, second)).orElse(false))
 //                return true;
-            if (second.extendsTransaction().map(extendedTrans -> deepEquals(first, extendedTrans)).orElse(false))
-                return true;
-            return false;
+            if (second==null)
+                return first == null;
+            return second.extendsTransaction().map(extendedTrans -> deepEquals(first, extendedTrans)).orElse(false);
         }
     }
 
@@ -147,24 +147,35 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 D newData = upgrade(oldData, newDataVersion, transaction);
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
                         .pushData(newData, newDataVersion)
-                        .addFailedAction(entityWorker::failed)
+                        .addFirstSuccessAction(upgradeDataVersion(newDataVersion, newData))
                         .addSuccessAction(entityWorker::success)
-                        .addSuccessAction((messageName, values) -> { EntityImpl.this.dataVersion = newDataVersion; dataCache.put(newData.getVersion(), newData); })
+                        .addFailedAction(entityWorker::failed)
                         .start();
                 break;
             }
             case OverWrite: {
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
                         .pushData(newDataVersion)
-                        .addFailedAction(entityWorker::failed)
+                        .addFirstSuccessAction(overwriteDataVersion(newDataVersion))
                         .addSuccessAction(entityWorker::success)
-                        .addSuccessAction((messageName, values) -> { EntityImpl.this.dataVersion = newDataVersion;  })
+                        .addFailedAction(entityWorker::failed)
                         .start();
                 break;
             }
             default:
                 throw new SevereError(ErrorClass.ENTITY, ErrorKind.NOT_IMPLEMENTED, MessageValue.name(vTransactionVersionNode.getMergeStrategy()));
         }
+    }
+
+    private Task.SuccessAction upgradeDataVersion(DataVersion newDataVersion, D newData) {
+        return (messageName, values) -> {
+            EntityImpl.this.dataVersion = newDataVersion;
+            dataCache.put(newData.getVersion(), newData);
+        };
+    }
+
+    private Task.SuccessAction overwriteDataVersion(DataVersion newDataVersion) {
+        return (messageName, values) -> EntityImpl.this.dataVersion = newDataVersion;
     }
 
     private void rollback(EntityWorker entityWorker) throws UserException{
@@ -281,6 +292,11 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     public <C extends Data.Change<I,V>> RunWorker<W> write(WriteActionConsumer<W,D,C> writeConsumer, DataLoadedConsumer<W,D> onDataRead) {
         return worker -> {
+            final Transaction transaction = worker.currentTransaction();
+            if (!getGetVersionFromTransaction(transaction).isPresent())  {
+                worker.trace("No data for transaction", MessageValue.address(getAddress()));
+            }
+
             new ReadDataAction(worker, (worker1, data) -> {
                 Optional<Task> optionalPrepareTask = onDataRead.prepare(worker, data);
                 if (optionalPrepareTask.isPresent()) {

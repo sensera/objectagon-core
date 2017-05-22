@@ -8,6 +8,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.MetaProtocol;
 import org.objectagon.core.object.instanceclass.InstanceClassService;
 import org.objectagon.core.object.meta.MetaService;
+import org.objectagon.core.rest2.batch.BatchService;
 import org.objectagon.core.rest2.service.RestServiceActionLocator;
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.rest2.service.actions.*;
@@ -20,6 +21,8 @@ import org.objectagon.core.storage.transaction.TransactionService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static org.objectagon.core.msg.message.MessageValue.*;
 
 /**
  * Created by christian on 2017-01-25.
@@ -63,12 +66,19 @@ public class RestServiceActionLocatorImpl implements RestServiceActionLocator {
 
         new NameProtocolRestActionsCreator().create(new RestTargetActionCreator<>(this, serviceLocator.lookupAddressByName(NameServiceImpl.NAME_SERVICE)));
 
+        new BatchServiceProtocolRestActionsCreator().create(new RestServiceActionCreator<>(this, BatchService.BATCH_SERVICE));
+
         // Dummy login to return new token
         this.addRestAction(
-                (taskBuilder, identityStore, restPath, params, data) -> taskBuilder.action(TaskName.Login, data::toString).create(),
+                (taskBuilder, identityStore, restPath, params, data) -> taskBuilder.action(TaskName.Login, (successAction, failedAction) -> {
+                    try {
+                        successAction.success(null, singleValues(text(data)));
+                    } catch (UserException e) {
+                        failedAction.failed(ErrorClass.REST_SERVICE, ErrorKind.UNEXPECTED, singleValues(any(e)));
+                    }
+                }).create(),
                 RestServiceProtocol.Method.GET,
-                RestPathPatternBuilderImpl.base("session").text("login").build()
-                );
+                RestPathPatternBuilderImpl.base("session").text("login").build());
     }
 
     public void addRestAction(RestAction restAction, RestServiceProtocol.Method method, RestServiceActionLocator.RestPathPattern restPathPattern) {

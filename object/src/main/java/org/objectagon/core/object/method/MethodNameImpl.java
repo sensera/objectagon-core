@@ -1,13 +1,13 @@
 package org.objectagon.core.object.method;
 
-import org.objectagon.core.object.Meta;
+import org.objectagon.core.object.Method;
 
 import java.util.Objects;
 
 /**
  * Created by christian on 2016-04-04.
  */
-public class MethodNameImpl implements Meta.MetaName {
+public class MethodNameImpl implements Method.MethodName {
     private final String name;
 
     private MethodNameImpl(String name) {

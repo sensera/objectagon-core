@@ -1,11 +1,10 @@
 package org.objectagon.core.msg.message;
 
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
-import org.objectagon.core.msg.Address;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -16,6 +15,8 @@ public class UnknownValue implements Message.Value {
     private Message.Field field;
 
     public static UnknownValue create(Message.Field field) { return new UnknownValue(field);}
+    public static UnknownValue text() { return new UnknownValue(NamedField.text("Unknown text"));}
+    public static UnknownValue name() { return new UnknownValue(NamedField.name("Unknown name"));}
 
     private UnknownValue(Message.Field field) {
         this.field = field;
@@ -52,7 +53,7 @@ public class UnknownValue implements Message.Value {
     public Message.Values asValues() {return null;}
 
     @Override
-    public Map<? extends Name, ? extends Message.Value> asMap() {return new HashMap<>();}
+    public <N extends Name, V extends Message.Value> java.util.Map<N, V> asMap() {return new HashMap<>();}
 
     public void writeTo(Message.Writer writer) {}
 

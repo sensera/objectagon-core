@@ -11,6 +11,7 @@ import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
 import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.utils.FindNamedConfiguration;
+import org.objectagon.core.utils.Util;
 
 import java.util.*;
 
@@ -26,6 +27,10 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
     protected boolean trace = false;
 
     public TaskName getName() {return name;}
+
+    public boolean isUnStarted() { return Status.Unstarted.equals(status); }
+    public boolean isStarted() { return Status.Started.equals(status); }
+    public boolean isCompleted() { return Status.Completed.equals(status); }
 
     @Override
     public void trace() {
@@ -84,7 +89,7 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
 
     protected void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
         //if (trace) System.out.println(getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind);
-        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!! " + getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind);
+        System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!! " + getClass().getSimpleName()+".failed "+name+" "+errorClass+" "+errorKind+" ["+Util.printValuesToString(values)+"]");
         status = Status.Completed;
         intFailed(errorClass, errorKind, values);
         failedActions.stream().forEach(failedAction -> failedAction.failed(errorClass, errorKind, values));
@@ -103,6 +108,12 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
     @Override
     public Task addSuccessAction(SuccessAction successAction) {
         successActions.add(successAction);
+        return this;
+    }
+
+    @Override
+    public Task addFirstSuccessAction(SuccessAction successAction) {
+        successActions.add(0, successAction);
         return this;
     }
 

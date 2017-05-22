@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  */
 public class NameServiceImpl extends AbstractService<NameServiceImpl.NameServiceWorkerImpl, Service.ServiceName> {
 
-    public static ServiceName NAME_SERVICE = StandardServiceName.name("NAME_SERVICE");
+    public static final ServiceName NAME_SERVICE = StandardServiceName.name("NAME_SERVICE");
 
     public static void registerAtServer(Server server) {
         server.registerFactory(NAME_SERVICE, NameServiceImpl::new);

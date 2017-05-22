@@ -132,7 +132,14 @@ public class Util {
 
         @Override
         public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
-            append(field.getName().toString(), "["+toString(map.values().stream().map(value -> (Message.Value) value).collect(Collectors.toList()))+"]");
+            String st = map.entrySet().stream()
+                    .map(entry -> {
+                        ValuePrinter valuePrinter = new ValuePrinter();
+                        entry.getValue().writeTo(valuePrinter);
+                        return entry.getKey().toString()+" {"+valuePrinter+"}";
+                    })
+                    .collect(Collectors.joining(", "));
+            append(field.getName().toString(), "["+ st +"]");
         }
 
         @Override
@@ -143,8 +150,9 @@ public class Util {
         public String toString(Iterable<Message.Value> params) {
             if (params==null)
                 return "";
-            params.forEach(value -> value.writeTo(this) );
-            return toString();
+            ValuePrinter valuePrinter = new ValuePrinter();
+            params.forEach(value -> value.writeTo(valuePrinter) );
+            return valuePrinter.toString();
         }
     }
 
