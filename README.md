@@ -1,16 +1,23 @@
 objectagon
 ==========
 
-4GL/5GL Aware System Builder
+The main feature of **objectagon** are *dimensions*.
+In a dimension data and behaviour can exist.
+One dimension can inherit data and behaviour from an other dimension 
+and many dimensions can inherit the data and behaviour from one 
+dimension. 
+When you change a dimension, all inherited dimensions will have the 
+same change, with possible migrations.
+When you are done with your work in one dimension, you can update the 
+parent dimension (whom you inherited from) and merge your changes into 
+it.
 
-Continuous migration
-
-Design, Development, Test & Production all integrated and simultaneous.
-Continuous Integration and Development.
-  
-It's distributed, 100% load balanced and secure.
-
-First came Open Source, then Open Data. This is Open Functionality.
+Other features are
+* All changes in real time
+* Object oriented
+* Logic can be written in written Java, Scala, Kotlin, Javascript
+* It's distributed, 100% load balanced and secure.
+* Has it's own persistence
   
 ##  To start server
 
@@ -22,14 +29,12 @@ Or
 
 Go to directory core
 enter:
-> mvn clean install exec:java -Dexec.mainClass="org.objectagon.core.rest.HttpServerImpl" -DskipTests
+> mvn clean package exec:java -Dexec.mainClass="org.objectagon.core.rest2.RestServer"
 
 #### Test server commands
 
 se all server commands at: 
-core/src/main/java/org/objectagon/core/rest/README.md
-
-
+core/src/main/java/org/objectagon/core/rest2/README.md
 
 
 **Start new transaction add att to session**

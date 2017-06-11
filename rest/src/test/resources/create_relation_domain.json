@@ -1,0 +1,34 @@
+[
+  {
+    "main": {
+      "type": "class",
+      "relations": [
+        {
+          "main.person.relation": {
+            "targetClass": "person"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "person": {
+      "type": "class"
+    }
+  },
+  {
+    "main1": {
+      "type": "instance",
+      "class": "main",
+      "relations": [
+        { "main.person.relation":"person1" }
+      ]
+    }
+  },
+  {
+    "person1": {
+      "type": "instance",
+      "class": "person"
+    }
+  }
+]

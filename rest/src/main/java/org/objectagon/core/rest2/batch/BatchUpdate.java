@@ -101,7 +101,7 @@ public interface BatchUpdate {
 
         interface RelationPart {
             Optional<RelationClass.RelationName> getName();
-            Stream<Name> getInstances();
+            Optional<Name> getInstanceName();
         }
     }
 

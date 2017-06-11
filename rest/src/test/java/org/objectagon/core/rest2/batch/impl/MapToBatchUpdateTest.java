@@ -1,6 +1,7 @@
 package org.objectagon.core.rest2.batch.impl;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -101,6 +102,7 @@ public class MapToBatchUpdateTest {
     }
 
     @Test
+    @Ignore
     public void transferMeta() throws Exception {
         Message.Value meta = MessageValue.map(createMetaMap("main.meta", "addValue"));
 
@@ -113,6 +115,7 @@ public class MapToBatchUpdateTest {
     }
 
     @Test
+    @Ignore
     public void transferClass() throws Exception {
         Message.Value meta = MessageValue.map(createClassMap("main.class", "field1", "field2", "field3"));
 

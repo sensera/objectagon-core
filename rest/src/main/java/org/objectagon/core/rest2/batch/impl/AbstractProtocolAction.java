@@ -1,9 +1,9 @@
 package org.objectagon.core.rest2.batch.impl;
 
-import org.objectagon.core.exception.UserException;
-import org.objectagon.core.msg.*;
-import org.objectagon.core.msg.field.StandardField;
-import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.msg.Address;
+import org.objectagon.core.msg.Composer;
+import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.rest2.batch.BatchUpdate;
 import org.objectagon.core.task.ProtocolTask;
 import org.objectagon.core.task.TaskBuilder;
@@ -19,8 +19,6 @@ public abstract class AbstractProtocolAction<P extends Protocol.Send> extends Ab
     private Protocol.ProtocolName protocolName;
     protected Composer.ResolveTarget target;
     private Function<BatchUpdate.ActionContext,Optional<Address>> findTargetInContext;
-    private Actions.CollectTargetAndName collectTargetAndName;
-
 
     public AbstractProtocolAction(Protocol.ProtocolName protocolName, Composer.ResolveTarget target) {
         this.protocolName = protocolName;
@@ -52,15 +50,6 @@ public abstract class AbstractProtocolAction<P extends Protocol.Send> extends Ab
         super.lookupInContext(actionContext);
         if (findTargetInContext != null)
             findTargetInContext.apply(actionContext).ifPresent(this::setTarget);
-    }
-
-    @Override
-    public void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException {
-        final Message.Value targetAddress = MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS);
-        if (collectTargetAndName!=null) {
-            getName().ifPresent(name -> collectTargetAndName.update(targetAddress.asAddress(), name));
-        }
-        super.success(messageName, values);
     }
 
     public <A extends BatchUpdate.Action> A setFindTargetInContext(Function<BatchUpdate.ActionContext, Optional<Address>> findTargetInContext) {

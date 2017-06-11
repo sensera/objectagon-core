@@ -36,7 +36,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.objectagon.core.rest.HttpServerImpl</mainClass>
+                            <mainClass>org.objectagon.core.rest2.RestServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -49,7 +49,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.objectagon.core.rest.HttpServerImpl</mainClass>
+                            <mainClass>org.objectagon.core.rest2.RestServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -61,7 +61,6 @@
         <module>core</module>
         <module>object</module>
         <module>rest</module>
-        <module>docker</module>
     </modules>
 
 </project>

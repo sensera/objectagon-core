@@ -17,7 +17,7 @@ public class RestServer  {
 
     public RestServer(Server.ServerId serverId) {
         this.server = new ServerImpl(serverId);
-        restServerBasicConfiguration = new RestServerBasicConfiguration(server, 9999);
+        restServerBasicConfiguration = new RestServerBasicConfiguration(server, 9900);
         Task initialized = restServerBasicConfiguration.initialize();
         try {
             TaskWait.create(initialized).startAndWait(1000*5);

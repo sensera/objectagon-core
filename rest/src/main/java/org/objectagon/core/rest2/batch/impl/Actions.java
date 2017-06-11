@@ -45,6 +45,7 @@ public interface Actions {
     }
 
     interface SimpleTargetProtocolAction extends BaseAction, SetTargetAction {
+        void setName(Name name);
     }
 
     interface DataPortalTargetProtocolAction<D extends DataPortal> extends BaseAction, SetTargetAction, DataAction<D> {}

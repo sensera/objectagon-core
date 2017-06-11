@@ -80,12 +80,14 @@ public class PlanCreator implements BatchUpdate.AddBasis {
 
     @Override
     public void addInstance(BatchUpdate.InstanceBasis instanceBasis) {
-        System.out.println("PlanCreator.addInstance pre "+instanceBasis.getName().orElse(null));
+        //System.out.println("PlanCreator.addInstance pre "+instanceBasis.getName().orElse(null));
         final Actions.SimpleTargetProtocolAction createInstance = plan.create(LocalActionKind.CREATE_INSTANCE);
+
+        instanceBasis.getName().ifPresent(createInstance::setName);
 
         instanceBasis.getClassName().ifPresent(instanceClassName -> {
             plan.getActionByName(instanceClassName).ifPresent(instanceClass -> {
-                System.out.println("PlanCreator.addInstance post "+instanceClassName);
+                //System.out.println("PlanCreator.addInstance post "+instanceClassName);
                 resolveDependencyAndTarget(createInstance, instanceClassName, instanceClass);
             });
             instanceBasis.getAlias()
@@ -122,21 +124,30 @@ public class PlanCreator implements BatchUpdate.AddBasis {
                 })
                 .forEach(createInstance::addDependency);
         instanceBasis.getRelations()
-                .flatMap(relationPart ->
-                        relationPart.getInstances().map(instanceName -> {
+                .map(relationPart -> {
+                            try {
+                                final RelationClass.RelationName relationName = relationPart.getName().orElseThrow(() -> new UserException(ErrorClass.BATCH_UPDATE, ErrorKind.NAME_MISSING, MessageValue.text("relation class name")));
+                                final Name instanceName = relationPart.getInstanceName().orElseThrow(() -> new UserException(ErrorClass.BATCH_UPDATE, ErrorKind.NAME_MISSING, MessageValue.text("instance name")));
 
-                        final Actions.DataPortalTargetProtocolAction<Actions.AddRelationData> addRelation = plan.create(LocalActionKind.ADD_RELATION);
+                                final Actions.DataPortalTargetProtocolAction<Actions.AddRelationData> addRelation = plan.create(LocalActionKind.ADD_RELATION);
+                                addRelation.updateDataPortal(new ActionsAddRelationData(relationName,instanceName));
 
-                        relationPart.getName().ifPresent(relationName -> {
-                            addRelation.updateDataPortal(new ActionsAddRelationData(
-                                    relationName,
-                                    instanceName));
-                            plan.getActionByName(relationName).ifPresent(baseAction -> baseAction.addDependency(addRelation));
-                        });
-                        return addRelation;
+                                plan.getActionByName(relationName)
+                                        .map(baseAction -> baseAction.addDependency(addRelation))
+                                        .orElseThrow(() -> new UserException(ErrorClass.BATCH_UPDATE, ErrorKind.NAME_MISSING, MessageValue.name(relationName)));
 
-                    }
-                ))
+                                postDependencies.add(actionByName -> actionByName
+                                        .actionByName(instanceName)
+                                        .ifPresent(dependencyAction -> dependencyAction.addDependency(addRelation)));
+
+                                return addRelation;
+                            } catch (UserException e) {
+                                 e.printStackTrace();
+                                return null;
+                            }
+                        }
+                )
+                .filter(action -> action != null)
                 .forEach(createInstance::addDependency);
     }
 
@@ -171,14 +182,6 @@ public class PlanCreator implements BatchUpdate.AddBasis {
 
         relationPart.getTargetInstanceClassIdentity()
                 .ifPresent(dataPortal::setTargetInstanceClassIdentityName);
-
-/*
-        relationPart.getTargetInstanceClassIdentity()
-                .ifPresent(instanceClassName -> postDependencies.add(actionByName -> actionByName
-                        .actionByName(instanceClassName)
-                        .ifPresent(baseAction -> baseAction
-                                .addDependency(addClassRelationAction))));
-*/
 
         relationPart.getTargetInstanceClassIdentity()
                 .ifPresent(instanceClassName -> postDependencies.add(actionByName -> actionByName

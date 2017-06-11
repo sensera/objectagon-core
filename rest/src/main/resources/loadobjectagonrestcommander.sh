@@ -20,6 +20,8 @@ function objectagon() {
         echo "      creates a instance named with the optional alias of class \"class alias\""
         echo "  ${green}add relation [from instance alias] to [instance alias] of [relation class alias]${reset}"
         echo "      adds a relation from between to instances"
+        echo "  ${green}get instance [instance] relation [relation]${reset}"
+        echo "      gets instance relations"
         echo "${reset}"
         kill -INT $$
     fi
@@ -90,6 +92,19 @@ function objectagon() {
         fi
         echo "curl $TOKEN {$OBJECTAGON_REST_URL}class/{$CLASS}/instance/$ALIAS"
         RESULT=$(curl -s -X PUT $TOKEN {$OBJECTAGON_REST_URL}class/{$CLASS}/instance/$ALIAS)
+    fi
+
+    if [ "$1/$2/$4" == "get/instance/relation" ] ; then
+        INSTANCE=""
+        if [ -n "$3" ]; then
+            INSTANCE="$3"
+        fi
+        RELATION=""
+        if [ -n "$5" ]; then
+            RELATION="$5"
+        fi
+        echo "curl $TOKEN {$OBJECTAGON_REST_URL}instance/{$INSTANCE}/relation/$RELATION"
+        RESULT=$(curl -s $TOKEN {$OBJECTAGON_REST_URL}instance/{$INSTANCE}/relation/$RELATION)
     fi
 
     if [ -n "$RESULT" ]; then

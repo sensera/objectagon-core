@@ -24,7 +24,6 @@ import org.objectagon.core.utils.NameValueMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -247,11 +246,14 @@ public class MapToBatchUpdate {
             }
 
             @Override
-            public Stream<Name> getInstances() {
-                return relationValueMap.getStream(RELATIONS).map(Message.Value::asName).map(v -> (Name) v);
+            public Optional<Name> getInstanceName() {
+                return root
+                        .map(NameValue::getValue)
+                        .map(Message.Value::asText)
+                        .map(StandardName::name);
             }
         };
-        System.out.println("  create relation "+relationPart.getName().map(Object::toString).orElse("")+" "+relationPart.getInstances().map(Object::toString).collect(Collectors.joining(", ")));
+        System.out.println("  create relation "+relationPart.getName().map(Object::toString).orElse("")+" "+relationPart.getInstanceName().get());
         return relationPart;
     }
 
