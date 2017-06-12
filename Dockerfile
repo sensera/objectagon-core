@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get autoclean
 
 COPY target/objectagon-core-$OBJECTAGON_VERSION-jar-with-dependencies.jar /objectagon-core.jar
-COPY resources/start-objectagon.sh /.
+COPY resources/start-objectagon.sh /
 
 EXPOSE 9900
 
