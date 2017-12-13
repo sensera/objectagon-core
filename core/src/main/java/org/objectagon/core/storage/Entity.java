@@ -21,7 +21,7 @@ public interface Entity<I extends Identity, D extends Data> extends Receiver<I> 
     }
 
     interface EntityConfig extends NamedConfiguration {
-        <I extends Identity, V extends Version> DataVersion<I,V> getDataVersion(I identity);
+        <I extends Identity, V extends Version> DataRevision<I,V> getDataVersion(I identity);
         long getDataVersionCounter();
         Message.Values initialParams();
     }

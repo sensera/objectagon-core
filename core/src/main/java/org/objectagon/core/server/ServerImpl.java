@@ -6,15 +6,18 @@ import org.objectagon.core.exception.ErrorKind;
 import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.*;
 import org.objectagon.core.msg.field.StandardField;
+import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.VolatileAddressValue;
 import org.objectagon.core.msg.message.VolatileNameValue;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.task.StandardTaskBuilder;
 import org.objectagon.core.task.TaskBuilder;
-import org.objectagon.core.utils.*;
+import org.objectagon.core.utils.IdCounter;
+import org.objectagon.core.utils.OneReceiverConfigurations;
+import org.objectagon.core.utils.SwitchCase;
 
 import java.util.*;
-import java.util.Formatter;
+import java.util.stream.Collectors;
 
 /**
  * Created by christian on 2015-11-16.
@@ -134,6 +137,10 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         envelopeProcessor.transport(envelope);
     }
 
+    public void stop() {
+        //TODO Should really start stopping this thing here...
+    }
+
     private static class EnvelopeProcessorImpl implements EnvelopeProcessor {
         private Queue<Envelope> queue = new LinkedList<>();
         private Envelope.Targets targets;
@@ -177,7 +184,19 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
                                     }
                                 })
                                 .elseDo(errorKind1 -> severeError.printStackTrace());
+                    } catch (Throwable unknownError) {
+                        unknownError.printStackTrace();
+                        transport(envelope.createReplyComposer().create(new StandardProtocol.ErrorMessage(
+                                StandardProtocol.ErrorSeverity.Severe,
+                                ErrorClass.UNKNOWN,
+                                ErrorKind.UNEXPECTED,
+                                MessageValue.text(unknownError.getMessage()),
+                                MessageValue.text(unknownError.getClass().getSimpleName()),
+                                MessageValue.text(Arrays.stream(unknownError.getStackTrace())
+                                                          .map(StackTraceElement::toString)
+                                                          .collect(Collectors.joining("\n"))))));
                     }
+
                 }
             }
         }

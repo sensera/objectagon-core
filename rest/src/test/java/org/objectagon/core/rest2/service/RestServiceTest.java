@@ -24,7 +24,7 @@ public class RestServiceTest extends AbstractServiceTest<RestService> {
     private final StandardName path = StandardName.name("/");
     private final String content = "content";
     private RestServiceActionLocator.RestAction restAction;
-    private Task restTask = mock(Task.class);
+    private Task restTask;
     private RestServiceActionLocator.RestSession restSession;
 
 

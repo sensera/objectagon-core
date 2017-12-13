@@ -12,7 +12,7 @@ import org.objectagon.core.object.*;
 import org.objectagon.core.object.relation.RelationService;
 import org.objectagon.core.object.relationclass.data.RelationClassDataImpl;
 import org.objectagon.core.service.name.NameServiceImpl;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
@@ -48,7 +48,7 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
     }
 
     @Override
-    protected RelationClassData upgrade(RelationClassData data, DataVersion<RelationClassIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected RelationClassData upgrade(RelationClassData data, DataRevision<RelationClassIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data;
     }
 
@@ -74,7 +74,8 @@ public class RelationClassImpl extends EntityImpl<RelationClass.RelationClassIde
         FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
         RelationClassProtocol.ConfigRelationClass configInstance = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
         return finder.createConfiguredAddress((serverId, timestamp, addressId) ->
-                new RelationClassIdentityImpl(configInstance.getInstanceClassIdentity(RelationDirection.RELATION_FROM),
+                new RelationClassIdentityImpl(
+                        configInstance.getInstanceClassIdentity(RelationDirection.RELATION_FROM),
                         configInstance.getInstanceClassIdentity(RelationDirection.RELATION_TO),
                         configInstance.getRelationType(), serverId, timestamp, addressId)
         );

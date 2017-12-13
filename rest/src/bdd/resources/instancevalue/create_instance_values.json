@@ -1,0 +1,34 @@
+{
+  "metas":[],
+  "classes":[{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name",
+      "type":"text"
+    },{
+      "name":"person.class.Age",
+      "type":"number"
+    },{
+      "name":"person.class.Comment",
+      "type":"text"
+    }],
+    "relationClasses":[],
+    "methods":[]
+  }],
+  "instances":[{
+    "name":"person1",
+    "alias":"person1",
+    "class":"person.class",
+    "values":[{
+      "value":"Lars Gurra Aktersnurra",
+      "field":"person.class.Name"
+    },{
+      "value":"44",
+      "field":"person.class.Age"
+    },{
+      "value":"Mera Gurra tack",
+      "field":"person.class.Comment"
+    }],
+    "relations":[]
+  }]
+}

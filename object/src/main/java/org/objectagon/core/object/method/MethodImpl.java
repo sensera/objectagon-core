@@ -12,7 +12,7 @@ import org.objectagon.core.object.*;
 import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
 import org.objectagon.core.object.method.data.MethodDataImpl;
 import org.objectagon.core.object.utils.ObjectagonCompiler;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
@@ -24,6 +24,8 @@ import org.objectagon.core.utils.KeyValue;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.objectagon.core.storage.entity.EntityService.EXTRA_ADDRESS_CONFIG_NAME;
 
 /**
  * Created by christian on 2016-05-29.
@@ -38,7 +40,14 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
 
     public MethodImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl, Method.DATA_TYPE);
-        objectagonCompiler = createStandardCompiler(); //TODO better initialization
+
+    }
+
+    public synchronized ObjectagonCompiler<Invoke> getObjectagonCompiler() {
+        if (objectagonCompiler==null) {
+            objectagonCompiler = createStandardCompiler(); //TODO better initialization
+        }
+        return objectagonCompiler;
     }
 
     @Override
@@ -78,18 +87,24 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
     }
 
     @Override
-    protected MethodData upgrade(MethodData data, DataVersion<MethodIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected MethodData upgrade(MethodData data, DataRevision<MethodIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data; // TODO fix this
     }
 
     @Override
     protected MethodIdentity createAddress(Configurations... configurations) {
-        return FindNamedConfiguration.finder(configurations).createConfiguredAddress(MethodIdentityImpl::new);
+        FindNamedConfiguration finder = FindNamedConfiguration.finder(configurations);
+        Method.ConfigMethod configMethod = finder.getConfigurationByName(EXTRA_ADDRESS_CONFIG_NAME);
+        return FindNamedConfiguration.finder(configurations)
+                .createConfiguredAddress((serverId, timestamp, addressId) ->
+                    new MethodIdentityImpl(serverId, timestamp, addressId, configMethod.getMetaIdentity()));
     }
 
     @Override
     protected void handle(MethodWorker worker) {
         triggerBuilder(worker)
+                .trigger(MethodProtocol.MessageName.GET_NAME, read(this::getName))
+                .trigger(MethodProtocol.MessageName.SET_NAME, write(this::<ChangeMethod>setName))
                 .trigger(MethodProtocol.MessageName.GET_CODE, read(this::getCode))
                 .trigger(MethodProtocol.MessageName.SET_CODE, write(this::<ChangeMethod>setCode))
                 .trigger(MethodProtocol.MessageName.INVOKE, read(this::invoke))
@@ -113,6 +128,15 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
         changeMethod.removeInvokeParam(paramName);
     }
 
+    private void getName(MethodWorker methodWorker, MethodData methodData) {
+        methodWorker.replyWithParam(MessageValue.name(Method.METHOD_NAME, methodData.getName()));
+    }
+
+    private void setName(MethodWorker methodWorker, MethodData methodData, ChangeMethod changeMethod, Message.Values preparedValues) {
+        Method.MethodName methodName = methodWorker.getValue(Method.METHOD_NAME).asName();
+        changeMethod.setName(methodName);
+    }
+
     private void getCode(MethodWorker methodWorker, MethodData methodData) {
         methodWorker.replyWithParam(MessageValue.text(Method.CODE, methodData.getCode()));
     }
@@ -130,7 +154,7 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
         Invoke invoke = compiledMethods.get(methodData.getVersion());
         if (invoke==null) {
             try {
-                final Class<Invoke> compile = objectagonCompiler.compile(methodData.getCode());
+                final Class<Invoke> compile = getObjectagonCompiler().compile(methodData.getCode());
                 invoke = compile.newInstance();
                 compiledMethods.put(methodData.getVersion(), invoke);
             } catch (Exception e) {

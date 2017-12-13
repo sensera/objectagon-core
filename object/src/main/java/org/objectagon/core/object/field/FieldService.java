@@ -12,9 +12,9 @@ import org.objectagon.core.object.FieldProtocol;
 import org.objectagon.core.object.InstanceClass;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
-import org.objectagon.core.storage.entity.DataVersionImpl;
+import org.objectagon.core.storage.entity.DataRevisionImpl;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardVersion;
 
@@ -38,8 +38,8 @@ public class FieldService extends EntityService<Service.ServiceName, Field.Field
     @Override protected Server.Factory createEntityFactory() {return FieldImpl::new;}
 
     @Override
-    protected DataVersion<Field.FieldIdentity, StandardVersion> createInitialDataFromValues(Field.FieldIdentity identity, Message.Values initialParams, Transaction transaction) {
-        return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
+    protected DataRevision<Field.FieldIdentity, StandardVersion> createInitialDataFromValues(Field.FieldIdentity identity, Message.Values initialParams, Transaction transaction) {
+        return DataRevisionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }
 
     @Override

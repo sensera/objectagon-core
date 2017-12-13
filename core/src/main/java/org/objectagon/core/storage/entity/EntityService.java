@@ -12,6 +12,7 @@ import org.objectagon.core.msg.field.StandardField;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.name.StandardName;
+import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.AsyncAction;
 import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.service.AbstractService;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import static org.objectagon.core.storage.Entity.ENTITY_CONFIG_NAME;
+import static org.objectagon.core.storage.entity.EntityService.LocalTasks.GetFromCache;
 
 /**
  * Created by christian on 2015-10-17.
@@ -43,6 +45,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
     public static Name EXTRA_ADDRESS_CONFIG_NAME = StandardName.name("EXTRA_ADDRESS_CONFIG_NAME");
 
     enum LocalTasks implements Task.TaskName {
+        GetFromCache,
         AddToTransactionAndPersist,
     }
 
@@ -100,7 +103,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
     }
 
-    protected abstract DataVersion<I,StandardVersion> createInitialDataFromValues(I identity, Message.Values initialParams, Transaction transaction);
+    protected abstract DataRevision<I,StandardVersion> createInitialDataFromValues(I identity, Message.Values initialParams, Transaction transaction);
 
 
     @Override
@@ -120,7 +123,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         }
         public EntityName getEntityName() {return entityName;}
 
-        public DataVersion<I,StandardVersion> getInitializeEntityWithValues(I identity, Message.Values initialParams, Transaction transaction) {
+        public DataRevision<I,StandardVersion> getInitializeEntityWithValues(I identity, Message.Values initialParams, Transaction transaction) {
             if (identity==null)
                 return null;
             return createInitialDataFromValues(identity, initialParams, transaction);
@@ -134,14 +137,30 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             return StandardVersion.create(getValue(Version.VERSION));
         }
 
-        public Task persistDataVersion(DataVersion dataVersion, D data) {
+        public Task persistDataVersion(DataRevision dataRevision, D data) {
             PersistenceServiceProtocol.Send send = createTargetSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, persistencyService);
-            return send.pushData(dataVersion,data);
+            return send.pushData(dataRevision, data);
         }
 
         public Task getLatestDataVersionFromPeristence(I identity) {
             PersistenceServiceProtocol.Send send = createTargetSession(PersistenceServiceProtocol.PERSISTENCE_SERVICE_PROTOCOL, persistencyService);
             return send.getLatestData(dataType, identity);
+        }
+
+        private TaskBuilder.Action replyFromCache(I identity) {
+            return (successAction, failedAction) -> {
+                try {
+                    successAction.success(
+                            StandardProtocol.MessageName.OK_MESSAGE,
+                            MessageValue.singleValues(MessageValue.address(identity)));
+                } catch (UserException e) {
+                    failedAction.failed(
+                            ErrorClass.ENTITY_SERVICE,
+                            ErrorKind.UNEXPECTED,
+                            MessageValue.singleValues(MessageValue.exception(e)));
+                    e.printStackTrace();
+                }
+            };
         }
 
         public Task loadAllData() {
@@ -162,12 +181,26 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
                     .createSend(() -> getWorkerContext().createTargetComposer(transaction));
         }
 
+        public Optional<Task> getFromCache(I identity) {
+            final Entity<I, D> idEntity = identityEntityMap.get(identity);
+            if (idEntity==null) {
+                trace("Entity NOT found in cache ", MessageValue.address(identity));
+                return Optional.empty();
+            }
+            trace("Entity found in cache ", MessageValue.address(identity));
+            return Optional.of(getTaskBuilder().action(GetFromCache,
+                                    replyFromCache(identity)).create());
+        }
+
+        public void cacheEntity(Entity<I, D> entity) {
+            identityEntityMap.put(entity.getAddress(), entity);
+        }
     }
 
-    private static class CreateEntityAction<W extends EntityService.EntityServiceWorker, I extends Identity, D extends Data> extends AsyncAction<EntityServiceActionInitializer, W> implements Consumer<DataVersion<I,StandardVersion>> {
+    private static class CreateEntityAction<W extends EntityService.EntityServiceWorker, I extends Identity, D extends Data> extends AsyncAction<EntityServiceActionInitializer, W> implements Consumer<DataRevision<I,StandardVersion>> {
 
         private Message.Values initialParams;
-        private DataVersion dataVersion;
+        private DataRevision dataRevision;
         private D data;
         private Version versionForNewData;
 
@@ -184,8 +217,8 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
         }
 
         @Override
-        public void accept(DataVersion<I, StandardVersion> dataVersion) {
-            this.dataVersion = dataVersion;
+        public void accept(DataRevision<I, StandardVersion> dataRevision) {
+            this.dataRevision = dataRevision;
         }
 
         @Override
@@ -193,6 +226,7 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             Configurations entityConfigurations = createInitializer(context, this);
 
             Entity<I,D> entity = context.createReceiver(context.getEntityName(), entityConfigurations);
+            context.cacheEntity(entity);
             if (entity==null)
                 throw new NullPointerException("entity is null!");
 
@@ -205,11 +239,11 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
                     TransactionManagerProtocol.TRANSACTION_MANAGER_PROTOCOL,
                     context.currentTransaction(),
                     session -> session.addEntityTo(entity.getAddress()));
-            sequence.addTask(context.persistDataVersion(dataVersion,data));
+            sequence.addTask(context.persistDataVersion(dataRevision, data));
             return sequence.create();
         }
 
-        private Configurations createInitializer(W context, final Consumer<DataVersion<I, StandardVersion>> dataVersionConsumer) {
+        private Configurations createInitializer(W context, final Consumer<DataRevision<I, StandardVersion>> dataVersionConsumer) {
             LazyInitializedConfigurations configurations = LazyInitializedConfigurations.create();
 
             MessageValueFieldUtil messageValueFieldUtil = MessageValueFieldUtil.create(context.getValue(StandardField.VALUES).asValues());
@@ -217,17 +251,17 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             configurations.add(EXTRA_ADDRESS_CONFIG_NAME, () -> initializer.extraAddressCreateConfiguration(messageValueFieldUtil).get());
 
             configurations.add(Entity.ENTITY_CONFIG_NAME, () -> new Entity.EntityConfig() {
-                    @Override public <II extends Identity, V extends Version> DataVersion<II, V> getDataVersion(II identity) {
-                        DataVersion<II,V> dataVersion = context.getInitializeEntityWithValues(identity, initialParams, context.currentTransaction());
+                    @Override public <II extends Identity, V extends Version> DataRevision<II, V> getDataVersion(II identity) {
+                        DataRevision<II,V> dataRevision = context.getInitializeEntityWithValues(identity, initialParams, context.currentTransaction());
                         try {
-                            DataVersion.ChangeDataVersion<II, V> change = dataVersion.change();
+                            DataRevision.ChangeDataRevision<II, V> change = dataRevision.change();
                             change.add(context.currentTransaction(), v -> versionForNewData = v, Data.MergeStrategy.OverWrite);
-                            dataVersion = change.create(dataVersion.getVersion());
+                            dataRevision = change.create(dataRevision.getVersion());
                         } catch (UserException e) {  // Should not happen
                             throw new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.INCONSISTENCY);
                         }
-                        dataVersionConsumer.accept((DataVersion<I, StandardVersion>) dataVersion);
-                        return dataVersion;
+                        dataVersionConsumer.accept((DataRevision<I, StandardVersion>) dataRevision);
+                        return dataRevision;
                     }
                     @Override public long getDataVersionCounter() {return 0;}
 
@@ -251,19 +285,24 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
 
         @Override
         public boolean initialize() throws UserException {
-            identifier = context.getValue(Identity.IDENTITY).asAddress();
+            identifier = context.getValue(StandardField.ADDRESS).asAddress();
             return super.initialize();
         }
 
         @Override
         protected Task internalRun(W context) throws UserException {
+            Optional<Task> taskOptional = context.getFromCache(identifier);
+            if (taskOptional.isPresent()) {
+                return taskOptional.get();
+            }
+
             Task latestDataVersionFromPeristence = context.getLatestDataVersionFromPeristence(identifier);
 
             setSuccessAction((messageName1, values) -> {
                 MessageValueFieldUtil fieldUtil = MessageValueFieldUtil.create(values);
-                DataVersion dataVersion = fieldUtil.getValueByField(DataVersion.DATA_VERSION).getValue();
-                Long counter = fieldUtil.getValueByField(DataVersion.DATA_VERSION_COUNTER).asNumber();
-                Configurations entityConfigurations = createInitializer(dataVersion, counter, context);
+                DataRevision dataRevision = fieldUtil.getValueByField(DataRevision.DATA_VERSION).getValue();
+                Long counter = fieldUtil.getValueByField(DataRevision.DATA_VERSION_COUNTER).asNumber();
+                Configurations entityConfigurations = createInitializer(dataRevision, counter, context);
                 Entity<I, D> entity = context.createReceiver(context.getEntityName(), entityConfigurations);
                 if (entity == null)
                     throw new NullPointerException("entity is null!");
@@ -273,9 +312,9 @@ public abstract class EntityService<A extends Service.ServiceName, I extends Ide
             return latestDataVersionFromPeristence;
         }
 
-        private Configurations createInitializer(final DataVersion dataVersion, final Long counter, final W worker) {
+        private Configurations createInitializer(final DataRevision dataRevision, final Long counter, final W worker) {
             return OneReceiverConfigurations.create(ENTITY_CONFIG_NAME, new Entity.EntityConfig() {
-                @Override public <I extends Identity, V extends Version> DataVersion<I, V> getDataVersion(I identity) {return dataVersion;}
+                @Override public <I extends Identity, V extends Version> DataRevision<I, V> getDataVersion(I identity) {return dataRevision;}
                 @Override public long getDataVersionCounter() {return counter;}
                 @Override public Message.Values initialParams() {
                     return MessageValue.values().asValues();

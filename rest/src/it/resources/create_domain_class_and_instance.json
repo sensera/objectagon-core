@@ -1,0 +1,14 @@
+{
+  "classes":[{
+    "name":"main",
+    "fields":[],
+    "relationClasses":[],
+    "methods":[]
+  }],
+  "instances":[{
+    "name":"main1",
+    "class":"main",
+    "values":[],
+    "relations":[]
+  }]
+}

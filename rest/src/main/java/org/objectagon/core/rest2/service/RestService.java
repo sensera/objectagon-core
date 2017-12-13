@@ -28,9 +28,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.objectagon.core.msg.message.MessageValue.any;
-import static org.objectagon.core.msg.message.MessageValue.emptyValues;
-import static org.objectagon.core.msg.message.MessageValue.singleValues;
+import static org.objectagon.core.msg.message.MessageValue.*;
 
 /**
  * Created by christian on 2017-01-09.

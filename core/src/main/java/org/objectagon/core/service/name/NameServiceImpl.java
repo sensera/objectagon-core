@@ -49,9 +49,7 @@ public class NameServiceImpl extends AbstractService<NameServiceImpl.NameService
     }
 
     @Override
-    protected boolean logLevelCheck(WorkerContextLogKind logKind) {
-        return true;
-    }
+    protected boolean logLevelCheck(WorkerContextLogKind logKind) {return false;}
 
     @Override
     protected void buildReactor(Reactor.ReactorBuilder reactorBuilder) {

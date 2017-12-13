@@ -1,34 +1,38 @@
-[
-  {
-    "main": {
-      "type": "class",
-      "relations": [
-        {
-          "main.person.relation": {
-            "targetClass": "person"
-          }
-        }
-      ]
-    }
-  },
-  {
-    "person": {
-      "type": "class"
-    }
-  },
-  {
-    "main1": {
-      "type": "instance",
-      "class": "main",
-      "relations": [
-        { "main.person.relation":"person1" }
-      ]
-    }
-  },
-  {
-    "person1": {
-      "type": "instance",
-      "class": "person"
-    }
-  }
-]
+{
+  "metas":[],
+  "classes":[{
+    "name":"main",
+    "fields":[],
+    "relationClasses":[{
+      "name":"main.person.relation",
+      "alias":"main.person.relation",
+      "target":"person.class",
+      "type":"association"
+    }]
+  },{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name"
+    }],
+    "relationClasses":[]
+  }],
+  "instances":[{
+    "name":"main1",
+    "alias":"main1",
+    "class":"main",
+    "values":[],
+    "relations":[{
+      "relationClass":"main.person.relation",
+      "targetInstance":"person1"
+    }]
+  },{
+    "name":"person1",
+    "alias":"person1",
+    "class":"person.class",
+    "values":[{
+      "value":"Lars Gurra Aktersnurra",
+      "field":"person.class.Name"
+    }],
+    "relations":[]
+  }]
+}

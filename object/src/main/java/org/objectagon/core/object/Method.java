@@ -29,12 +29,14 @@ public interface Method extends Entity<Method.MethodIdentity,Method.MethodData> 
     Message.Field PARAM_VALUE = NamedField.text("paramValue");
     Message.Field PARAMS = NamedField.values("params");
     Message.Field PARAM_NAME  = NamedField.name("paramName");
-    Message.Field PARAM_FIELD  = NamedField.any("paramField");
+    Message.Field PARAM_FIELD  = NamedField.field("paramField");
     Message.Field DEFAULT_VALUE = NamedField.values("defaultValue");
 
     Data.Type DATA_TYPE = DataType.create("METHOD");
 
-    interface MethodIdentity extends Identity {}
+    interface MethodIdentity extends Identity {
+        Meta.MetaIdentity getMetaIdentity();
+    }
     interface MethodName extends Name {}
     interface ParamName extends Name {}
 
@@ -80,5 +82,10 @@ public interface Method extends Entity<Method.MethodIdentity,Method.MethodData> 
     interface ValueCreator<T> {
         void set(T value);
     }
+
+    interface ConfigMethod extends NamedConfiguration {
+        Meta.MetaIdentity getMetaIdentity();
+    }
+
 
 }

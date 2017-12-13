@@ -14,7 +14,6 @@ import org.objectagon.core.rest2.service.map.InstanceClassProtocolRestActionsMap
 import org.objectagon.core.utils.KeyValueUtil;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.stream.Stream;
 
 import static org.objectagon.core.object.Instance.INSTANCE_IDENTITY;
@@ -30,6 +29,7 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
         switch (action) {
             case CREATE_INSTANCE: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.createInstance());
             case ADD_FIELD: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.addField());
+            case LIST_FIELDS: return (identityStore, restPath, params, data) -> session -> session.getFields();
             case ADD_RELATION: return (identityStore, restPath, params, data) -> session ->
                     catchAlias(
                             identityStore,
@@ -43,8 +43,8 @@ public class InstanceClassProtocolRestActionsCreator implements InstanceClassPro
                             StandardField.ADDRESS,
                             session.addMethod(
                                     (Method.MethodIdentity) restPath.getIdentityAtIndex(3).get(),
-                                    Collections.emptyList(),
-                                    Collections.emptyList()));
+                                    Stream.empty(),
+                                    Stream.empty()));
             case GET_NAMED_INSTANCE: return (identityStore, restPath, params, data) -> session ->
                     session.getInstanceByAlias(restPath.getNameAtIndex(3, StandardName::name).get())
                     .addSuccessAction(findAliasAndMessageIdentityToUpdateAlias(identityStore, INSTANCE_IDENTITY, restPath.valueAtIndex(3).asText()));

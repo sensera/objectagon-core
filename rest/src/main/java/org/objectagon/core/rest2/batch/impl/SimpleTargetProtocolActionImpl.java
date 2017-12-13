@@ -5,6 +5,7 @@ import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.task.ProtocolTask;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -33,6 +34,8 @@ public class SimpleTargetProtocolActionImpl<P extends Protocol.Send>
     @Override protected ProtocolTask.SendMessageAction<P> getProtocol() { return protocolSend; }
 
     protected Optional<Name> getName() { return Optional.ofNullable(name);}
+
+    @Override public boolean filterName(Name name) {return Objects.equals(this.name, name);}
 
     @Override
     public String toString() {

@@ -3,7 +3,7 @@ package org.objectagon.core.storage.entity;
 /**
  * Created by christian on 2016-02-26.
  */
-public class DataVersionsConverter { /*<I extends Identity, V extends Version> implements Converter<DataVersion<I,V>> {
+public class DataVersionsConverter { /*<I extends Identity, V extends Version> implements Converter<DataRevision<I,V>> {
 
     Converter<I> identityConverter;
     Converter<V> versionConverter;
@@ -14,12 +14,12 @@ public class DataVersionsConverter { /*<I extends Identity, V extends Version> i
     }
 
     @Override
-    public ToData<DataVersion<I, V>> toData() {
+    public ToData<DataRevision<I, V>> toData() {
         return new DataVersionsBuilder()::build;
     }
 
     @Override
-    public FromData<DataVersion<I, V>> fromData() {
+    public FromData<DataRevision<I, V>> fromData() {
         return null;
     }
 
@@ -28,7 +28,7 @@ public class DataVersionsConverter { /*<I extends Identity, V extends Version> i
         I identity;
         V version;
         Transaction transaction;
-        DataVersion.NodeType nodeType;
+        DataRevision.NodeType nodeType;
         Message.Values children;
 
         abstract Message.Field childrenNodeField();
@@ -38,7 +38,7 @@ public class DataVersionsConverter { /*<I extends Identity, V extends Version> i
                     .add(Identity.IDENTITY,         value -> identity = value.asAddress())
                     .add(Version.VERSION,           value -> version = versionConverter.toData().toData(value))
                     .add(Transaction.TRANSACTION,   value -> transaction = value.asAddress())
-                    .add(DataVersion.NODE_TYPE,    value -> nodeType = DataVersion.NodeType.valueOf(value.asText()))
+                    .add(DataRevision.NODE_TYPE,    value -> nodeType = DataRevision.NodeType.valueOf(value.asText()))
                     .add(childrenNodeField(),    value -> children = value.asValues())
                     .interpret(values);
         }
@@ -46,42 +46,42 @@ public class DataVersionsConverter { /*<I extends Identity, V extends Version> i
     }
 
     private class DataVersionsNodeBuilder extends AbstractNodeBuilder {
-        DataVersion.NodeBuilder<V> vNodeBuilder;
+        DataRevision.NodeBuilder<V> vNodeBuilder;
 
-        public DataVersionsNodeBuilder(DataVersion.NodeBuilder<V> vNodeBuilder) {
+        public DataVersionsNodeBuilder(DataRevision.NodeBuilder<V> vNodeBuilder) {
             this.vNodeBuilder = vNodeBuilder;
         }
 
         @Override
         Message.Field childrenNodeField() {
-            return DataVersion.TREE_NODE;
+            return DataRevision.TREE_NODE;
         }
 
         public void addChild(Message.Value value) {
-            DataVersion.TREE_NODE.verifyField(value);
+            DataRevision.TREE_NODE.verifyField(value);
             Message.Values values = value.asValues();
 
         }
     }
 
     private class DataVersionsBuilder extends AbstractNodeBuilder {
-        DataVersion.ChangeDataVersion<I, V> changeDataVersion;
+        DataRevision.ChangeDataRevision<I, V> changeDataVersion;
 
         @Override
         Message.Field childrenNodeField() {
-            return DataVersion.ROOT_NODE;
+            return DataRevision.ROOT_NODE;
         }
 
         public DataVersionsBuilder() {
-            this.changeDataVersion = DataVersionImpl.create();
+            this.changeDataVersion = DataRevisionImpl.create();
         }
 
-        public DataVersion<I, V> build(Message.Value value) {
-            DataVersion.DATA_VERSION.verifyField(value);
+        public DataRevision<I, V> build(Message.Value value) {
+            DataRevision.DATA_VERSION.verifyField(value);
 
             extractValue(value.asValues());
             changeDataVersion.setIdentity(identity);
-            DataVersion.NodeBuilder<V> vNodeBuilder = changeDataVersion.setRoot(version, transaction);
+            DataRevision.NodeBuilder<V> vNodeBuilder = changeDataVersion.setRoot(version, transaction);
 
             DataVersionsNodeBuilder nodeBuilder = new DataVersionsNodeBuilder(vNodeBuilder);
             children.values().forEach(nodeBuilder::addChild);

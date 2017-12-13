@@ -296,6 +296,10 @@ public class HttpRestProtocolServerHandler extends SimpleChannelInboundHandler<H
             public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
                 throw new RuntimeException("Not supported!");
             }
+
+            @Override public <V> void writeAny(Message.Field field, V value) {
+                item.setChildValue(field.getName().toString(), ""+value);
+            }
         });
     }
 

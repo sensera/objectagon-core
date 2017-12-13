@@ -33,8 +33,6 @@ public class MethodNameImpl implements Method.MethodName {
 
     @Override
     public String toString() {
-        return "MethodNameImpl{" +
-                "name='" + name + '\'' +
-                '}';
+        return name;
     }
 }

@@ -32,6 +32,13 @@ public class ClassActions extends AbstractActions<InstanceClassProtocol.Send> {
                     (AddClassRelationData) null)
                     .addResolver(createIdentifierResolver(RESOLVE_RELATION_CLASS_ID))
                     .setFindTargetInContext(createIdentityContextFinder(RESOLVE_INSTANCE_CLASS_ID));
+            case ADD_CLASS_METHOD: return (A) createDataAction(data -> session -> session.addMethod(
+                    data.getMethodIdentity(),
+                    data.getFieldMappings(),
+                    data.getDefaultValues()),
+                        (AddClassMethodData) null)
+                    .addResolver(createIdentifierResolver(RESOLVE_CLASS_METHOD_ID))
+                    .setFindTargetInContext(createIdentityContextFinder(RESOLVE_INSTANCE_CLASS_ID));
             case ADD_ALIAS: return (A) createDataAction(data -> session -> session.addInstanceAlias(
                     data.getInstanceIdentity(),
                     data.getName()),

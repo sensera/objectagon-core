@@ -11,7 +11,7 @@ import org.objectagon.core.object.*;
 import org.objectagon.core.object.field.data.FieldDataImpl;
 import org.objectagon.core.object.fieldvalue.FieldValueService;
 import org.objectagon.core.service.name.NameServiceImpl;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
@@ -39,7 +39,7 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
 
     @Override
     protected FieldData createNewData(Optional<StandardVersion> version) {
-        return FieldDataImpl.create(getAddress(),version.orElse(StandardVersion.create(0L)), null, StandardFieldType.Text);
+        return FieldDataImpl.create(getAddress(),version.orElse(StandardVersion.create(0L)), null, StandardFieldType.TEXT);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class FieldImpl extends EntityImpl<Field.FieldIdentity, Field.FieldData, 
     }
 
     @Override
-    protected FieldData upgrade(FieldData data, DataVersion<FieldIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected FieldData upgrade(FieldData data, DataRevision<FieldIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data; //TODO this needs to be finished!
     }
 

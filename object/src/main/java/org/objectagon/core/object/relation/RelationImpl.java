@@ -5,7 +5,7 @@ import org.objectagon.core.object.Relation;
 import org.objectagon.core.object.RelationClass;
 import org.objectagon.core.object.RelationProtocol;
 import org.objectagon.core.object.relation.data.RelationDataImpl;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorker;
@@ -27,7 +27,7 @@ public class RelationImpl extends EntityImpl<Relation.RelationIdentity, Relation
     }
 
     @Override
-    protected RelationData upgrade(RelationData data, DataVersion<RelationIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected RelationData upgrade(RelationData data, DataRevision<RelationIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data;
     }
 

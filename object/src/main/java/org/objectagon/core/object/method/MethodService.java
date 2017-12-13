@@ -1,14 +1,21 @@
 package org.objectagon.core.object.method;
 
 import org.objectagon.core.Server;
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
+import org.objectagon.core.msg.message.MessageValue;
+import org.objectagon.core.msg.message.MessageValueFieldUtil;
+import org.objectagon.core.object.InstanceClass;
+import org.objectagon.core.object.Meta;
 import org.objectagon.core.object.Method;
 import org.objectagon.core.service.Service;
 import org.objectagon.core.service.StandardServiceName;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
-import org.objectagon.core.storage.entity.DataVersionImpl;
+import org.objectagon.core.storage.entity.DataRevisionImpl;
 import org.objectagon.core.storage.entity.EntityService;
 import org.objectagon.core.storage.standard.StandardVersion;
 import org.objectagon.core.task.Task;
@@ -31,8 +38,8 @@ public class MethodService extends EntityService<Service.ServiceName, Method.Met
     }
 
     @Override protected Server.Factory createEntityFactory() {return MethodImpl::new;}
-    @Override protected DataVersion<Method.MethodIdentity, StandardVersion> createInitialDataFromValues(Method.MethodIdentity identity, Message.Values initialParams, Transaction transaction) {
-        return DataVersionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
+    @Override protected DataRevision<Method.MethodIdentity, StandardVersion> createInitialDataFromValues(Method.MethodIdentity identity, Message.Values initialParams, Transaction transaction) {
+        return DataRevisionImpl.create(identity, StandardVersion.create(0L), 0L, StandardVersion::new);
     }
 
     @Override protected EntityServiceWorker createWorker(WorkerContext workerContext) {return new MethodServiceWorker(workerContext);}
@@ -47,5 +54,11 @@ public class MethodService extends EntityService<Service.ServiceName, Method.Met
         }
     }
 
+    @Override public Optional<NamedConfiguration> extraAddressCreateConfiguration(MessageValueFieldUtil messageValueFieldUtil) {
+        return Optional.of((Method.ConfigMethod) () -> messageValueFieldUtil.getValueByFieldOption(Meta.META_IDENTITY)
+                                   .orElseThrow(() -> new SevereError(ErrorClass.ENTITY_SERVICE, ErrorKind.MISSING_CONFIGURATION, MessageValue.text(InstanceClass.INSTANCE_CLASS_IDENTITY, "UNKNOWN")))
+                                   .asAddress()
+                          );
+    }
 
 }

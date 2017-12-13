@@ -9,6 +9,7 @@ import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.KeyValue;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by christian on 2015-11-01.
@@ -41,11 +42,12 @@ public interface InstanceClassProtocol extends Protocol<InstanceClassProtocol.Se
         Task addRelation(RelationClass.RelationType type, InstanceClass.InstanceClassIdentity relatedClass);
         Task createInstance();
         Task getName();
+        Task getFields();
         Task setName(InstanceClass.InstanceClassName instanceClassName);
         Task addInstanceAlias(Instance.InstanceIdentity instanceIdentity, Name aliasName);
         Task removeInstanceAlias(Name aliasName);
         Task getInstanceByAlias(Name aliasName);
-        Task addMethod(Method.MethodIdentity methodIdentity, List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings, List<KeyValue<Method.ParamName, Message.Value>> defaultValues);
+        Task addMethod(Method.MethodIdentity methodIdentity, Stream<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings, Stream<KeyValue<Method.ParamName, Message.Value>> defaultValues);
         Task removeMethod(Method.MethodIdentity methodIdentity);
         Task invokeMethod(Method.MethodIdentity methodIdentity, Instance.InstanceIdentity instanceIdentity, List<KeyValue<Method.ParamName, Message.Value>> params);
     }

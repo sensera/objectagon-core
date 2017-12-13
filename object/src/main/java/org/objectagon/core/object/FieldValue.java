@@ -17,7 +17,7 @@ public interface FieldValue extends Entity<FieldValue.FieldValueIdentity, FieldV
     EntityName ENTITY_NAME = EntityName.create("FIELD_VALUE");
 
     Message.Field FIELD_VALUE_IDENTITY = NamedField.address("fieldValueIdentity");
-    Message.Field VALUE = NamedField.any("value");
+    Message.Field VALUE = NamedField.values("value");
 
     Data.Type DATA_TYPE = DataType.create("FIELD_VALUE");
 

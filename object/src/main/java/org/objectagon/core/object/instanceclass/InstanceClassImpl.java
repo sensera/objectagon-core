@@ -46,7 +46,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
 
     Service.ServiceName eventService;
 
-    @Override protected boolean logLevelCheck(WorkerContextLogKind logKind) {return true;}
+    @Override protected boolean logLevelCheck(WorkerContextLogKind logKind) {return false;}
 
     public InstanceClassImpl(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl, InstanceClass.DATA_TYPE);
@@ -108,7 +108,7 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     @Override
-    protected InstanceClassData upgrade(InstanceClassData data, DataVersion<InstanceClassIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected InstanceClassData upgrade(InstanceClassData data, DataRevision<InstanceClassIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data; // TODO fix this
     }
 

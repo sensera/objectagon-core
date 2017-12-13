@@ -1,0 +1,12 @@
+{
+  "main.meta": {
+    "type": "meta",
+    "methods": [
+      {
+        "create.person.method": {
+          "code": "invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());"
+        }
+      }
+    ]
+  }
+}

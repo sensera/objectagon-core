@@ -62,7 +62,14 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
     }
 
     protected void success(Message.MessageName messageName, Iterable<Message.Value> values) {
-        if (trace) System.out.println(getClass().getSimpleName()+".success "+name+" "+messageName);
+        if (trace) {
+            System.out.println(getClass().getSimpleName()+".success "+name+" "+messageName);
+            if (values.iterator().hasNext()) {
+                Util.printValuesToString(values);
+            } else {
+                System.out.println("- no params -");
+            }
+        }
         status = Status.Completed;
         intSuccess(messageName, values);
         successActions.stream().forEach(successAction -> {

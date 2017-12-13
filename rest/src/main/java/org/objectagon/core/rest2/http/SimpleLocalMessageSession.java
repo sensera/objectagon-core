@@ -5,7 +5,6 @@ import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
-import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.msg.message.MessageValueMessage;
 import org.objectagon.core.msg.name.StandardName;
 import org.objectagon.core.msg.protocol.StandardProtocol;
@@ -36,6 +35,9 @@ class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.S
     private String path;
     private List<HttpCommunicator.HttpParamValues> params;
     private JsonBuilder jsonBuilder = new JsonBuilderImpl();
+
+    private HttpCommunicator.AsyncReplyContent asynSuccess = null;
+    private String asyncFailed = null;
 
     public SimpleLocalMessageSession(RestServiceProtocol.SimplifiedSend send) {
         this.send = send;
@@ -108,37 +110,65 @@ class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.S
     }
 
     @Override
-    public void receiveReply(Consumer<HttpCommunicator.AsyncReplyContent> consumeReplyContent, Consumer<String> failed) {
+    public synchronized void receiveReply(Consumer<HttpCommunicator.AsyncReplyContent> consumeReplyContent, Consumer<String> failed) {
         this.consumeReplyContent = consumeReplyContent;
         this.failed = failed;
+
+        if (asynSuccess != null) {
+            consumeReplyContent.accept(asynSuccess);
+            asynSuccess = null;
+            send.terminate();
+        } else if (asyncFailed != null) {
+            failed.accept(asyncFailed);
+            asyncFailed = null;
+            send.terminate();
+        }
     }
 
     @Override
-    public void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
+    public synchronized void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
         final JsonBuilder.Builder builder = jsonBuilder.builder();
         builder.setChildValue(StandardName.name("errorClass"), errorClass.name());
         builder.setChildValue(StandardName.name("errorKind"), errorKind.name());
         StreamSupport.stream(values.spliterator(), false)
                 .forEach(childValue -> addJsonChild(builder, StandardName.name("value"), childValue));
+        if (failed == null) {
+            asyncFailed = builder.build().toString();
+            return;
+        }
         failed.accept(builder.build().toString());
         send.terminate();
     }
 
     @Override
-    public void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException {
+    public synchronized void success(Message.MessageName messageName, Iterable<Message.Value> values) throws UserException {
         final JsonBuilder.Builder builder = jsonBuilder.builder();
-        final Map<? extends Name, ? extends Message.Value> map = MessageValueFieldUtil.create(values).getValueByField(RestServiceProtocol.REST_CONTENT_RESPONSE).asMap();
-        createJson(builder, map);
-        consumeReplyContent.accept(new HttpCommunicator.AsyncReplyContent() {
+        //final Map<? extends Name, ? extends Message.Value> map = MessageValueFieldUtil.create(values).getValueByField(RestServiceProtocol.REST_CONTENT_RESPONSE).asMap();
+        createJson(builder, values);
+        System.out.println("SimpleLocalMessageSession.success **********************************");
+        System.out.println(builder.build().toString());
+        System.out.println("SimpleLocalMessageSession.success **********************************");
+        final HttpCommunicator.AsyncReplyContent asyncReplyContent = new HttpCommunicator.AsyncReplyContent() {
             @Override public String getContent() {return builder.build().toString();}
+
             @Override public Optional<String> token() {
                 return Optional.empty();
-            } });
+            }
+        };
+        if (consumeReplyContent==null) {
+            asynSuccess = asyncReplyContent;
+            return;
+        }
+        consumeReplyContent.accept(asyncReplyContent);
         send.terminate();
     }
 
     private void createJson(JsonBuilder.Builder builder, Map<? extends Name, ? extends Message.Value> map) {
         map.entrySet().stream().forEach(entry -> addJsonChild(builder, entry.getKey(), entry.getValue()));
+    }
+
+    private void createJson(JsonBuilder.Builder builder, Iterable<Message.Value> values) {
+        values.forEach(value -> addJsonChild(builder, value.getField().getName(), value));
     }
 
     private void addJsonChild(JsonBuilder.Item item, Name name, Message.Value value) {
@@ -157,6 +187,13 @@ class SimpleLocalMessageSession implements HttpCommunicator.AsyncContent, Task.S
             @Override
             public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
                 map.entrySet().stream().forEach(entry -> addJsonChild(childItem, entry.getKey(), entry.getValue()));
+            }
+
+            @Override public <V> void writeAny(Message.Field field, V value) {
+                if (value==null)
+                    write(field, "null");
+                else
+                    write(field, value.toString());
             }
 
             @Override

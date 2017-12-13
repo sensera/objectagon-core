@@ -28,12 +28,13 @@ import java.util.function.Consumer;
 public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V extends Version, W extends EntityWorker>  extends BasicReceiverImpl<I, W> implements Entity<I, D> {
 
     private long dataVersionCounter = 0;
-    private DataVersion<I,V> dataVersion;
+    private Object dataVersionCounterLock = new Object();
+    private DataRevision<I,V> dataRevision;
     private Map<V,D> dataCache = new HashMap<>();
     private Data.Type dataType;
 
-    public DataVersion<I, V> getDataVersion() {
-        return dataVersion;
+    public DataRevision<I, V> getDataRevision() {
+        return dataRevision;
     }
 
     public EntityImpl(ReceiverCtrl receiverCtrl, Data.Type dataType) {
@@ -45,7 +46,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     public void configure(Configurations... configurations) {
         super.configure(configurations);
         EntityConfig entityConfig = FindNamedConfiguration.finder(configurations).getConfigurationByName(Entity.ENTITY_CONFIG_NAME);
-        dataVersion = entityConfig.getDataVersion(getAddress());
+        dataRevision = entityConfig.getDataVersion(getAddress());
         dataVersionCounter = entityConfig.getDataVersionCounter();
     }
 
@@ -55,7 +56,14 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     protected Data.Type getDataType() { return dataType; }
 
-    protected V nextDataVersionVersion() { return internalCreateNewVersionForDataVersion(dataVersionCounter++);}
+    protected V nextDataVersionVersion() {
+        final long counterNumber;
+        synchronized (dataVersionCounterLock) {
+            counterNumber = dataVersionCounter++;
+        }
+        final V v = internalCreateNewVersionForDataVersion(counterNumber);
+        System.out.println("EntityImpl.nextDataVersionVersion ??????????????? "+v+" for "+getAddress());
+        return v;}
 
     protected Optional<D> getCachedDataByVersion(V version) {
         return Optional.ofNullable(dataCache.get(version));
@@ -63,25 +71,29 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     protected Optional<D> getCachedDataByTransaction(Transaction transaction) {
         return new NodeFinder(transaction)
-                .startFinder(dataVersion.rootNode())
+                .startFinder(dataRevision.rootNode())
                 .map(vNode -> dataCache.get(vNode.getVersion()));
     }
 
     protected Optional<V> getGetVersionFromTransaction(Transaction transaction) {
         return new NodeFinder(transaction)
-                .startFinder(dataVersion.rootNode())
-                .map(DataVersion.TransactionVersionNode::getVersion);
+                .startFinder(dataRevision.rootNode())
+                .map(DataRevision.TransactionVersionNode::getVersion);
     }
 
     protected Optional<V> getDefaultVersion() {
-        return dataVersion.getDataVersion();
+        return dataRevision.getDataVersion();
     }
 
-    private void updateDataAndVersion(D newData, DataVersion<I, V> newDataVersion) {
-        //System.out.println("EntityImpl.updateDataAndVersion "+newData);
-        //System.out.println("EntityImpl.updateDataAndVersion "+dataVersion);
-        this.dataVersion = newDataVersion;
-        this.dataCache.put(newData.getVersion(), newData);
+    protected void updateDataAndVersion(D newData, DataRevision<I, V> newDataRevision) {
+/*
+        System.out.println("EntityImpl.updateDataAndVersion "+newData);
+        System.out.println("EntityImpl.updateDataAndVersion "+dataRevision);
+*/
+        this.dataRevision = newDataRevision;
+        final D removedData = this.dataCache.put(newData.getVersion(), newData);
+        if (removedData != null)
+            throw new RuntimeException("Internal error! New version number not unique in cache "+newData.getVersion()+" for "+getAddress());
     }
 
     @Override
@@ -92,20 +104,20 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     }
 
     private class NodeFinder {
-        Optional<DataVersion.TransactionVersionNode<V>> res = Optional.empty();
+        Optional<DataRevision.TransactionVersionNode<V>> res = Optional.empty();
         Transaction transaction;
 
         public NodeFinder(Transaction transaction) {
             this.transaction = transaction;
         }
 
-        private Optional<DataVersion.TransactionVersionNode<V>> startFinder(Optional<DataVersion.TransactionVersionNode<V>> transactionVersionNodeOption) {
+        private Optional<DataRevision.TransactionVersionNode<V>> startFinder(Optional<DataRevision.TransactionVersionNode<V>> transactionVersionNodeOption) {
             return transactionVersionNodeOption.isPresent()
                     ? transactionVersionNodeOption.filter(vTransactionVersionNode -> vTransactionVersionNode!=null).map(this::nodeFinder)
                     : Optional.empty();
         }
 
-        private DataVersion.TransactionVersionNode<V> nodeFinder(DataVersion.TransactionVersionNode<V> transactionVersionNode) {
+        private DataRevision.TransactionVersionNode<V> nodeFinder(DataRevision.TransactionVersionNode<V> transactionVersionNode) {
             if (transactionVersionNode==null)
                 throw new NullPointerException("transactionVersionNode is null");
             if (Objects.equals(transactionVersionNode.getTransaction(), transaction)) {
@@ -130,24 +142,24 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         }
     }
 
-    abstract protected D upgrade(D data, DataVersion<I, V> newDataVersion, Transaction transaction);
+    abstract protected D upgrade(D data, DataRevision<I, V> newDataRevision, Transaction transaction);
 
     private void commit(EntityWorker entityWorker) throws UserException {
         Transaction transaction = entityWorker.currentTransaction();
         V version = getGetVersionFromTransaction(transaction).orElseThrow(() -> new SevereError(ErrorClass.ENTITY, ErrorKind.INCONSISTENCY, MessageValue.address(transaction)));
 
-        DataVersion<I,V> dataVersion = getDataVersion();
-        DataVersion<I,V> newDataVersion = dataVersion.<DataVersion.ChangeDataVersion<I,V>>change().commit(transaction).create(null);
+        DataRevision<I,V> dataRevision = getDataRevision();
+        DataRevision<I,V> newDataRevision = dataRevision.<DataRevision.ChangeDataRevision<I,V>>change().commit(transaction).create(null);
 
-        DataVersion.TransactionVersionNode<V> vTransactionVersionNode = new NodeFinder(transaction).startFinder(dataVersion.rootNode()).get();
+        DataRevision.TransactionVersionNode<V> vTransactionVersionNode = new NodeFinder(transaction).startFinder(dataRevision.rootNode()).get();
 
         switch(vTransactionVersionNode.getMergeStrategy()) {
             case Uppgrade: {
                 D oldData = getCachedDataByVersion(version).get(); //TODO Load when not cached
-                D newData = upgrade(oldData, newDataVersion, transaction);
+                D newData = upgrade(oldData, newDataRevision, transaction);
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushData(newData, newDataVersion)
-                        .addFirstSuccessAction(upgradeDataVersion(newDataVersion, newData))
+                        .pushData(newData, newDataRevision)
+                        .addFirstSuccessAction(upgradeDataVersion(newDataRevision, newData))
                         .addSuccessAction(entityWorker::success)
                         .addFailedAction(entityWorker::failed)
                         .start();
@@ -155,8 +167,8 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             }
             case OverWrite: {
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushData(newDataVersion)
-                        .addFirstSuccessAction(overwriteDataVersion(newDataVersion))
+                        .pushData(newDataRevision)
+                        .addFirstSuccessAction(overwriteDataVersion(newDataRevision))
                         .addSuccessAction(entityWorker::success)
                         .addFailedAction(entityWorker::failed)
                         .start();
@@ -167,33 +179,33 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         }
     }
 
-    private Task.SuccessAction upgradeDataVersion(DataVersion newDataVersion, D newData) {
+    private Task.SuccessAction upgradeDataVersion(DataRevision newDataRevision, D newData) {
         return (messageName, values) -> {
-            EntityImpl.this.dataVersion = newDataVersion;
+            EntityImpl.this.dataRevision = newDataRevision;
             dataCache.put(newData.getVersion(), newData);
         };
     }
 
-    private Task.SuccessAction overwriteDataVersion(DataVersion newDataVersion) {
-        return (messageName, values) -> EntityImpl.this.dataVersion = newDataVersion;
+    private Task.SuccessAction overwriteDataVersion(DataRevision newDataRevision) {
+        return (messageName, values) -> EntityImpl.this.dataRevision = newDataRevision;
     }
 
     private void rollback(EntityWorker entityWorker) throws UserException{
         Transaction transaction = entityWorker.currentTransaction();
         V version = getGetVersionFromTransaction(transaction).orElseThrow(() -> new SevereError(ErrorClass.ENTITY, ErrorKind.INCONSISTENCY, MessageValue.address(transaction)));
 
-        DataVersion<I,V> dataVersion = getDataVersion();
-        DataVersion<I,V> newDataVersion = null;
-        newDataVersion = dataVersion.<DataVersion.ChangeDataVersion<I,V>>change().rollback(transaction).create(null);
+        DataRevision<I,V> dataRevision = getDataRevision();
+        DataRevision<I,V> newDataRevision = null;
+        newDataRevision = dataRevision.<DataRevision.ChangeDataRevision<I,V>>change().rollback(transaction).create(null);
 
-        DataVersion.TransactionVersionNode<V> vTransactionVersionNode = new NodeFinder(transaction).startFinder(newDataVersion.rootNode()).get();
+        DataRevision.TransactionVersionNode<V> vTransactionVersionNode = new NodeFinder(transaction).startFinder(newDataRevision.rootNode()).get();
 
         switch(vTransactionVersionNode.getMergeStrategy()) {
             case Uppgrade: {
                 D oldData = getCachedDataByVersion(version).get(); //TODO Load when not cached
-                D newData = upgrade(oldData, newDataVersion, transaction);
+                D newData = upgrade(oldData, newDataRevision, transaction);
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushData(newData, newDataVersion)
+                        .pushData(newData, newDataRevision)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
@@ -201,7 +213,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             }
             case OverWrite: {
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                        .pushData(newDataVersion)
+                        .pushData(newDataRevision)
                         .addFailedAction(entityWorker::failed)
                         .addSuccessAction(entityWorker::success)
                         .start();
@@ -234,7 +246,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
         try {
             w.start(
-                w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
+                w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(dataRevision.<DataRevision.ChangeDataRevision<I, V>>change()
                         .newVersion(transaction, v1 -> {})
                         .create(nextDataVersionVersion()))
             );
@@ -254,7 +266,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         getCachedDataByTransaction(transaction).ifPresent(data -> dataCache.remove(data.getVersion()));
         try {
             w.start(
-                    w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(dataVersion.<DataVersion.ChangeDataVersion<I, V>>change()
+                    w.createPersistenceServiceProtocolSend(PersistenceService.NAME).pushData(dataRevision.<DataRevision.ChangeDataRevision<I, V>>change()
                             .remove(transaction)
                             .create(nextDataVersionVersion()))
             );
@@ -374,9 +386,9 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         }
     }
 
-    protected DataVersion<I, V> newDataVersion(Transaction transaction, Consumer<V> receiveNewVersion) throws UserException {
-        DataVersion.ChangeDataVersion<I, V> change = getDataVersion().change();
-        if (!DataVersionTransactions.create(getDataVersion()).transactionExists(transaction)) {
+    protected DataRevision<I, V> newDataVersion(Transaction transaction, Consumer<V> receiveNewVersion) throws UserException {
+        DataRevision.ChangeDataRevision<I, V> change = getDataRevision().change();
+        if (!DataVersionTransactions.create(getDataRevision()).transactionExists(transaction)) {
             change.add(transaction, receiveNewVersion, Data.MergeStrategy.OverWrite);
         } else
             change.newVersion(transaction, receiveNewVersion);
@@ -385,12 +397,12 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .create(nextDataVersionVersion());
     }
 
-    protected void pushToPersistence(W worker, D newData, DataVersion<I, V> newDataVersion, Message.Values preparedValues) {
+    protected void pushToPersistence(W worker, D newData, DataRevision<I, V> newDataRevision, Message.Values preparedValues) {
         worker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
-                .pushData(newData, newDataVersion)
+                .pushData(newData, newDataRevision)
                 .addFailedAction(worker::failed)
                 .addSuccessAction((messageName, values) -> {
-                    updateDataAndVersion(newData, newDataVersion);
+                    updateDataAndVersion(newData, newDataRevision);
                     worker.success(messageName, preparedValues!=null ? preparedValues.values():values);
                 })
                 .start();
@@ -420,8 +432,8 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     protected class WriteDataAction<C extends Data.Change<I,V>> implements ReadActionConsumer<W,D> {
         W worker;
         Transaction transaction;
-        DataVersion<I,V> oldDataVersion;
-        DataVersion<I,V> newDataVersion;
+        DataRevision<I,V> oldDataRevision;
+        DataRevision<I,V> newDataRevision;
         D oldData;
         D newData;
         V newVersion;
@@ -434,7 +446,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
         public WriteDataAction<C> changeData(WriteActionConsumer<W,D,C> change) throws UserException {
             //System.out.println("WriteDataAction.changeData START");
-            newDataVersion = newDataVersion(transaction, version -> this.newVersion = version);
+            newDataRevision = newDataVersion(transaction, version -> this.newVersion = version);
             C changeData = (C) oldData.<C>change();
             change.doDataWrite(worker, oldData, changeData, getValues());
             newData = changeData.create(newVersion);
@@ -450,7 +462,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
         public WriteDataAction<C> pushToPersistence() {
             //System.out.println("WriteDataAction.pushToPersistence "+newData.getVersion());
-            EntityImpl.this.pushToPersistence(worker, newData, newDataVersion, getValues());
+            EntityImpl.this.pushToPersistence(worker, newData, newDataRevision, getValues());
             return this;
         }
 
@@ -459,7 +471,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             this.worker = worker;
             this.oldData = data;
             this.transaction = worker.currentTransaction();
-            this.oldDataVersion = getDataVersion();
+            this.oldDataRevision = getDataRevision();
             changeData(change);
             pushToPersistence();
         }

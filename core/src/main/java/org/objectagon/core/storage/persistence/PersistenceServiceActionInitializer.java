@@ -14,7 +14,7 @@ public interface PersistenceServiceActionInitializer extends Reactor.ActionIniti
 
     Optional<Data> getData(Identity identity, Version version);
 
-    Optional<DataVersion> getDataVersion(Identity identity, Version version);
+    Optional<DataRevision> getDataVersion(Identity identity, Version version);
 
     void all(Identity identity, Consumer<Data> allVersions);
 

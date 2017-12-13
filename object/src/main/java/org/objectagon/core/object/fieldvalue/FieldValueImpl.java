@@ -5,7 +5,7 @@ import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.object.FieldValue;
 import org.objectagon.core.object.FieldValueProtocol;
 import org.objectagon.core.object.fieldvalue.data.FieldValueDataImpl;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
@@ -36,7 +36,7 @@ public class FieldValueImpl extends EntityImpl<FieldValue.FieldValueIdentity, Fi
     }
 
     @Override
-    protected FieldValueData upgrade(FieldValueData data, DataVersion<FieldValueIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected FieldValueData upgrade(FieldValueData data, DataRevision<FieldValueIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data.<FieldValue.ChangeFieldValue>change().setValue(MessageValue.text(null,"Hubbe liten")).create(null); //TODO this needs to be finished!
     }
 

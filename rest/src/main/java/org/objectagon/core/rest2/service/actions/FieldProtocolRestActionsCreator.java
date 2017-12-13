@@ -30,10 +30,10 @@ public class FieldProtocolRestActionsCreator implements FieldProtocolRestActions
 
     Field.FieldType toFieldTypeFromParamField(Message.Value value) {
         if (value.asText().equalsIgnoreCase("number"))
-            return StandardFieldType.Number;
+            return StandardFieldType.NUMBER;
         if (value.asText().equalsIgnoreCase("text"))
-            return StandardFieldType.Text;
-        return StandardFieldType.Number;
+            return StandardFieldType.TEXT;
+        return StandardFieldType.NUMBER;
     }
 
     @Override

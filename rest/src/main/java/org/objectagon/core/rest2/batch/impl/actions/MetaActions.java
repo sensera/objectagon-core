@@ -25,7 +25,6 @@ public class MetaActions extends AbstractActions<MetaProtocol.Send> {
             case ADD_META_METHOD: return (A) createAction(MetaProtocol.Send::createMethod)
                     .addResolver(createIdentifierResolver(RESOLVE_METHOD_ID))
                     .setFindTargetInContext(createIdentityContextFinder(RESOLVE_META_CLASS_ID));
-
             default:
                 return null;
         }

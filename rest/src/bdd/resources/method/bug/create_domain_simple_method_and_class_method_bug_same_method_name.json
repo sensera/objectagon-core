@@ -1,0 +1,25 @@
+{
+  "metas":[{
+    "name":"meta",
+    "alias":"meta",
+    "methods":[{
+      "name":"Hubba",
+      "alias":"Hello",
+      "code":"invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());",
+      "params":[]
+    }]
+  }],
+  "classes":[{
+    "name":"person.class",
+    "fields":[],
+    "relationClasses":[],
+    "methods":[{
+      "meta":"meta",
+      "name":"Hubba",
+      "alias":"Hello",
+      "method":"Hubba",
+      "params":[]
+    }]
+  }],
+  "instances":[]
+}

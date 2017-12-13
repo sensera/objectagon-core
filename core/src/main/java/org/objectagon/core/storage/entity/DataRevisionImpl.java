@@ -18,12 +18,12 @@ import java.util.function.Predicate;
 /**
  * Created by christian on 2016-02-24.
  */
-public class DataVersionImpl<I extends Identity, V extends Version> extends AbstractData<I,V> implements DataVersion<I,V> {
+public class DataRevisionImpl<I extends Identity, V extends Version> extends AbstractData<I,V> implements DataRevision<I,V> {
 
-    //public static <I extends Identity, V extends Version> ChangeDataVersion<I,V> create(I identity, NextVersionCounter<V> nextVersionCounter) { return new DataVersionsChange<I,V>(identity, nextVersionCounter);}
+    //public static <I extends Identity, V extends Version> ChangeDataRevision<I,V> create(I identity, NextVersionCounter<V> nextVersionCounter) { return new DataRevisionChange<I,V>(identity, nextVersionCounter);}
 
-    public static <I extends Identity, V extends Version> DataVersionImpl<I,V> create(I identity, V version, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
-        return new DataVersionImpl<>(identity, version, null, versionCounter, nextVersionCounter);
+    public static <I extends Identity, V extends Version> DataRevisionImpl<I,V> create(I identity, V version, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
+        return new DataRevisionImpl<>(identity, version, null, versionCounter, nextVersionCounter);
     }
 
     private long versionCounter;
@@ -40,7 +40,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         return Optional.ofNullable(dataVersion);
     }
 
-    private DataVersionImpl(I identity, V version, V dataVersion, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
+    private DataRevisionImpl(I identity, V version, V dataVersion, long versionCounter, NextVersionCounter<V> nextVersionCounter) {
         super(identity, version);
         this.dataVersion = dataVersion;
         this.versionCounter = versionCounter;
@@ -63,7 +63,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
     @Override
     public String toString() {
-        return "DataVersionImpl{" +
+        return "DataRevisionImpl{" +
                 "versionCounter=" + versionCounter +
                 ", nextVersionCounter=" + nextVersionCounter +
                 ", root=" + root +
@@ -110,12 +110,12 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             nextVersion = transactionVersionNode.getNextVersion().map(TransactionVersionNodeImpl::new);
         }
 
-        public void addTo(DataVersionsChange<I, V> ivDataVersionsChange) {
-            DataVersionsChange.DataVersionsChangeNode changeDataVersionNode = ivDataVersionsChange.createRoot();
+        public void addTo(DataRevisionChange<I, V> ivDataRevisionChange) {
+            DataRevisionChange.DataVersionsChangeNode changeDataVersionNode = ivDataRevisionChange.createRoot();
             transferValuesToBuildNode(changeDataVersionNode, Optional.empty());
         }
 
-        private void transferValuesToBuildNode(DataVersionsChange.DataVersionsChangeNode node, Optional<DataVersionsChange.DataVersionsChangeNode> prev) {
+        private void transferValuesToBuildNode(DataRevisionChange.DataVersionsChangeNode node, Optional<DataRevisionChange.DataVersionsChangeNode> prev) {
             node.setVersion(version);
             node.setMergeStrategy(mergeStrategy);
             node.setTransaction(transaction);
@@ -126,17 +126,17 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
     @Override
     public <C extends Change<I, V>> C change() {
-        DataVersionsChange<I, V> ivDataVersionsChange = new DataVersionsChange<>(getIdentity(), nextVersionCounter);
-        ivDataVersionsChange.setVersionCounter(versionCounter);
-        ivDataVersionsChange.setDataVersion(dataVersion);
+        DataRevisionChange<I, V> ivDataRevisionChange = new DataRevisionChange<>(getIdentity(), nextVersionCounter);
+        ivDataRevisionChange.setVersionCounter(versionCounter);
+        ivDataRevisionChange.setDataVersion(dataVersion);
         if (root != null)
-            root.addTo(ivDataVersionsChange);
-        return (C) ivDataVersionsChange;
+            root.addTo(ivDataRevisionChange);
+        return (C) ivDataRevisionChange;
     }
 
 
     //@RequiredArgsConstructor
-    private static class DataVersionsChange<I extends Identity, V extends Version> implements ChangeDataVersion<I,V>, Change<I,V> {
+    private static class DataRevisionChange<I extends Identity, V extends Version> implements ChangeDataRevision<I,V>, Change<I,V> {
         final private I identity;
         private long versionCounter = 0;
         final private NextVersionCounter<V> nextVersionCounter;
@@ -152,13 +152,13 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
             this.dataVersion = dataVersion;
         }
 
-        public DataVersionsChange(I identity, NextVersionCounter<V> nextVersionCounter) {
+        public DataRevisionChange(I identity, NextVersionCounter<V> nextVersionCounter) {
             this.identity = identity;
             this.nextVersionCounter = nextVersionCounter;
         }
 
         @Override
-        public ChangeDataVersion<I, V> dataVersion(V dataVersion) throws UserException {
+        public ChangeDataRevision<I, V> dataVersion(V dataVersion) throws UserException {
             this.dataVersion = dataVersion;
             return this;
         }
@@ -169,25 +169,25 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         }
 
         @Override
-        public ChangeDataVersion<I, V> commit(Transaction transaction) throws UserException {
+        public ChangeDataRevision<I, V> commit(Transaction transaction) throws UserException {
             performeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::commit);
             return this;
         }
 
         @Override
-        public ChangeDataVersion<I, V> rollback(Transaction transaction) throws UserException {
+        public ChangeDataRevision<I, V> rollback(Transaction transaction) throws UserException {
             performeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::rollback);
             return this;
         }
 
         @Override
-        public ChangeDataVersion<I, V> remove(Transaction transaction) throws UserException {
+        public ChangeDataRevision<I, V> remove(Transaction transaction) throws UserException {
             performeActionOnNodeSelectedByTransaction(transaction, DataVersionsChangeNode::remove);
             return this;
         }
 
         @Override
-        public ChangeDataVersion<I, V> add(Transaction transaction, Consumer<V> newVersionConsumer, MergeStrategy mergeStrategy) throws UserException {
+        public ChangeDataRevision<I, V> add(Transaction transaction, Consumer<V> newVersionConsumer, MergeStrategy mergeStrategy) throws UserException {
             DataVersionsChangeNode newNode = new DataVersionsChangeNode();
             newNode.setVersion(newVersion(newVersionConsumer));
             newNode.setMergeStrategy(mergeStrategy);
@@ -204,19 +204,21 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
         }
 
         private V newVersion(Consumer<V> newVersionConsumer) {
+            System.out.println("DataRevisionChange.newVersion !!!!!!!!!!!!!!!! "+versionCounter+" !!!!!!!!!!! "+identity);
             V newVersion = nextVersionCounter.nextVersion(versionCounter++);
+            System.out.println("DataRevisionChange.newVersion newVersion="+newVersion);
             newVersionConsumer.accept(newVersion);
             return newVersion;
         }
 
         @Override
-        public ChangeDataVersion<I, V> newVersion(Transaction transaction, Consumer<V> newVersionConsumer) throws UserException {
+        public ChangeDataRevision<I, V> newVersion(Transaction transaction, Consumer<V> newVersionConsumer) throws UserException {
             performeActionOnNodeSelectedByTransaction(transaction, node -> node.setVersion(newVersion(newVersionConsumer)));
             return this;
         }
 
         @Override
-        public ChangeDataVersion<I, V> setMergeStrategy(Transaction transaction, MergeStrategy mergeStrategy) throws UserException {
+        public ChangeDataRevision<I, V> setMergeStrategy(Transaction transaction, MergeStrategy mergeStrategy) throws UserException {
             performeActionOnNodeSelectedByTransaction(transaction, node -> node.setMergeStrategy(mergeStrategy));
             return this;
         }
@@ -229,7 +231,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
 
         @Override
         public <D extends org.objectagon.core.storage.Data<I, V>> D create(V version) {
-            DataVersionImpl<I, V> ivDataVersion = new DataVersionImpl<>(identity, version, dataVersion, versionCounter, nextVersionCounter);
+            DataRevisionImpl<I, V> ivDataVersion = new DataRevisionImpl<>(identity, version, dataVersion, versionCounter, nextVersionCounter);
             if (root!=null)
                 root.setRoot(ivDataVersion);
             return (D) ivDataVersion;
@@ -312,7 +314,7 @@ public class DataVersionImpl<I extends Identity, V extends Version> extends Abst
                 return nextVersion.get();
             }
 
-            public void setRoot(DataVersionImpl<I, V> ivDataVersion) {
+            public void setRoot(DataRevisionImpl<I, V> ivDataVersion) {
                 ivDataVersion.setRoot(
                         version,
                         mergeStrategy,

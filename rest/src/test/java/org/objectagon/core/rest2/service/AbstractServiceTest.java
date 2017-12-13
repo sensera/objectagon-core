@@ -34,8 +34,7 @@ public abstract class AbstractServiceTest<S extends AbstractService> {
     StandardProtocol.StandardReply standardReply;
     TaskBuilder taskBuilder;
 
-    @Before
-    public void setup() {
+    @Before public void setup() {
         receiverCtrl = Mockito.mock(Receiver.ReceiverCtrl.class);
         composer = Mockito.mock(Composer.class);
         envelope = Mockito.mock(Envelope.class);

@@ -142,6 +142,13 @@ public class Util {
             append(field.getName().toString(), "["+ st +"]");
         }
 
+        @Override public <V> void writeAny(Message.Field field, V value) {
+            if (value==null)
+                append(field.getName().toString(), "null");
+            else
+                append(field.getName().toString(), ""+value.toString());
+        }
+
         @Override
         public String toString() {
             return sb.toString();

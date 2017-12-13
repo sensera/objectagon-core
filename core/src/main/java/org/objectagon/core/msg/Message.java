@@ -85,7 +85,7 @@ public interface Message {
         Password,
         Values,
         Map,
-        Error;
+        Error, Field;
     }
 
     interface Writer {
@@ -97,6 +97,7 @@ public interface Message {
         void write(Field field, Name name);
         void write(Field field, Values values);
         void write(Field field, Map<? extends Name, ? extends Value> map);
+        <V> void writeAny(Field field, V value);
     }
 
     @FunctionalInterface

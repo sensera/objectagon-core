@@ -1,0 +1,6 @@
+{
+  "name":"Hubba",
+  "alias":"Hello",
+  "code":"invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());",
+  "params":[]
+}

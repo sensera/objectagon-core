@@ -30,6 +30,7 @@ public abstract class AbstractActions<S extends Protocol.Send> implements Action
     public static Name RESOLVE_INSTANCE_ID          = StandardName.name("RESOLVE_INSTANCE_ID");
     public static Name RESOLVE_RELATION_ID          = StandardName.name("RESOLVE_RELATION_ID");
     public static Name RESOLVE_METHOD_ID            = StandardName.name("RESOLVE_METHOD_ID");
+    public static Name RESOLVE_CLASS_METHOD_ID      = StandardName.name("RESOLVE_CLASS_METHOD_ID");
 
     Protocol.ProtocolName protocolName;
 
@@ -58,7 +59,9 @@ public abstract class AbstractActions<S extends Protocol.Send> implements Action
     }
 
     public static Function<Iterable<Message.Value>, Optional<NameValue>> createIdentifierResolver(Name resolveName) {
-        return values -> Optional.of(NameValue.create(resolveName, MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS)));
+        return values -> Optional.of(NameValue.create(
+                resolveName,
+                MessageValueFieldUtil.create(values).getValueByField(StandardField.ADDRESS)));
     }
 
 

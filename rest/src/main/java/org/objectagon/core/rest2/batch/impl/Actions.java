@@ -4,17 +4,16 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
-import org.objectagon.core.object.Field;
-import org.objectagon.core.object.Instance;
-import org.objectagon.core.object.InstanceClass;
-import org.objectagon.core.object.RelationClass;
+import org.objectagon.core.object.*;
 import org.objectagon.core.rest2.batch.BatchUpdate;
 import org.objectagon.core.task.ProtocolTask;
+import org.objectagon.core.utils.KeyValue;
 import org.objectagon.core.utils.NameValue;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Created by christian on 2017-04-16.
@@ -70,6 +69,12 @@ public interface Actions {
         InstanceClass.InstanceClassIdentity getRelatedClass();
     }
 
+    interface AddClassMethodData extends DataPortal {
+        Method.MethodIdentity getMethodIdentity();
+        Stream<KeyValue<Method.ParamName, Field.FieldIdentity>> getFieldMappings();
+        Stream<KeyValue<Method.ParamName, Message.Value>> getDefaultValues();
+    }
+
     interface AddRelationData extends DataPortal {
         RelationClass.RelationClassIdentity getRelationClassIdentity();
         Instance.InstanceIdentity getInstanceIdentity();
@@ -92,8 +97,14 @@ public interface Actions {
         N getName();
     }
 
-    interface SetValue<N extends Object> extends DataPortal {
-        N getValue();
+    interface SetValue<V extends Object> extends DataPortal {
+        V getValue();
+    }
+
+    interface AddMethodParamData extends DataPortal {
+        Method.ParamName getParamName();
+        Message.Field getField();
+        Message.Value getDefaultValue();
     }
 
     @FunctionalInterface

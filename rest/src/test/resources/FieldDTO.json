@@ -1,0 +1,6 @@
+{
+  "name":"myfield",
+  "alias":"myfieldAlias",
+  "type": "text",
+  "default": "defaultIsThis"
+}

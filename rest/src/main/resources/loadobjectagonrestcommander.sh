@@ -22,6 +22,8 @@ function objectagon() {
         echo "      adds a relation from between to instances"
         echo "  ${green}get instance [instance] relation [relation]${reset}"
         echo "      gets instance relations"
+        echo "  ${green}batch update [filename]${reset}"
+        echo "      batch update of server. Pushes json structure with class, instance and relation information into server."
         echo "${reset}"
         kill -INT $$
     fi
@@ -103,8 +105,17 @@ function objectagon() {
         if [ -n "$5" ]; then
             RELATION="$5"
         fi
-        echo "curl $TOKEN {$OBJECTAGON_REST_URL}instance/{$INSTANCE}/relation/$RELATION"
+        echo "curl $TOKEN {$OBJECTAGON_REST_URL}instance/$INSTANCE/relation/$RELATION"
         RESULT=$(curl -s $TOKEN {$OBJECTAGON_REST_URL}instance/{$INSTANCE}/relation/$RELATION)
+    fi
+
+    if [ "$1/$2" == "batch/update" ] ; then
+        FILE_NAME=""
+        if [ -n "$3" ]; then
+            FILE_NAME="$3"
+        fi
+        echo "curl $TOKEN -X POST ${OBJECTAGON_REST_URL}batch -d @$FILE_NAME"
+        RESULT=$(curl -s $TOKEN -X POST {$OBJECTAGON_REST_URL}batch -d @$FILE_NAME)
     fi
 
     if [ -n "$RESULT" ]; then

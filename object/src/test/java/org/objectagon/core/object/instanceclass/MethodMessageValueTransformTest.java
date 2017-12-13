@@ -38,8 +38,8 @@ public class MethodMessageValueTransformTest {
         methodMessageValueTransform = new MethodMessageValueTransform();
         paramName1 = ParamNameImpl.create("Name1");
         paramName2 = ParamNameImpl.create("Name2");
-        textValue = MessageValue.text(NamedField.text("Text"), "Hubba");
-        numberValue = MessageValue.number(NamedField.number("Number"), 10L);
+        textValue = MessageValue.text(NamedField.text("TEXT"), "Hubba");
+        numberValue = MessageValue.number(NamedField.number("NUMBER"), 10L);
     }
 
     @Test

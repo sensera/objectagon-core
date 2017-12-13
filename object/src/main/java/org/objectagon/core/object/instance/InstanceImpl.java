@@ -11,9 +11,10 @@ import org.objectagon.core.msg.message.MessageValueFieldUtil;
 import org.objectagon.core.object.*;
 import org.objectagon.core.object.instance.data.InstanceDataImpl;
 import org.objectagon.core.object.instanceclass.MethodMessageValueTransform;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.EntityProtocol;
 import org.objectagon.core.storage.Transaction;
+import org.objectagon.core.storage.Version;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorkerImpl;
 import org.objectagon.core.storage.standard.StandardVersion;
@@ -55,7 +56,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
     }
 
     @Override
-    protected InstanceData upgrade(InstanceData data, DataVersion<InstanceIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected InstanceData upgrade(InstanceData data, DataRevision<InstanceIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data; //TODO improve
     }
 
@@ -108,18 +109,29 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         change.removeField(MessageValueFieldUtil.create(values).getValueByField(Field.FIELD_IDENTITY).asAddress());
     }
 
+    @Override
+    protected void updateDataAndVersion(InstanceData newData, DataRevision<InstanceIdentity, StandardVersion> newDataRevision) {
+        System.out.println("InstanceImpl.updateDataAndVersion newData.version="+newData.getVersion());
+        super.updateDataAndVersion(newData, newDataRevision);
+    }
+
+    @Override public <VV extends Version> InstanceData createNewDataWithVersion(VV versionForNewData) {
+        final InstanceData newDataWithVersion = super.createNewDataWithVersion(versionForNewData);
+        System.out.println("InstanceImpl.createNewDataWithVersion version="+newDataWithVersion.getVersion());
+        return newDataWithVersion;
+    }
+
     private void getValue(InstanceWorker instanceWorker, InstanceData instanceData) throws UserException {
-        //System.out.println("InstanceImpl.getValue <"+instanceWorker.currentTransaction()+">");
+        System.out.println("InstanceImpl("+getAddress()+").getValue trans="+instanceWorker.currentTransaction()+"");
+        final Field.FieldIdentity fieldIdentity = instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress();
+        System.out.println("InstanceImpl.getValue field="+fieldIdentity);
         try {
-            FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(
-                    instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress(),
-                    instanceData);
-            instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
-                    .getValue();
+            FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(fieldIdentity,instanceData);
+            instanceWorker.createFieldValueProtocolForward(fieldValueIdentity).getValue();
         } catch (UserException e) {
-            if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {
-                //System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
-                instanceWorker.createFieldProtocolForward(instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress()).getDefaultValue();
+            if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {  //TODO exception is not program flow
+                System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
+                instanceWorker.createFieldProtocolForward(fieldIdentity).getDefaultValue();
             } else
                 throw e;
         }
@@ -129,6 +141,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         final Message.Value value = instanceWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
         final Field.FieldIdentity fieldIdentity = instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress();
         instanceWorker.trace("InstanceImpl.setValue", value, MessageValue.address(fieldIdentity), MessageValue.address(instanceWorker.currentTransaction()));
+        System.out.println("InstanceImpl("+getAddress()+").createValue "+value+" field="+fieldIdentity+" trans="+ instanceWorker.currentTransaction());
         try {
             FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(fieldIdentity, instanceData);
             instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)

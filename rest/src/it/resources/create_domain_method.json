@@ -1,0 +1,24 @@
+{
+  "metas":[{
+    "name":"meta",
+    "alias":"meta",
+    "methods":[{
+      "name":"Hubba",
+      "alias":"Hello",
+      "code":"invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());",
+      "params":[
+        {
+          "name":"sumValue",
+          "alias":"sumValue",
+          "field":"number",
+          "default":"0"
+        },{
+          "name":"addValue",
+          "alias":"addValue",
+          "field":"number",
+          "default":"1"
+        }
+      ]
+    }]
+  }]
+}

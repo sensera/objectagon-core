@@ -87,7 +87,7 @@ public class ClassRestProcessor extends AbstractRestProcessor {
                                 : testUser.getValue(NamedField.address(fieldIdentityAsText)).get().asAddress();
                         keyValues.add(KeyValueUtil.createKeyValue(paramName, fieldIdentity));
                     });
-                    return instanceClassProtocolSend.addMethod(methodIdentity, keyValues, new ArrayList<>());
+                    return instanceClassProtocolSend.addMethod(methodIdentity, keyValues.stream(), Stream.empty());
                 }))
         ).add("class").addIdentity("classId").add("method").addIdentity("methodId").setOperation(Operation.SaveNew);
     }

@@ -25,7 +25,7 @@ public class EntityProtocolActionImpl extends AbstractProtocolAction<EntityServi
 
     @Override public boolean filterName(Name name) {return Objects.equals(this.name, name);}
 
-    @Override protected Optional<Name> getName() {return Optional.of(name);}
+    @Override protected Optional<Name> getName() {return Optional.ofNullable(name);}
 
     @Override
     protected ProtocolTask.SendMessageAction<EntityServiceProtocol.Send> getProtocol() {

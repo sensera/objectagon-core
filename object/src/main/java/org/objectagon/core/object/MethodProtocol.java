@@ -16,6 +16,8 @@ public interface MethodProtocol extends Protocol<MethodProtocol.Send, Protocol.R
     ProtocolName METHOD_PROTOCOL = new ProtocolNameImpl("METHOD_PROTOCOL");
 
     enum MessageName implements Message.MessageName, Task.TaskName {
+        GET_NAME,
+        SET_NAME,
         GET_CODE,
         SET_CODE,
         INVOKE,
@@ -24,6 +26,8 @@ public interface MethodProtocol extends Protocol<MethodProtocol.Send, Protocol.R
     }
 
     interface Send extends Protocol.Send {
+        Task getName();
+        Task setName(Method.MethodName name);
         Task getCode();
         Task setCode(String code);
         Task invoke(List<KeyValue<Method.ParamName, Message.Value>> paramNameValueList);

@@ -1,0 +1,35 @@
+{
+  "metas":[],
+  "classes":[{
+    "name":"main",
+    "fields":[],
+    "relationClasses":[{
+      "name":"main.person.relation",
+      "alias":"main.person.relation",
+      "target":"person.class",
+      "type":"association"
+    }],
+    "methods":[]
+  },{
+    "name":"person.class",
+    "fields":[],
+    "relationClasses":[],
+    "methods":[]
+  }],
+  "instances":[{
+    "name":"main1",
+    "alias":"main1",
+    "class":"main",
+    "values":[],
+    "relations":[{
+      "relationClass":"main.person.relation",
+      "targetInstance":"person1"
+    }]
+  },{
+    "name":"person1",
+    "alias":"person1",
+    "class":"person.class",
+    "values":[],
+    "relations":[]
+  }]
+}

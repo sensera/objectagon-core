@@ -1,0 +1,27 @@
+{
+  "classes":[{
+    "name":"main",
+    "fields":[],
+    "relationClasses":[{
+      "name":"main.person.relation",
+      "alias":"main.person.relation",
+      "target":"person.class",
+      "type":"association"
+    }],
+    "methods":[]
+  },{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name",
+      "type":"text"
+    },{
+      "name":"person.class.Age",
+      "type":"number"
+    },{
+      "name":"person.class.Comment",
+      "type":"text"
+    }],
+    "relationClasses":[],
+    "methods":[]
+  }]
+}

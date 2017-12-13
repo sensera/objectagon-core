@@ -16,6 +16,7 @@ public class EntityProtocolRestActionsCreator implements EntityProtocolRestActio
     public <C extends CreateSendMessageAction<EntityServiceProtocol.Send>> CreateSendMessageAction<EntityServiceProtocol.Send> getAction(AddAction<EntityServiceProtocol.Send> restServiceActionCreator, EntityAction action) {
         switch (action) {
             case CREATE_META: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.create());
+            case GET_CLASS: return (identityStore, restPath, params, data) -> session -> session.get(restPath.getIdentityAtIndex(1).get());
             case CREATE_CLASS: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.create());
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }

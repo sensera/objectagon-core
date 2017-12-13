@@ -127,6 +127,8 @@ public interface Receiver<A extends Address> {
         TaskBuilder getTaskBuilder();
 
         void log(WorkerContextLogKind kind, String message, Message.Value[] params);
+
+        boolean trace();
     }
 
 

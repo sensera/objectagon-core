@@ -1,7 +1,7 @@
 package org.objectagon.core.storage.standard;
 
 import org.objectagon.core.storage.Data;
-import org.objectagon.core.storage.DataVersion;
+import org.objectagon.core.storage.DataRevision;
 import org.objectagon.core.storage.Transaction;
 import org.objectagon.core.storage.entity.EntityImpl;
 import org.objectagon.core.storage.entity.EntityWorker;
@@ -36,7 +36,7 @@ public class StandardEntity<D extends StandardData> extends EntityImpl<StandardI
     }
 
     @Override
-    protected D upgrade(D data, DataVersion<StandardIdentity, StandardVersion> newDataVersion, Transaction transaction) {
+    protected D upgrade(D data, DataRevision<StandardIdentity, StandardVersion> newDataRevision, Transaction transaction) {
         return data;
     }
 

@@ -45,6 +45,17 @@ public class PlanImpl implements BatchUpdate.Plan<LocalActionKind> {
                 .findAny();
     }
 
+    public <A extends Actions.BaseAction, N extends Name> Optional<BatchUpdate.ActionAndName<A,N>> resolveActionByName(N name) {
+        return actions.stream()
+                .filter(action -> action.filterName(name))
+                .map(baseAction -> (A) baseAction)
+                .findAny()
+                .map(action ->  new BatchUpdate.ActionAndName(){
+                    @Override public BatchUpdate.Action getAction() {return action;}
+                    @Override public Name getName() {return name;}
+                });
+    }
+
     public PlanImpl(TaskBuilder taskBuilder, BatchUpdate.Targets targets) {
         this.taskBuilder = taskBuilder;
         this.targets = targets;
@@ -89,13 +100,15 @@ public class PlanImpl implements BatchUpdate.Plan<LocalActionKind> {
                     }
                 });
         final Task task = parallel.create();
-        task.addSuccessAction((messageName, values) -> {
+        task.addFirstSuccessAction((messageName, values) -> {
             final List<Actions.BaseAction> unCompletedActions = actions.stream()
                     .filter(baseAction -> !baseAction.isCompleted())
                     .collect(Collectors.toList());
             if (!unCompletedActions.isEmpty()) {
                 System.out.println("PlanImpl.execute unCompletedActions.size="+unCompletedActions.size() + " >>>>>>>>>>>>>>>>>>>>>>");
-                unCompletedActions.stream().forEach(baseAction -> System.out.println(baseAction.getClass().getName()+" "+baseAction));
+                unCompletedActions.stream().forEach(baseAction -> {
+                    System.out.println(baseAction.getClass().getName()+" "+baseAction);
+                });
                 System.out.println("PlanImpl.execute unCompletedActions <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
                 throw new UserException(ErrorClass.BATCH_UPDATE, ErrorKind.UNEXPECTED);
             }
@@ -128,8 +141,8 @@ public class PlanImpl implements BatchUpdate.Plan<LocalActionKind> {
         }
 
         @Override
-        public void setValueFetchedFromContext(Name name, Consumer<Message.Value> value) {
-            getValue(name).ifPresent(value);
+        public void setValueFetchedFromContext(Name name, Consumer<Message.Value> valueConsumer) {
+            getValue(name).ifPresent(valueConsumer);
         }
 
         @Override
@@ -144,7 +157,15 @@ public class PlanImpl implements BatchUpdate.Plan<LocalActionKind> {
 
         @Override
         public void updateAddressName(Name name, Address address) {
-            updatedNameAndAddressMap.put(name, address);
+            final Address changed = updatedNameAndAddressMap.put(name, address);
+            if (changed != null) {
+                throw new SevereError(ErrorClass.REST_SERVICE, ErrorKind.INCONSISTENCY,
+                                      MessageValue.text("Multiple addresses bound to same name"),
+                                      MessageValue.name(name),
+                                      MessageValue.address(address),
+                                      MessageValue.address(changed)
+                );
+            }
         }
 
         @Override

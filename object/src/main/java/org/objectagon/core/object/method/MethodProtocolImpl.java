@@ -14,6 +14,9 @@ import org.objectagon.core.utils.KeyValue;
 
 import java.util.List;
 
+import static org.objectagon.core.msg.message.MessageValue.name;
+import static org.objectagon.core.msg.message.MessageValue.text;
+
 /**
  * Created by christian on 2016-05-29.
  */
@@ -35,6 +38,14 @@ public class MethodProtocolImpl extends AbstractProtocol<MethodProtocol.Send, Pr
             super(sendParam);
         }
 
+        @Override public Task getName() {
+            return task(MessageName.GET_NAME, send -> send.send(MessageName.GET_NAME));
+        }
+
+        @Override public Task setName(Method.MethodName name) {
+            return task(MessageName.SET_NAME, send -> send.send(MessageName.SET_NAME, name(Method.METHOD_NAME, name)));
+        }
+
         @Override
         public Task getCode() {
             return task(MessageName.GET_CODE, send -> send.send(MessageName.GET_CODE));
@@ -42,7 +53,7 @@ public class MethodProtocolImpl extends AbstractProtocol<MethodProtocol.Send, Pr
 
         @Override
         public Task setCode(String code) {
-            return task(MessageName.SET_CODE, send -> send.send(MessageName.SET_CODE, MessageValue.text(Method.CODE, code)));
+            return task(MessageName.SET_CODE, send -> send.send(MessageName.SET_CODE, text(Method.CODE, code)));
         }
 
         @Override
@@ -55,12 +66,12 @@ public class MethodProtocolImpl extends AbstractProtocol<MethodProtocol.Send, Pr
 
         @Override
         public Task addParam(Method.ParamName paramName, Message.Field field, Message.Value defaultValue) {
-            return task(MessageName.ADD_PARAM, send -> send.send(MessageName.ADD_PARAM, MessageValue.name(Method.PARAM_NAME, paramName), MessageValue.field(Method.PARAM_FIELD, field), defaultValue));
+            return task(MessageName.ADD_PARAM, send -> send.send(MessageName.ADD_PARAM, name(Method.PARAM_NAME, paramName), MessageValue.field(Method.PARAM_FIELD, field), defaultValue));
         }
 
         @Override
         public Task removeParam(Method.ParamName paramName) {
-            return task(MessageName.REMOVE_PARAM, send -> send.send(MessageName.REMOVE_PARAM, MessageValue.name(Method.PARAM_NAME, paramName)));
+            return task(MessageName.REMOVE_PARAM, send -> send.send(MessageName.REMOVE_PARAM, name(Method.PARAM_NAME, paramName)));
         }
     }
 

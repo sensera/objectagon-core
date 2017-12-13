@@ -4,6 +4,7 @@ import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.NamedField;
 import org.objectagon.core.msg.protocol.ProtocolNameImpl;
+import org.objectagon.core.rest2.model.Model;
 import org.objectagon.core.task.Task;
 
 /**
@@ -13,7 +14,7 @@ public interface BatchServiceProtocol extends Protocol<BatchServiceProtocol.Send
 
     ProtocolName BATCH_SERVICE_PROTOCOL = new ProtocolNameImpl("BATCH_SERVICE_PROTOCOL");
 
-    Message.Field UPDATE_COMMAND_FIELD  = NamedField.values("updateCommandField");
+    Message.Field UPDATE_COMMAND_FIELD  = NamedField.any("updateCommandField");
     Message.Field NEW_TRANSACTION_FIELD  = NamedField.text("newTransaction");
     Message.Field NAMES_FIELD  = NamedField.values("names");
 
@@ -22,7 +23,7 @@ public interface BatchServiceProtocol extends Protocol<BatchServiceProtocol.Send
     }
 
     interface Send extends Protocol.Send {
-        Task batchUpdate(Iterable<Message.Value> updateCommandField, boolean newTransaction);
+        Task batchUpdate(Model updateCommandField, boolean newTransaction);
     }
 
 }

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <option name="DEFAULT_COMPILER" value="Javac" />
-    <resourceExtensions />
     <wildcardResourcePatterns>
       <entry name="!?*.java" />
       <entry name="!?*.form" />
@@ -18,13 +16,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
       </profile>
-      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+      <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
         <module name="core" />
         <module name="object" />
         <module name="rest" />
@@ -32,14 +28,11 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
-      <module name="bdd" target="1.8" />
       <module name="core" target="1.8" />
-      <module name="demo" target="1.5" />
-      <module name="docker" target="1.8" />
+      <module name="demo" target="1.8" />
       <module name="object" target="1.8" />
       <module name="objectagon-core" target="1.8" />
       <module name="rest" target="1.8" />
-      <module name="shop" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

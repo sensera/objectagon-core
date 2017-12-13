@@ -1,5 +1,6 @@
 package org.objectagon.core.rest2.batch.impl;
 
+import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.rest2.batch.BatchUpdate;
@@ -39,8 +40,16 @@ public class DataPortalTargetProtocolActionImpl<P extends Protocol.Send, D exten
 
     @Override
     public void lookupInContext(BatchUpdate.ActionContext actionContext) {
+        //System.out.println("DataPortalTargetProtocolActionImpl.lookupInContext protocolName="+protocolName+" target="+ getTargetAddress());
         super.lookupInContext(actionContext);
+        //System.out.println("DataPortalTargetProtocolActionImpl.lookupInContext target="+ getTargetAddress());
         dataPortal.updateFromContext(actionContext);
+    }
+
+    private Address getTargetAddress() {
+        if (target==null)
+            return null;
+        return target.getAddress();
     }
 
     @Override public boolean filterName(Name name) {

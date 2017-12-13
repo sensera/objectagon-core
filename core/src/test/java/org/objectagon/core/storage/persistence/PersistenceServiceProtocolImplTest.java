@@ -30,7 +30,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
     Identity identity;
     Version version;
     Data data;
-    DataVersion dataVersion;
+    DataRevision dataRevision;
     Message.Field personName;
 
     @Before
@@ -42,7 +42,7 @@ public class PersistenceServiceProtocolImplTest extends AbstractProtocolTest {
         identity = StandardIdentity.standardIdentity(mock(Server.ServerId.class), 10l, 10l);
         version = StandardVersion.create(10l);
         data = mock(Data.class);
-        dataVersion = mock(DataVersion.class);
+        dataRevision = mock(DataRevision.class);
         personName = mock(Message.Field.class);
         protocol = new PersistenceServiceProtocolImpl(receiverCtrl);
         protocol.configure();

@@ -293,6 +293,13 @@ public class HttpProtocolSessionServerHandler extends SimpleChannelInboundHandle
             public void write(Message.Field field, Map<? extends Name, ? extends Message.Value> map) {
                 throw new RuntimeException("Not supported!");
             }
+
+            @Override public <V> void writeAny(Message.Field field, V value) {
+                if (value==null)
+                    write(field, "null");
+                else
+                    write(field, value.toString());
+            }
         });
     }
 

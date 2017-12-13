@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     oracle-java8-installer \
     && apt-get autoclean
 
-COPY target/objectagon-core-$OBJECTAGON_VERSION-jar-with-dependencies.jar /objectagon-core.jar
+#COPY target/objectagon-core-$OBJECTAGON_VERSION-jar-with-dependencies.jar /objectagon-core.jar
+COPY rest/target/rest-$OBJECTAGON_VERSION-jar-with-dependencies.jar /objectagon-core.jar
 COPY resources/start-objectagon.sh /
 
 EXPOSE 9900

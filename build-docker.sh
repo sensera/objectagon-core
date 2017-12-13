@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-mvn clean install
+mvn clean package
 docker build -t sensera/objectagon .

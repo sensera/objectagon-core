@@ -1,0 +1,41 @@
+{
+  "metas":[{
+    "name":"meta",
+    "alias":"meta",
+    "methods":[{
+      "name":"Hubba",
+      "alias":"Hello",
+      "code":"invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());",
+      "params":[
+        {
+          "name":"sumValue",
+          "alias":"sumValue",
+          "field":"number",
+          "default":"0"
+        },{
+          "name":"addValue",
+          "alias":"addValue",
+          "field":"number",
+          "default":"1"
+        }
+      ]
+    }]
+  }],
+  "classes":[{
+    "name":"main",
+    "fields":[],
+    "relationClasses":[],
+    "methods":[{
+      "meta":"meta",
+      "name":"main.Hubba",
+      "alias":"Hello",
+      "method":"Hubba",
+      "params":[        {
+        "name":"sumValue",
+        "alias":"sumValue",
+        "field":"person.class.Age",
+        "default":"0"
+      }]
+    }]
+  }]
+}

@@ -19,6 +19,7 @@ public class NamedField implements Message.Field {
     public static NamedField map(String name) { return new NamedField(name, Message.FieldType.Map);}
     public static NamedField password(String name) { return new NamedField(name, Message.FieldType.Password);}
     public static NamedField values(String name) { return new NamedField(name, Message.FieldType.Values);}
+    public static NamedField field(String name) { return new NamedField(name, Message.FieldType.Field);}
 
     private FieldNameImpl name;
     private Message.FieldType fieldType;

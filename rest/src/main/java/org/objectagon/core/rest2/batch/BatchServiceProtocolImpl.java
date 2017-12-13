@@ -1,11 +1,11 @@
 package org.objectagon.core.rest2.batch;
 
 import org.objectagon.core.Server;
-import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Protocol;
 import org.objectagon.core.msg.message.MessageValue;
 import org.objectagon.core.msg.protocol.AbstractProtocol;
 import org.objectagon.core.msg.receiver.SingletonFactory;
+import org.objectagon.core.rest2.model.Model;
 import org.objectagon.core.task.Task;
 
 /**
@@ -27,11 +27,11 @@ public class BatchServiceProtocolImpl extends AbstractProtocol<BatchServiceProto
         }
 
         @Override
-        public Task batchUpdate(Iterable<Message.Value> updateCommandField, boolean newTransaction) {
+        public Task batchUpdate(Model model, boolean newTransaction) {
             final Task task = task(MessageName.BATCH_UPDATE, send -> {
                 send.send(
                         MessageName.BATCH_UPDATE,
-                        MessageValue.values(UPDATE_COMMAND_FIELD, updateCommandField),
+                        MessageValue.any(UPDATE_COMMAND_FIELD, model),
                         MessageValue.text(NEW_TRANSACTION_FIELD,newTransaction?"true":"false"));
             });
             return task;

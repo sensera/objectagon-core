@@ -1,0 +1,22 @@
+{
+  "metas":[],
+  "classes":[{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name",
+      "type":"text"
+    }],
+    "relationClasses":[],
+    "methods":[]
+  }],
+  "instances":[{
+    "name":"person1",
+    "alias":"person1",
+    "class":"person.class",
+    "values":[{
+      "value":"Lars Gurra Aktersnurra",
+      "field":"person.class.Name"
+    }],
+    "relations":[]
+  }]
+}

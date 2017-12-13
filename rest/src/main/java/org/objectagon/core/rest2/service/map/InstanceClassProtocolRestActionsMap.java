@@ -30,9 +30,9 @@ public interface InstanceClassProtocolRestActionsMap<A extends InstanceClassProt
     RestPathPattern CLASS_METHOD_ID_PATH        = urlPattern("/class/{id}/method/{id}/");
 
     enum InstanceClassAction implements Action {
-        GET_NAME(RestServiceProtocol.Method.GET,           CLASS_NAME_PATH, 1),
-        SET_NAME(RestServiceProtocol.Method.POST,          CLASS_NAME_NAME_PATH, 1),
-        SET_NAME_PARAM(RestServiceProtocol.Method.POST,    CLASS_NAME_PATH, 1),
+        GET_NAME(RestServiceProtocol.Method.GET,            CLASS_NAME_PATH, 1),
+        SET_NAME(RestServiceProtocol.Method.POST,           CLASS_NAME_NAME_PATH, 1),
+        SET_NAME_PARAM(RestServiceProtocol.Method.POST,     CLASS_NAME_PATH, 1),
 
         CREATE_INSTANCE(RestServiceProtocol.Method.PUT,     CLASS_INSTANCE_PATH, 1),
 

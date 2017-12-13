@@ -2,6 +2,7 @@ package org.objectagon.core.object.method;
 
 import org.objectagon.core.Server;
 import org.objectagon.core.msg.address.StandardAddress;
+import org.objectagon.core.object.Meta;
 import org.objectagon.core.object.Method;
 
 /**
@@ -9,8 +10,11 @@ import org.objectagon.core.object.Method;
  */
 public class MethodIdentityImpl extends StandardAddress implements Method.MethodIdentity {
 
-    public MethodIdentityImpl(Server.ServerId serverId, long timestamp, long addressId) {
+    private Meta.MetaIdentity metaIdentity;
+
+    public MethodIdentityImpl(Server.ServerId serverId, long timestamp, long addressId, Meta.MetaIdentity metaIdentity) {
         super(serverId, timestamp, addressId);
+        this.metaIdentity = metaIdentity;
     }
 
     @Override
@@ -18,4 +22,7 @@ public class MethodIdentityImpl extends StandardAddress implements Method.Method
         return "MethodIdentityImpl{} " + super.toString();
     }
 
+    @Override public Meta.MetaIdentity getMetaIdentity() {
+        return metaIdentity;
+    }
 }

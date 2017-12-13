@@ -1,0 +1,13 @@
+{
+  "metas":[],
+  "classes":[{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name",
+      "type":"text"
+    }],
+    "relationClasses":[],
+    "methods":[]
+  }],
+  "instances":[]
+}

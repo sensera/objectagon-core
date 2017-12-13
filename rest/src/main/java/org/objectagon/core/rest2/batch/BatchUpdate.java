@@ -6,7 +6,6 @@ import org.objectagon.core.msg.Composer;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
 import org.objectagon.core.object.*;
-import org.objectagon.core.object.instanceclass.InstanceClassNameImpl;
 import org.objectagon.core.task.Task;
 import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.NameValue;
@@ -74,16 +73,31 @@ public interface BatchUpdate {
 
         Stream<FieldPart> getFields();
         Stream<RelationPart> getRelations();
+        Stream<MethodPart> getMethods();
 
         interface FieldPart {
             Optional<Field.FieldName> getName();
             Optional<Field.FieldType> getType();
+            Optional<String> getDefaultValue();
         }
 
         interface RelationPart {
             Optional<RelationClass.RelationName> getName();
-            Optional<InstanceClassNameImpl> getTargetInstanceClassIdentity();
+            Optional<InstanceClass.InstanceClassName> getTargetInstanceClassName();
             Optional<RelationClass.RelationType> getRelationType();
+        }
+
+        interface MethodPart {
+            Optional<Method.MethodName> getName();
+            Optional<Method.MethodName> getMetaMethodName();
+            Optional<Meta.MetaName> getMetaName();
+            Stream<MethodPartDetail> getMappedParams();
+        }
+
+        interface MethodPartDetail {
+            Method.ParamName getParamName();
+            Field.FieldName getFieldName();
+            Optional<Message.Value> getDefaultValue();
         }
     }
 
@@ -108,6 +122,11 @@ public interface BatchUpdate {
     interface Targets {
         Composer.ResolveTarget getInstanceClassServiceAddress();
         Composer.ResolveTarget getMetaServiceAddress();
+    }
+
+    interface ActionAndName<A extends Action, N extends Name> {
+        A getAction();
+        N getName();
     }
 
 }

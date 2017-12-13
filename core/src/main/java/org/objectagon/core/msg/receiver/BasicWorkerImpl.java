@@ -53,21 +53,25 @@ public class BasicWorkerImpl implements BasicWorker {
     }
 
     public void replyOk() {
+        trace("replyOk");
         createStandardProtocolReply().replyWithParam(MessageValue.messageName(StandardProtocol.FieldName.ORIGINAL_MESSAGE ,workerContext.getMessageName()));
         setHandled();
     }
 
     public void replyWithError(StandardProtocol.ErrorKind errorKind) {
+        trace("replyWithError", MessageValue.text(errorKind.name()));
         createStandardProtocolReply().replyWithError(errorKind);
         setHandled();
     }
 
     public void replyWithError(StandardProtocol.ErrorMessageProfile errorMessageProfile) {
+        trace("replyWithError", MessageValue.text(errorMessageProfile.getErrorKind().name()));
         createStandardProtocolReply().replyWithError(errorMessageProfile);
         setHandled();
     }
 
     public void replyWithParam(Message.Value param) {
+        trace("replyWithParam", param);
         createStandardProtocolReply().replyWithParam(param);
         setHandled();
     }
@@ -77,6 +81,7 @@ public class BasicWorkerImpl implements BasicWorker {
     }
 
     public void forward(Address target, MessageValueMessage message) {
+        trace("forward", MessageValue.address(target), MessageValue.message(message.getMessageName(), message.getValues()));
         workerContext.getTransporter().transport(
                 getWorkerContext().createForwardComposer(target)
                         .create(SimpleMessage.simple(message.getMessageName(), message.getValues()))
@@ -85,6 +90,7 @@ public class BasicWorkerImpl implements BasicWorker {
 
     @Override
     public void replyWithParam(Message.MessageName message, Iterable<Message.Value> values) {
+        trace("replyWithParam", MessageValue.name(message), MessageValue.values(values));
         try {
             List<Message.Value> newValues = new LinkedList<>();
             newValues.add(VolatileMessageValue.messageName(StandardProtocol.FieldName.PARAM, message));
@@ -98,12 +104,14 @@ public class BasicWorkerImpl implements BasicWorker {
 
     @Override
     public void replyWithParam(Iterable<Message.Value> values) {
+        trace("replyWithParam",MessageValue.values(values));
         createStandardProtocolReply().replyWithParam(values);
         setHandled();
     }
 
     @Override
     public void failed(StandardProtocol.ErrorClass errorClass, StandardProtocol.ErrorKind errorKind, Iterable<Message.Value> values) {
+        trace("failed", MessageValue.text(errorKind.name()));
         createStandardProtocolReply().replyWithError(new StandardProtocol.ErrorMessageProfile() {
             @Override
             public StandardProtocol.ErrorSeverity getErrorSeverity() {
@@ -183,6 +191,8 @@ public class BasicWorkerImpl implements BasicWorker {
 
     @Override
     public void start(Task task) {
+        if (getWorkerContext().trace())
+            task.trace();
         task
                 .addFailedAction(this::failed)
                 .addSuccessAction(this::success)
@@ -210,4 +220,6 @@ public class BasicWorkerImpl implements BasicWorker {
     public void error(String message, Message.Value... values) {
         getWorkerContext().log(Receiver.WorkerContextLogKind.Error, message, values);
     }
+
+
 }

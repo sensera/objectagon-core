@@ -1,0 +1,19 @@
+{
+  "metas":[],
+  "classes":[{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name",
+      "type":"text"
+    },{
+      "name":"person.class.Age",
+      "type":"number"
+    },{
+      "name":"person.class.Comment",
+      "type":"text"
+    }],
+    "relationClasses":[],
+    "methods":[]
+  }],
+  "instances":[]
+}

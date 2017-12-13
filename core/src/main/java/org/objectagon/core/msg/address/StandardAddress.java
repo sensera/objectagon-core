@@ -5,6 +5,7 @@ import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Receiver;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
@@ -24,6 +25,19 @@ public class StandardAddress implements Address {
         this.serverId = serverId;
         this.timestamp = timestamp;
         this.addressId = addressId;
+    }
+
+    private static byte[] longToBytes(long x) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.putLong(x);
+        return buffer.array();
+    }
+
+    private static long bytesToLong(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.put(bytes);
+        buffer.flip();//need flip
+        return buffer.getLong();
     }
 
     @Override

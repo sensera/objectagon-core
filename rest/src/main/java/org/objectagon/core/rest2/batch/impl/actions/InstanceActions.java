@@ -21,9 +21,9 @@ public class InstanceActions extends AbstractActions<InstanceProtocol.Send> {
                     session.setValue(data.getFieldIdentity(), data.getValue()),
                     (AddValueData) null )
                     .setFindTargetInContext(createIdentityContextFinder(RESOLVE_INSTANCE_ID));
-            case ADD_RELATION: return (A) createDataAction(data -> session -> session
-                    .addRelation(data.getRelationClassIdentity(), data.getInstanceIdentity()),
-                    (AddRelationData) null)
+            case ADD_RELATION: return (A) createDataAction(data -> session ->
+                            session.addRelation(data.getRelationClassIdentity(),data.getInstanceIdentity())
+                        , (AddRelationData) null)
                     .setFindTargetInContext(createIdentityContextFinder(RESOLVE_INSTANCE_ID));
             default:
                 return null;

@@ -12,6 +12,8 @@ import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.KeyValue;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.objectagon.core.msg.message.MessageValue.*;
 
@@ -66,6 +68,10 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
             return task(MessageName.GET_NAME, send -> send.send(MessageName.GET_NAME));
         }
 
+        @Override public Task getFields() {
+            return task(MessageName.GET_FIELDS, send -> send.send(MessageName.GET_FIELDS));
+        }
+
         @Override
         public Task setName(InstanceClass.InstanceClassName name) {
             return task(MessageName.SET_NAME, send -> send.send(MessageName.SET_NAME, name(InstanceClass.INSTANCE_CLASS_NAME, name)));
@@ -92,14 +98,13 @@ public class InstanceClassProtocolImpl extends AbstractProtocol<InstanceClassPro
 
         @Override
         public Task addMethod(Method.MethodIdentity methodIdentity,
-                              List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings,
-                              List<KeyValue<Method.ParamName, Message.Value>> defaultValues) {
-            return task(MessageName.ADD_METHOD,
-                    send -> send.send(
+                              Stream<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings,
+                              Stream<KeyValue<Method.ParamName, Message.Value>> defaultValues) {
+            return task(MessageName.ADD_METHOD, send -> send.send(
                             MessageName.ADD_METHOD,
                             address(Method.METHOD_IDENTITY, methodIdentity),
-                            methodMessageValueTransform.createFieldMappingsTransformer().transform(fieldMappings),
-                            methodMessageValueTransform.createValuesTransformer().transform(defaultValues)
+                            methodMessageValueTransform.createFieldMappingsTransformer().transform(fieldMappings.collect(Collectors.toList())),
+                            methodMessageValueTransform.createValuesTransformer().transform(defaultValues.collect(Collectors.toList()))
                     ));
         }
 

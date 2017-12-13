@@ -14,6 +14,7 @@ import org.objectagon.core.msg.receiver.Reactor;
 import org.objectagon.core.rest2.batch.impl.BatchUpdateImpl;
 import org.objectagon.core.rest2.batch.impl.MapToBatchUpdate;
 import org.objectagon.core.rest2.batch.impl.PlanImpl;
+import org.objectagon.core.rest2.model.Model;
 import org.objectagon.core.service.*;
 import org.objectagon.core.service.name.NameServiceImpl;
 import org.objectagon.core.service.name.NameServiceProtocol;
@@ -53,7 +54,7 @@ public class BatchService extends AbstractService<BatchService.BatchServiceWorke
     private Address instanceClassServiceAddress;
     private Address transactionServiceAddress;
 
-    @Override protected boolean logLevelCheck(WorkerContextLogKind logKind) {return true;}
+    @Override protected boolean logLevelCheck(WorkerContextLogKind logKind) {return false;}
 
     public BatchService(ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
@@ -137,7 +138,7 @@ public class BatchService extends AbstractService<BatchService.BatchServiceWorke
     private static class BatchUpdateAction extends AsyncAction<BatchService, BatchServiceWorkerImpl> {
 
 
-        private Message.Values updateCommandField;
+        private Model updateCommandField;
         private boolean newTransaction;
         private PlanImpl plan;
         private Transaction transaction;
@@ -155,7 +156,7 @@ public class BatchService extends AbstractService<BatchService.BatchServiceWorke
 
         public boolean initialize() throws UserException {
             newTransaction = context.getValue(BatchServiceProtocol.NEW_TRANSACTION_FIELD).asText().equalsIgnoreCase("true");
-            updateCommandField = context.getValue(BatchServiceProtocol.UPDATE_COMMAND_FIELD).asValues();
+            updateCommandField = context.getValue(BatchServiceProtocol.UPDATE_COMMAND_FIELD).getValue();
             if (!newTransaction && context.currentTransaction().isUnknown())
                 throw new UserException(ErrorClass.BATCH_UPDATE, ErrorKind.TRANSACTION_NOT_FOUND);
             setSuccessAction(this::success);

@@ -32,7 +32,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
 
     Map<Identity,Data> latestVersion = new HashMap<>();
     Map<Key,Data> datas = new HashMap<>();
-    Map<Key,DataVersion> dataVersions = new HashMap<>();
+    Map<Key,DataRevision> dataVersions = new HashMap<>();
     Map<Key,TransactionManager.TransactionData> dataTransactions = new HashMap<>();
 
     @Override
@@ -46,7 +46,7 @@ public class PersistenceService extends AbstractService<PersistenceService.Persi
     }
 
     @Override
-    public Optional<DataVersion> getDataVersion(Identity identity, Version version) {
+    public Optional<DataRevision> getDataVersion(Identity identity, Version version) {
         return Optional.ofNullable(dataVersions.get(new Key(identity, version)));
     }
 

@@ -280,10 +280,13 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
         @Override
         public void log(WorkerContextLogKind kind, String message, Message.Value[] params) {
-            if (logLevelCheck(kind)
-                || "TRACE".equalsIgnoreCase(Util.getValueByField(headers.values(), MESSAGE_HEADER_TRACE_ACTIVE).asText())) {
-                System.out.println(kind+" "+message +" "+ printValuesToString(params));
+            if (logLevelCheck(kind) || trace()) {
+                System.out.println("["+this.message+"]"+kind+" "+message +" "+ printValuesToString(params));
             }
+        }
+
+        @Override public boolean trace() {
+            return "TRACE".equalsIgnoreCase(Util.getValueByField(headers.values(), MESSAGE_HEADER_TRACE_ACTIVE).asText());
         }
 
         @Override
@@ -325,7 +328,19 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
         public void orElseThrowUnhandled() {
             if (!worker.isHandled())
-                throw new SevereError(ErrorClass.RECEIVER, ErrorKind.UNKNOWN_MESSAGE, MessageValue.messageName(worker.getMessageName()));
+                worker.failed(ErrorClass.RECEIVER,
+                              ErrorKind.UNKNOWN_MESSAGE,
+                              MessageValue.values(
+                                          MessageValue.messageName(worker.getMessageName()),
+                                          MessageValue.text(TARGET_CLASS_NAME, BasicReceiverImpl.this.getClass().getSimpleName())
+                                      ).asValues().values());
+/*
+                throw new SevereError(
+                        ErrorClass.RECEIVER,
+                        ErrorKind.UNKNOWN_MESSAGE,
+                        MessageValue.messageName(worker.getMessageName()),
+                        MessageValue.text(BasicReceiverImpl.this.getClass().getSimpleName()));
+*/
         }
     }
 
