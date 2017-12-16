@@ -67,4 +67,5 @@ public interface Server extends Transporter {
         void asString(String data);
         void asStream(InputStream stream);
     }
+
 }

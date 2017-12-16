@@ -25,4 +25,9 @@ public interface Entity<I extends Identity, D extends Data> extends Receiver<I> 
         long getDataVersionCounter();
         Message.Values initialParams();
     }
+
+    enum DelayCauseName implements DelayCause{
+        LOCK_FOR_WRITE
+
+    }
 }

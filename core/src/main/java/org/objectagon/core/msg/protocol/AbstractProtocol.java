@@ -224,6 +224,10 @@ public abstract class AbstractProtocol<P extends Protocol.Send, R extends Protoc
             public Optional<Address> lookupAddressByAlias(Name name) {
                 return getReceiverCtrl().lookupAddressByAlias(name);
             }
+
+            @Override public void envelopeDelayed(DelayDetails delayDetails) {
+                getReceiverCtrl().envelopeDelayed(delayDetails);
+            }
         }
 
         protected class SessionTask extends AbstractTask<Protocol.SenderAddress> implements Send, Transporter {

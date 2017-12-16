@@ -23,6 +23,10 @@ public interface EntityProtocol extends Protocol<EntityProtocol.Send, Protocol.R
         UNLOCK,
     }
 
+    enum DelayCauseName implements DelayCause {
+        LOCK_FOR_TRANSACTION,
+    }
+
     interface Send extends Protocol.Send {
         Task addToTransaction(Transaction transaction);
         Task removeFromTransaction(Transaction transaction);

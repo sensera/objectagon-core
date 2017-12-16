@@ -6,6 +6,7 @@ import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.exception.UserException;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
+import org.objectagon.core.msg.Name;
 import org.objectagon.core.msg.Receiver;
 import org.objectagon.core.msg.protocol.StandardProtocol;
 import org.objectagon.core.msg.receiver.BasicReceiverImpl;
@@ -13,7 +14,10 @@ import org.objectagon.core.msg.receiver.BasicWorkerImpl;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.Util;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by christian on 2015-10-11.
@@ -137,6 +141,11 @@ public abstract class AbstractTask<A extends Address> extends BasicReceiverImpl<
             Message.Value errorKind = worker.getValue(StandardProtocol.FieldName.ERROR_KIND);
             Iterable<Message.Value> values = worker.getValues();
             failed(getErrorClass(errorClass), getErrorKind(errorKind), values);
+            worker.setHandled();
+        } else if (worker.isDelayed()) {
+            final Long delayMsec = worker.getValue(StandardProtocol.FieldName.DELAY).asNumber();
+            final Name delayCause = worker.getValue(StandardProtocol.FieldName.DELAY_CAUSE).asName();
+            //System.out.println("AbstractTask.handle "+getName()+" delayed because "+delayCause+" in "+delayMsec+"msec!");
             worker.setHandled();
         } else {
             success(worker.getMessageName(), worker.getValues());

@@ -15,10 +15,7 @@ import org.objectagon.core.task.Task;
 import org.objectagon.core.utils.FindNamedConfiguration;
 import org.objectagon.core.utils.Util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 
@@ -62,7 +59,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
             counterNumber = dataVersionCounter++;
         }
         final V v = internalCreateNewVersionForDataVersion(counterNumber);
-        System.out.println("EntityImpl.nextDataVersionVersion ??????????????? "+v+" for "+getAddress());
+        //System.out.println("EntityImpl.nextDataVersionVersion ??????????????? "+v+" for "+getAddress());
         return v;}
 
     protected Optional<D> getCachedDataByVersion(V version) {
@@ -86,10 +83,6 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
     }
 
     protected void updateDataAndVersion(D newData, DataRevision<I, V> newDataRevision) {
-/*
-        System.out.println("EntityImpl.updateDataAndVersion "+newData);
-        System.out.println("EntityImpl.updateDataAndVersion "+dataRevision);
-*/
         this.dataRevision = newDataRevision;
         final D removedData = this.dataCache.put(newData.getVersion(), newData);
         if (removedData != null)
@@ -231,8 +224,8 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .trigger(EntityProtocol.MessageName.DELETE, this::delete)
                 .trigger(EntityProtocol.MessageName.COMMIT, this::commit)
                 .trigger(EntityProtocol.MessageName.ROLLBACK, this::rollback)
-                .trigger(EntityProtocol.MessageName.LOCK, this::lock)
-                .trigger(EntityProtocol.MessageName.UNLOCK, this::unlock)
+                .trigger(EntityProtocol.MessageName.LOCK, this::lockForTransaction)
+                .trigger(EntityProtocol.MessageName.UNLOCK, this::unlockForTransaction)
                 .orElseThrowUnhandled();
     }
 
@@ -280,14 +273,22 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
         w.replyOk();
     }
 
-    private void lock(W w) {
-        //TODO implement me
+    private void lockForTransaction(W w) {
+        lock(w, EntityProtocol.DelayCauseName.LOCK_FOR_TRANSACTION, 10L, this::acceptTransactionMessages);
+        //lock(w, EntityProtocol.DelayCauseName.LOCK_FOR_TRANSACTION, 10L, this::acceptTransactionMessages);
         w.replyOk();
     }
 
-    private void unlock(W w) {
-        //TODO implement me
+    private void unlockForTransaction(W w) {
+        unlock(w);
         w.replyOk();
+    }
+
+    private boolean acceptTransactionMessages(Message.MessageName messageName) {
+        final boolean b = EntityProtocol.MessageName.UNLOCK.equals(messageName)
+                || EntityProtocol.MessageName.COMMIT.equals(messageName)
+                || EntityProtocol.MessageName.ROLLBACK.equals(messageName);
+        return b;
     }
 
 
@@ -297,6 +298,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     public <C extends Data.Change<I,V>> RunWorker<W> write(WriteActionConsumer<W,D,C> writeConsumer) {
         return worker -> {
+            lock(worker, Entity.DelayCauseName.LOCK_FOR_WRITE, 20L, messageName -> false);
             WriteDataAction<C> writeDataAction = new WriteDataAction<C>(writeConsumer);
             new ReadDataAction(worker, writeDataAction).execute();
         };
@@ -304,6 +306,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
     public <C extends Data.Change<I,V>> RunWorker<W> write(WriteActionConsumer<W,D,C> writeConsumer, DataLoadedConsumer<W,D> onDataRead) {
         return worker -> {
+            lock(worker, Entity.DelayCauseName.LOCK_FOR_WRITE, 20L, messageName -> false);
             final Transaction transaction = worker.currentTransaction();
             if (!getGetVersionFromTransaction(transaction).isPresent())  {
                 worker.trace("No data for transaction", MessageValue.address(getAddress()));
@@ -402,8 +405,15 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .pushData(newData, newDataRevision)
                 .addFailedAction(worker::failed)
                 .addSuccessAction((messageName, values) -> {
-                    updateDataAndVersion(newData, newDataRevision);
-                    worker.success(messageName, preparedValues!=null ? preparedValues.values():values);
+                    try {
+                        updateDataAndVersion(newData, newDataRevision);
+                        worker.success(messageName, preparedValues!=null ? preparedValues.values():values);
+                    } catch (Exception e) {
+                        worker.failed(ErrorClass.ENTITY, ErrorKind.UNEXPECTED, Arrays.asList(MessageValue.exception(e)));
+                    } finally {
+                        unlock(worker);
+                    }
+
                 })
                 .start();
     }

@@ -28,7 +28,7 @@ public class ServerImplTest {
     public void setUp() throws Exception {
         serverId = LocalServerId.local("name");
         server = new ServerImpl(serverId, () -> 100);
-        server.envelopeProcessor =   envelope -> envelope.targets(server::processEnvelopeTarget); // Bypass threaded processing with direct envelope processing
+        server.envelopeProcessor = envelope -> envelope.targets(server::processEnvelopeTarget); // Bypass threaded processing with direct envelope processing
     }
 
     @Test

@@ -195,7 +195,7 @@ public class PlanCreator implements BatchUpdate.AddBasis {
                 .map(updateAddressName(addClassFieldAction))
                 .map(fieldName -> plan
                         .<Actions.DataPortalTargetProtocolAction<Actions.SetNameData<Field.FieldName>>>create(LocalActionKind.SET_FIELD_NAME)
-                        .<Actions.DataPortalTargetProtocolAction<Actions.SetNameData<Field.FieldName>>>updateDataPortal(new ActionsSetNameData<>(null, fieldName)))
+                        .<Actions.DataPortalTargetProtocolAction<Actions.SetNameData<Field.FieldName>>>updateDataPortal(new ActionsSetNameData<>(fieldName, fieldName)))
                 .ifPresent(addClassFieldAction::addDependency);
         fieldPart.getType()
                 .map(fieldType -> {

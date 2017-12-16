@@ -25,6 +25,7 @@ public interface Receiver<A extends Address> {
     interface ReceiverCtrl extends Transporter, Server.CreateReceiverByName, Server.Factory, Server.AliasCtrl {
         void registerFactory(Name name, Server.Factory factory);
         Server.ServerId getServerId();
+        void envelopeDelayed(DelayDetails delayDetails);
     }
 
     interface NamedConfiguration {}
@@ -129,6 +130,18 @@ public interface Receiver<A extends Address> {
         void log(WorkerContextLogKind kind, String message, Message.Value[] params);
 
         boolean trace();
+    }
+
+    interface DelayCause extends Name {
+
+    }
+
+    interface DelayDetails {
+        Envelope getEnvelope();
+        Optional<DelayCause> getDelayCause();
+        Optional<Long> getEstimatedDelayTime();
+        Envelope createDelayReplyEnvelope(long delay);
+        void release(Runnable runnable);
     }
 
 

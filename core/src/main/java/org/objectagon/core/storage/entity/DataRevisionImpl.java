@@ -204,9 +204,9 @@ public class DataRevisionImpl<I extends Identity, V extends Version> extends Abs
         }
 
         private V newVersion(Consumer<V> newVersionConsumer) {
-            System.out.println("DataRevisionChange.newVersion !!!!!!!!!!!!!!!! "+versionCounter+" !!!!!!!!!!! "+identity);
+            //System.out.println("DataRevisionChange.newVersion !!!!!!!!!!!!!!!! "+versionCounter+" !!!!!!!!!!! "+identity);
             V newVersion = nextVersionCounter.nextVersion(versionCounter++);
-            System.out.println("DataRevisionChange.newVersion newVersion="+newVersion);
+            //System.out.println("DataRevisionChange.newVersion newVersion="+newVersion);
             newVersionConsumer.accept(newVersion);
             return newVersion;
         }

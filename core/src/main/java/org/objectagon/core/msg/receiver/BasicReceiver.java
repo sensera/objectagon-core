@@ -11,4 +11,5 @@ import org.objectagon.core.msg.message.NamedField;
 public interface BasicReceiver<A extends Address> extends Receiver<A> {
 
     Message.Field TARGET_CLASS_NAME = NamedField.text("TARGET_CLASS_NAME");
+
 }

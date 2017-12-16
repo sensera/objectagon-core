@@ -159,12 +159,18 @@ public class PlanImpl implements BatchUpdate.Plan<LocalActionKind> {
         public void updateAddressName(Name name, Address address) {
             final Address changed = updatedNameAndAddressMap.put(name, address);
             if (changed != null) {
+                System.out.println("MyActionContext.updateAddressName ---- WARNING! duplicate names ----");
+                System.out.println("MyActionContext.updateAddressName name="+name);
+                System.out.println("MyActionContext.updateAddressName address="+address);
+                System.out.println("MyActionContext.updateAddressName changed="+changed);
+/*
                 throw new SevereError(ErrorClass.REST_SERVICE, ErrorKind.INCONSISTENCY,
                                       MessageValue.text("Multiple addresses bound to same name"),
                                       MessageValue.name(name),
                                       MessageValue.address(address),
                                       MessageValue.address(changed)
                 );
+*/
             }
         }
 

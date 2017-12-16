@@ -27,6 +27,7 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSend
         LOG_MESSAGE,
         ERROR_MESSAGE,
         OK_MESSAGE,
+        DELAYED_MESSAGE,
     }
 
     enum FieldName implements Message.Field {
@@ -34,6 +35,8 @@ public interface StandardProtocol extends Protocol<StandardProtocol.StandardSend
         ERROR_CLASS("ERROR_CLASS", Message.FieldType.Text),
         ERROR_KIND("ERROR_KIND", Message.FieldType.Text),
         PARAM("PARAM", Message.FieldType.Any),
+        DELAY("DELAY", Message.FieldType.Number),
+        DELAY_CAUSE("DELAY_CAUSE", Message.FieldType.Name),
         ORIGINAL_MESSAGE("ORIGINAL_MESSAGE", Message.FieldType.MessageName),
         ;
 

@@ -42,7 +42,7 @@ public class StandardEntity<D extends StandardData> extends EntityImpl<StandardI
 
     @Override
     protected void handle(EntityWorker worker) {
-
+        super.handle(worker);
     }
 
     @Override

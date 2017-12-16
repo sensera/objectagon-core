@@ -17,6 +17,9 @@ import org.objectagon.core.utils.OneReceiverConfigurations;
 import org.objectagon.core.utils.SwitchCase;
 
 import java.util.*;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +36,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
     private ServerAliasCtrlImpl serverAliasCtrl = new ServerAliasCtrlImpl();
     private org.objectagon.core.utils.Formatter.Format format = org.objectagon.core.utils.FormatterImpl.standard();
     private Formatter textFormatter = new Formatter();
+    private final DelayedQueue delayedQueue;
 
     @Override public ServerId getServerId() {return serverId;}
 
@@ -44,6 +48,7 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         this.serverId = serverId;
         this.systemTime = systemTime;
         this.envelopeProcessor = new EnvelopeProcessorImpl(this::processEnvelopeTarget);
+        this.delayedQueue = new DelayedQueue();
     }
 
     private Optional<Factory> getFactoryByName(Name name) {
@@ -141,6 +146,10 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
         //TODO Should really start stopping this thing here...
     }
 
+    @Override public void envelopeDelayed(Receiver.DelayDetails delayDetails) {
+        delayedQueue.put(delayDetails);
+    }
+
     private static class EnvelopeProcessorImpl implements EnvelopeProcessor {
         private Queue<Envelope> queue = new LinkedList<>();
         private Envelope.Targets targets;
@@ -199,6 +208,70 @@ public class ServerImpl implements Server, Server.CreateReceiverByName, Receiver
 
                 }
             }
+        }
+    }
+
+    private class DelayedQueue implements Runnable {
+        DelayQueue<DelayedEnvelope> queue = new DelayQueue<>();
+
+        public DelayedQueue() {
+            new Thread(this).start();
+        }
+
+        public void put(Receiver.DelayDetails delayDetails) {
+            final DelayedEnvelope delayedEnvelope = new DelayedEnvelope(this, delayDetails);
+            queue.add(delayedEnvelope);
+            transport(delayedEnvelope.createDelayReplyEnvelope());
+        }
+
+        @Override public void run() {
+            while (true) {
+                try {
+                    final DelayedEnvelope delayedEnvelope = queue.poll(1, TimeUnit.SECONDS);
+                    if (delayedEnvelope != null)
+                        transport(delayedEnvelope.getEnvelope());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void release(DelayedEnvelope delayedEnvelope) {
+            queue.remove(delayedEnvelope);
+            transport(delayedEnvelope.getEnvelope());
+        }
+    }
+
+    private class DelayedEnvelope implements Delayed {
+        private DelayedQueue delayedQueue;
+        Receiver.DelayDetails delayDetails;
+
+        public DelayedEnvelope(DelayedQueue delayedQueue, Receiver.DelayDetails delayDetails) {
+            this.delayedQueue = delayedQueue;
+            this.delayDetails = delayDetails;
+            this.delayDetails.release(this::release);
+        }
+
+        private void release() {
+            this.delayedQueue.release(this);
+        }
+
+        @Override public long getDelay(TimeUnit unit) {
+            return delayDetails.getEstimatedDelayTime()
+                    .map(unit::toMillis)
+                    .orElse(unit.toMillis(20L));
+        }
+
+        @Override public int compareTo(Delayed delayed) {
+            return Long.compare(getDelay(TimeUnit.MILLISECONDS), delayed.getDelay(TimeUnit.MILLISECONDS));
+        }
+
+        public Envelope getEnvelope() {
+            return delayDetails.getEnvelope();
+        }
+
+        public Envelope createDelayReplyEnvelope() {
+            return delayDetails.createDelayReplyEnvelope(getDelay(TimeUnit.MILLISECONDS));
         }
     }
 

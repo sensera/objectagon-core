@@ -356,6 +356,10 @@ public class StandardTaskBuilder extends AbstractReceiver<StandardTaskBuilderAdd
         public void transport(Envelope envelope) {
             getReceiverCtrl().transport(envelope);
         }
+
+        @Override public void envelopeDelayed(DelayDetails delayDetails) {
+            getReceiverCtrl().envelopeDelayed(delayDetails);
+        }
     }
 
     private static class TasksByAddress {

@@ -17,7 +17,10 @@ import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.Util;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static org.objectagon.core.msg.Message.MESSAGE_HEADER_TRACE_ACTIVE;
@@ -28,6 +31,8 @@ import static org.objectagon.core.utils.Util.printValuesToString;
  */
 public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker> extends AbstractReceiver<A> implements BasicReceiver<A> {
 
+    private Lock lock;
+
     public BasicReceiverImpl(Receiver.ReceiverCtrl receiverCtrl) {
         super(receiverCtrl);
     }
@@ -36,25 +41,47 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
         return new TriggerBuilder<>(worker);
     }
 
-    abstract protected void handle(W worker);
+    protected void handle(W worker) {
+        if (!worker.isHandled()) {
+            if (worker.isError()) {
+                worker.ignoreWhenUnhandledError();
+            } else {
+                worker.replyWithError(new SevereError(ErrorClass.RECEIVER, ErrorKind.UNKNOWN_MESSAGE,
+                                                      MessageValue.messageName(worker.getMessageName())));
+            }
+        }
+    }
 
     public void receive(Envelope envelope) {
-        //System.out.println("BasicReceiverImpl.receive "+envelope+" for class "+this.getClass().getSimpleName());
         envelope.unwrap((sender, message) -> {
-            W worker = createWorker(getBasicWorkerContext(sender, message, envelope.headers()));
-            handle(worker);
-            if (!worker.isHandled()) {
-                if (worker.messageHasName(StandardProtocol.MessageName.ERROR_MESSAGE)) {
-                    System.out.println("BasicReceiverImpl.receive IGNORED ERROR " + worker.getMessageName() + printValuesToString(worker.getValues()));
-                } else {
-                    worker.replyWithError(new SevereError(ErrorClass.RECEIVER, ErrorKind.UNKNOWN_MESSAGE, MessageValue.messageName(message.getName())));
-                }
+            if (lock != null && !lock.letThrouMessages(message.getName())) {
+                getReceiverCtrl().envelopeDelayed(lock.createDelayDetails(envelope));
+                return;
             }
+            unwrapEnvelope(sender, message, envelope.headers());
         });
+    }
+
+    private void unwrapEnvelope(Address sender, Message message, Message.Values headers) {
+        W worker = createWorker(getBasicWorkerContext(sender, message, headers));
+        handle(worker);
     }
 
     protected BasicWorkerContext getBasicWorkerContext(Address sender, Message message, Message.Values headers) {
         return new BasicWorkerContext(this, sender, message, headers);
+    }
+
+    protected void lock(Worker worker, DelayCause delayCause, Long estimatedDelayTime, Predicate<Message.MessageName> ignoreMessagesWithName) {
+        if (lock != null)
+            throw new SevereError(ErrorClass.RECEIVER, ErrorKind.UNEXPECTED, MessageValue.text("Already locked"));
+        lock = new Lock(worker, delayCause, estimatedDelayTime, ignoreMessagesWithName);
+
+    }
+
+    protected void unlock(Worker worker) {
+        final Lock lockTmp = this.lock;
+        this.lock = null;
+        lockTmp.release();
     }
 
     protected boolean logLevelCheck(Receiver.WorkerContextLogKind logKind) { return false; }
@@ -328,25 +355,66 @@ public abstract class BasicReceiverImpl<A extends Address, W extends BasicWorker
 
         public void orElseThrowUnhandled() {
             if (!worker.isHandled())
-                worker.failed(ErrorClass.RECEIVER,
-                              ErrorKind.UNKNOWN_MESSAGE,
-                              MessageValue.values(
-                                          MessageValue.messageName(worker.getMessageName()),
-                                          MessageValue.text(TARGET_CLASS_NAME, BasicReceiverImpl.this.getClass().getSimpleName())
-                                      ).asValues().values());
-/*
-                throw new SevereError(
-                        ErrorClass.RECEIVER,
-                        ErrorKind.UNKNOWN_MESSAGE,
-                        MessageValue.messageName(worker.getMessageName()),
-                        MessageValue.text(BasicReceiverImpl.this.getClass().getSimpleName()));
-*/
+                if (worker.isError()) {
+                    worker.ignoreWhenUnhandledError();
+                } else {
+                    worker.failed(
+                            ErrorClass.RECEIVER,
+                            ErrorKind.UNKNOWN_MESSAGE,
+                            MessageValue.values(
+                                    MessageValue.messageName(worker.getMessageName()),
+                                    MessageValue.text(TARGET_CLASS_NAME, BasicReceiverImpl.this.getClass().getSimpleName())
+                                               ).asValues().values());
+                }
         }
     }
 
     @FunctionalInterface
     public interface RunWorker<W extends BasicWorker> {
         void run(W worker) throws UserException;
+    }
+
+    private class Lock {
+        private Worker worker;
+        private DelayCause delayCause;
+        private Long estimatedDelayTime;
+        private Predicate<Message.MessageName> ignoreMessagesWithName;
+        private LinkedList<Runnable> envelopeDelayRelease = new LinkedList<>();
+
+        public Lock(Worker worker, DelayCause delayCause, Long estimatedDelayTime, Predicate<Message.MessageName> ignoreMessagesWithName) {
+            this.worker = worker;
+            this.delayCause = delayCause;
+            this.estimatedDelayTime = estimatedDelayTime;
+            this.ignoreMessagesWithName = ignoreMessagesWithName;
+        }
+
+        public DelayDetails createDelayDetails(Envelope envelope) {
+            return new DelayDetails() {
+                @Override public Envelope getEnvelope() {return envelope;}
+                @Override public Optional<DelayCause> getDelayCause() {return Optional.ofNullable(delayCause);}
+                @Override public Optional<Long> getEstimatedDelayTime() {return Optional.ofNullable(estimatedDelayTime);}
+                @Override public Envelope createDelayReplyEnvelope(long delay) {
+                    return envelope.createReplyComposer().create(SimpleMessage.simple(
+                                    StandardProtocol.MessageName.DELAYED_MESSAGE,
+                                    MessageValue.number(StandardProtocol.FieldName.DELAY, delay),
+                                    MessageValue.name(StandardProtocol.FieldName.DELAY_CAUSE, delayCause)));
+                }
+
+                @Override public void release(Runnable runnable) {
+                    envelopeDelayRelease.add(runnable);
+                }
+            };
+        }
+
+        public boolean letThrouMessages(Message.MessageName messageName) {
+            if (ignoreMessagesWithName==null)
+                return false;
+            return ignoreMessagesWithName.test(messageName);
+        }
+
+        public void release() {
+            envelopeDelayRelease.forEach(Runnable::run);
+        }
     }
 
 

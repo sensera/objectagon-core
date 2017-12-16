@@ -17,6 +17,8 @@ import org.objectagon.core.utils.Util;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.objectagon.core.utils.Util.printValuesToString;
+
 /**
  * Created by christian on 2015-10-13.
  */
@@ -189,6 +191,10 @@ public class BasicWorkerImpl implements BasicWorker {
         return getMessageName().equals(StandardProtocol.MessageName.ERROR_MESSAGE);
     }
 
+    @Override public boolean isDelayed() {
+        return getMessageName().equals(StandardProtocol.MessageName.DELAYED_MESSAGE);
+    }
+
     @Override
     public void start(Task task) {
         if (getWorkerContext().trace())
@@ -219,6 +225,10 @@ public class BasicWorkerImpl implements BasicWorker {
     @Override
     public void error(String message, Message.Value... values) {
         getWorkerContext().log(Receiver.WorkerContextLogKind.Error, message, values);
+    }
+
+    @Override public void ignoreWhenUnhandledError() {
+        System.out.println("BasicReceiverImpl.ignoreWhenUnhandledError IGNORED ERROR " + getMessageName() + printValuesToString(getValues()));
     }
 
 

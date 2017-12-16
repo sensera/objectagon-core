@@ -17,6 +17,8 @@ public interface BasicWorker extends Receiver.Worker {
 
     boolean isError();
 
+    boolean isDelayed();
+
     void start(Task task);
 
     TaskBuilder getTaskBuilder();
@@ -24,4 +26,6 @@ public interface BasicWorker extends Receiver.Worker {
     void info(String message, Message.Value... values);
     void trace(String message, Message.Value... values);
     void error(String message, Message.Value... values);
+
+    void ignoreWhenUnhandledError();
 }

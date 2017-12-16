@@ -111,26 +111,26 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
 
     @Override
     protected void updateDataAndVersion(InstanceData newData, DataRevision<InstanceIdentity, StandardVersion> newDataRevision) {
-        System.out.println("InstanceImpl.updateDataAndVersion newData.version="+newData.getVersion());
+        //System.out.println("InstanceImpl.updateDataAndVersion newData.version="+newData.getVersion());
         super.updateDataAndVersion(newData, newDataRevision);
     }
 
     @Override public <VV extends Version> InstanceData createNewDataWithVersion(VV versionForNewData) {
         final InstanceData newDataWithVersion = super.createNewDataWithVersion(versionForNewData);
-        System.out.println("InstanceImpl.createNewDataWithVersion version="+newDataWithVersion.getVersion());
+        //System.out.println("InstanceImpl.createNewDataWithVersion version="+newDataWithVersion.getVersion());
         return newDataWithVersion;
     }
 
     private void getValue(InstanceWorker instanceWorker, InstanceData instanceData) throws UserException {
-        System.out.println("InstanceImpl("+getAddress()+").getValue trans="+instanceWorker.currentTransaction()+"");
+        //System.out.println("InstanceImpl("+getAddress()+").getValue trans="+instanceWorker.currentTransaction()+"");
         final Field.FieldIdentity fieldIdentity = instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress();
-        System.out.println("InstanceImpl.getValue field="+fieldIdentity);
+        //System.out.println("InstanceImpl.getValue field="+fieldIdentity);
         try {
             FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(fieldIdentity,instanceData);
             instanceWorker.createFieldValueProtocolForward(fieldValueIdentity).getValue();
         } catch (UserException e) {
             if (ErrorKind.FIELD_NOT_FOUND.equals(e.getErrorKind())) {  //TODO exception is not program flow
-                System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
+                //System.out.println("InstanceImpl.getValue NOT_FOUND will get default value");
                 instanceWorker.createFieldProtocolForward(fieldIdentity).getDefaultValue();
             } else
                 throw e;
@@ -141,7 +141,7 @@ public class InstanceImpl extends EntityImpl<Instance.InstanceIdentity,Instance.
         final Message.Value value = instanceWorker.getValue(FieldValue.VALUE).asValues().values().iterator().next();
         final Field.FieldIdentity fieldIdentity = instanceWorker.getValue(Field.FIELD_IDENTITY).asAddress();
         instanceWorker.trace("InstanceImpl.setValue", value, MessageValue.address(fieldIdentity), MessageValue.address(instanceWorker.currentTransaction()));
-        System.out.println("InstanceImpl("+getAddress()+").createValue "+value+" field="+fieldIdentity+" trans="+ instanceWorker.currentTransaction());
+        //System.out.println("InstanceImpl("+getAddress()+").createValue "+value+" field="+fieldIdentity+" trans="+ instanceWorker.currentTransaction());
         try {
             FieldValue.FieldValueIdentity fieldValueIdentity = getFieldValueIdentity(fieldIdentity, instanceData);
             instanceWorker.createFieldValueProtocolForward(fieldValueIdentity)
