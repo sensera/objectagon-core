@@ -1,0 +1,66 @@
+{
+  "metas":[{
+    "name":"meta",
+    "alias":"meta",
+    "methods":[{
+      "name":"addSum",
+      "alias":"addSum",
+      "code":"invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());",
+      "params":[
+        {
+          "name":"sumValue",
+          "alias":"sumValue",
+          "field":"number",
+          "default":"3"
+        },{
+          "name":"addValue",
+          "alias":"addValue",
+          "field":"number",
+          "default":"1"
+        }
+      ]
+    }]
+  }],
+  "classes":[{
+    "name":"person.class",
+    "fields":[{
+      "name":"person.class.Name",
+      "type":"text"
+    },{
+      "name":"person.class.Age",
+      "type":"number"
+    },{
+      "name":"person.class.Comment",
+      "type":"text"
+    }],
+    "relationClasses":[],
+    "methods":[{
+      "meta":"meta",
+      "name":"person.class.addSum",
+      "alias":"addSum",
+      "method":"addSum",
+      "params":[        {
+        "name":"sumValue",
+        "alias":"sumValue",
+        "field":"person.class.Age",
+        "default":"2"
+      }]
+    }]
+  }],
+  "instances":[{
+    "name":"person1",
+    "alias":"person1",
+    "class":"person.class",
+    "values":[{
+      "value":"Lars Gurra Aktersnurra",
+      "field":"person.class.Name"
+    },{
+      "value":"44",
+      "field":"person.class.Age"
+    },{
+      "value":"Mera Gurra tack",
+      "field":"person.class.Comment"
+    }],
+    "relations":[]
+  }]
+}
