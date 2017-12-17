@@ -28,15 +28,19 @@ public class TestCore {
         this.restServer = restServer;
     }
 
-    public RestCommunicator createRestCommunicator()  {
+    public RestCommunicator createRestCommunicator(String token)  {
         try {
             final RestCommunicator restCommunicator = new RestCommunicator(new URL("http://localhost:" + restServer.getPort()));
-            restCommunicator.addHeader("OBJECTAGON_REST_TOKEN", "1234567890");
+            restCommunicator.addHeader("OBJECTAGON_REST_TOKEN", token);
             return restCommunicator;
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public RestCommunicator createRestCommunicator()  {
+        return createRestCommunicator("1234567890");
     }
 
     public boolean responseIsOk() {
