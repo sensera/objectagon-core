@@ -77,10 +77,26 @@ public class KeyValueUtil<Key,Value> {
         };
     }
 
-    public static <OriginalKey, NewKey, Value> List<KeyValue<NewKey,Value>> transformList(List<KeyValue<OriginalKey,Value>> originalList, Function<OriginalKey, NewKey> transformKey) {
+    public static <OriginalKey, NewKey, OrgValue, NewValue> List<KeyValue<NewKey,NewValue>> transformList(
+            List<KeyValue<OriginalKey,OrgValue>> originalList,
+            Function<OriginalKey, NewKey> transformKey,
+            Function<OrgValue, NewValue> transformValue) {
+        return originalList.stream()
+                .map(paramNameValueKeyValue -> createKeyValue(transformKey.apply(paramNameValueKeyValue.getKey()),
+                                                              transformValue.apply(paramNameValueKeyValue.getValue())))
+                .collect(Collectors.toList());
+    }
+
+    public static <OriginalKey, NewKey, Value> List<KeyValue<NewKey,Value>> transformKey(List<KeyValue<OriginalKey,Value>> originalList, Function<OriginalKey, NewKey> transformKey) {
         return originalList.stream()
                 .map(paramNameValueKeyValue -> createKeyValue(transformKey.apply(paramNameValueKeyValue.getKey()),
                         paramNameValueKeyValue.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    public static <Key, OrgValue, NewValue> List<KeyValue<Key,NewValue>> transformValues(List<KeyValue<Key,OrgValue>> originalList, Function<OrgValue, NewValue> transformValue) {
+        return originalList.stream()
+                .map(paramNameValueKeyValue -> createKeyValue(paramNameValueKeyValue.getKey(), transformValue.apply(paramNameValueKeyValue.getValue())))
                 .collect(Collectors.toList());
     }
 

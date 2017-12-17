@@ -180,6 +180,22 @@ public class RestCommunicator {
         }
     }
 
+    public static class MultipartPayload implements Payload {
+        String data;
+
+        public MultipartPayload(String data) {
+            this.data = data;
+        }
+
+        @Override public void writeTo(OutputStream outputStream) throws IOException {
+            outputStream.write(data.getBytes());
+        }
+
+        @Override public Optional<Long> getFixedLength() {
+            return Optional.of((long) data.getBytes().length);
+        }
+    }
+
     public interface Response<Data> {
 
         default Optional<Data> getData() { return Optional.empty(); }

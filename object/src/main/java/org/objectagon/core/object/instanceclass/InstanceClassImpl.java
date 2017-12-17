@@ -206,10 +206,11 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
     }
 
     private void addMethod(InstanceClassWorker instanceClassWorker, InstanceClassData instanceClassData, ChangeInstanceClass changeInstanceClass, Message.Values preparedValues) {
-        final MessageValueFieldUtil lookup = MessageValueFieldUtil.create(preparedValues);
-        Method.MethodIdentity methodIdentity = lookup.getValueByField(Method.METHOD_IDENTITY).asAddress();
-        List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings = methodMessageValueTransform.createFieldMappingsTransformer().transform(lookup.getValueByField(InstanceClassProtocol.METHOD_FIELD_MAPPINGS));
-        List<KeyValue<Method.ParamName, Message.Value>> defaultValues = methodMessageValueTransform.createValuesTransformer().transform(lookup.getValueByField(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
+        Method.MethodIdentity methodIdentity = instanceClassWorker.getValue(Method.METHOD_IDENTITY).asAddress();
+        List<KeyValue<Method.ParamName, Field.FieldIdentity>> fieldMappings = methodMessageValueTransform.createFieldMappingsTransformer()
+                .transform(instanceClassWorker.getValue(InstanceClassProtocol.METHOD_FIELD_MAPPINGS));
+        List<KeyValue<Method.ParamName, Message.Value>> defaultValues = methodMessageValueTransform.createValuesTransformer()
+                .transform(instanceClassWorker.getValue(InstanceClassProtocol.METHOD_DEFAULT_MAPPINGS));
         changeInstanceClass.addMethod(methodIdentity, fieldMappings, defaultValues);
     }
 
@@ -255,14 +256,19 @@ public class InstanceClassImpl extends EntityImpl<InstanceClass.InstanceClassIde
                         final Message.Value valueByField = MessageValueFieldUtil.create(values).getValueByField(FieldValue.VALUE);
                         final Message.Value foundValue = valueByField.asValues().values().iterator().next();
                         //System.out.println("InstanceClassImpl.invokeMethod looked up "+paramNameFieldIdentityKeyValue.getKey()+"="+foundValue.asText());
-                        paramNameValueList.add(methodMessageValueTransform.createKeyValue(paramNameFieldIdentityKeyValue.getKey(), foundValue));
+                        final KeyValue<Method.ParamName, Message.Value> keyValue = methodMessageValueTransform.createKeyValue(paramNameFieldIdentityKeyValue.getKey(), foundValue);
+                        final List<KeyValue<Method.ParamName, Message.Value>> remove = paramNameValueList.stream()
+                                .filter(paramNameValueKeyValue -> paramNameValueKeyValue.getKey().equals(keyValue.getKey()))
+                                .collect(Collectors.toList());
+                        remove.forEach(paramNameValueList::remove);
+                        paramNameValueList.add(keyValue);
                     }));
         });
         final Task task = sequence.create();
         task.addFailedAction(instanceClassWorker::failed);
         task.addSuccessAction((messageName, values) -> {
-            //System.out.println("InstanceClassImpl.invokeMethod ******************* params ******************'");
-            //paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("InstanceClassImpl.invokeMethod "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
+            System.out.println("InstanceClassImpl.invokeMethod SUCCESS ******************* params ******************'");
+            paramNameValueList.stream().forEach(paramNameValueKeyValue -> System.out.println("InstanceClassImpl.invokeMethod "+paramNameValueKeyValue.getKey()+"="+paramNameValueKeyValue.getValue().asText()));
             instanceClassWorker.createMethodProtocolSend(methodIdentity)
                     .invoke(paramNameValueList)
                         .addFailedAction(instanceClassWorker::failed)

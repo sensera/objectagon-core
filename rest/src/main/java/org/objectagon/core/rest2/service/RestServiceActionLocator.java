@@ -53,6 +53,7 @@ public interface RestServiceActionLocator {
         <E extends Identity> Optional<E> getIdentityAtIndex(int index);
         <E extends Name> Optional<E> getNameAtIndex(int index, RestPathName restPathName);
         int size();
+        <I extends Identity> Optional<I> getIdentityByAlias(String alias);
     }
 
     @FunctionalInterface

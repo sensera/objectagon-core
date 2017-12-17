@@ -10,7 +10,8 @@ import org.junit.runner.RunWith;
 @RunWith(Cucumber.class)
 @CucumberOptions(features =
 {
-    "src/bdd/resources/feature"
+    "rest/src/bdd/resources/features"
+          //  /projects/objectagon/objectagon-core/rest/src/bdd/resources/features/
 })
 public class allTests {
 }

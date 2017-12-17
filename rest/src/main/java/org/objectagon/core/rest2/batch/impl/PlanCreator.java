@@ -267,21 +267,21 @@ public class PlanCreator implements BatchUpdate.AddBasis {
 
         methodPart.getMappedParams()
                 .map(methodPartDetail -> KeyValueUtil.createKeyValue(methodPartDetail.getParamName(), methodPartDetail.getFieldName()))
-                .forEach(dataPortal::addFieldMapping);
+                .map(dataPortal::addFieldMapping)
+                .flatMap(fieldName -> resolveDependencyFunc(addClassMethodAction).apply(fieldName).map(Stream::of).orElse(Stream.empty()))
+                .forEach(fieldName -> addResolverToPostDependencies(addClassMethodAction).apply(fieldName));
 
         methodPart.getMappedParams()
                 .filter(methodPartDetail -> methodPartDetail.getDefaultValue().isPresent())
                 .map(methodPartDetail -> KeyValueUtil.createKeyValue(methodPartDetail.getParamName(), methodPartDetail.getDefaultValue().get()))
                 .forEach(dataPortal::addDefaultValue);
 
+/*
         methodPart.getMappedParams()
-                .forEach(methodPartDetail -> {
-                    postDependencies.add(actionByName -> actionByName
-                            .actionByName(methodPartDetail.getParamName())
-                            .ifPresent(dependencyAction -> {
-                                dependencyAction.addDependencyAndResolver(addClassMethodAction, transferResolvedAddressToAction(methodPartDetail.getParamName()));
-                            }));
-                });
+                .map(BatchUpdate.ClassBasis.MethodPartDetail::getParamName)
+                .flatMap(paramName -> resolveDependencyFunc(addClassMethodAction).apply(paramName).map(Stream::of).orElse(Stream.empty()))
+                .forEach(paramName -> addResolverToPostDependencies(addClassMethodAction).apply(paramName));
+*/
 
         return addClassMethodAction;
     }
@@ -361,11 +361,14 @@ public class PlanCreator implements BatchUpdate.AddBasis {
                     .isPresent();
         }
 
-        @Override public Stream<KeyValue<Method.ParamName, Field.FieldIdentity>> getFieldMappings() {return fieldIdentityMappings.stream();}
+        @Override public Stream<KeyValue<Method.ParamName, Field.FieldIdentity>> getFieldMappings() {
+            return fieldIdentityMappings.stream();
+        }
         @Override public Stream<KeyValue<Method.ParamName, Message.Value>> getDefaultValues() {return defaultValues.stream();}
 
-        void addFieldMapping(KeyValue<Method.ParamName, Field.FieldName> fieldMapping) {
+        Field.FieldName addFieldMapping(KeyValue<Method.ParamName, Field.FieldName> fieldMapping) {
             fieldNameMappings.add(fieldMapping);
+            return fieldMapping.getValue();
         }
 
         void addFieldIdentityMapping(KeyValue<Method.ParamName, Field.FieldIdentity> fieldMapping) {
@@ -400,13 +403,21 @@ public class PlanCreator implements BatchUpdate.AddBasis {
                     .map(address -> (Meta.MetaIdentity) address)
                     .ifPresent(this::setMetaIdentity);
             fieldNameMappings.stream()
-                    .map(paramNameFieldNameKeyValue -> actionContext.getValue(paramNameFieldNameKeyValue.getKey())
-                            .map(value -> KeyValueUtil.createKeyValue(paramNameFieldNameKeyValue.getKey(), (Field.FieldIdentity)value.asAddress())))
+                    .map(findfieldName(actionContext))
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .forEach(this::addFieldIdentityMapping);
         }
-        @Override public boolean canStart() { return methodIdentity != null;}
+
+        private Function<KeyValue<Method.ParamName, Field.FieldName>, Optional<KeyValue<Method.ParamName, Field.FieldIdentity>>> findfieldName(BatchUpdate.ActionContext actionContext) {
+            return paramNameFieldNameKeyValue -> actionContext.getValue(paramNameFieldNameKeyValue.getValue())
+                    .map(value -> KeyValueUtil.createKeyValue(paramNameFieldNameKeyValue.getKey(), (Field.FieldIdentity)value.asAddress()));
+        }
+
+        @Override public boolean canStart() {
+            return methodIdentity != null
+                    && fieldNameMappings.size() == fieldIdentityMappings.size();
+        }
 
         @Override public String toString() {
             StringBuffer sb = new StringBuffer();

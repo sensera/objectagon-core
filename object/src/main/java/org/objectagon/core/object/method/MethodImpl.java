@@ -181,7 +181,7 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
 
             @Override
             public Message.Value getValue(ParamName paramName) {
-                return methodData.getInvokeParams().stream()
+                final Message.Value value1 = methodData.getInvokeParams().stream()
                         .filter(invokeParam -> invokeParam.getName().equals(paramName))
                         .findAny()
                         .map(invokeParam -> {
@@ -197,6 +197,8 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                             return value;
                         })
                         .orElse(MessageValue.empty());
+                System.out.println("MethodImpl.getValue["+paramName+"]="+value1.asText());
+                return value1;
             }
 
             @Override
@@ -216,7 +218,10 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
 
             @Override
             public <T> ValueCreator<T> setValue(ParamName paramName) {
-                return value -> { replyParams.add(methodMessageValueTransform.createKeyValue(paramName, MessageValue.any(value))); };
+                return value -> {
+                    replyParams.add(methodMessageValueTransform.createKeyValue(paramName,
+                                        getValue(paramName).getField().createValueFromUnknown(value)));
+                };
             }
 
             @Override
@@ -251,9 +256,11 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
         File compilePath = new File("/tmp/objectagoncompiler/");
         if (!compilePath.exists() && !compilePath.mkdirs() )
             throw new RuntimeException("Create dirs '"+compilePath.getAbsolutePath()+"' failed!");
-        String classpath = "./core/target/classes";
+        String classpath = "./target/classes:./core/target/classes:./object/target/classes";
+/*
         if (!new File(classpath).exists())
             classpath = "./target/classes";
+*/
             //throw new RuntimeException("classpath '" + classpath + " does not exist!");
         ObjectagonCompiler<Invoke> objectagonCompiler = new ObjectagonCompiler<>(
                 compilePath,

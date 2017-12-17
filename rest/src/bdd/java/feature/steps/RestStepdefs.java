@@ -5,8 +5,12 @@ import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
 import feature.utils.RestCommunicator;
 import feature.utils.TestCore;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static feature.utils.ReadStream.createStringFromReader;
 import static junit.framework.TestCase.fail;
@@ -17,8 +21,9 @@ public class RestStepdefs {
     private static String FIND_INSTANCE_BY_ALIAS_PATH = "class/%s/instancename/%s";
     private static String FIND_CLASS_PATH = "class/%s";
     private static String LIST_FIELDS_BY_CLASS_PATH = "class/%s/field";
-    private static String FIELD_VALUE = "instance/%s/field/%s";
-    private static String INSTANCE_RELATION_VALUE = "instance/%s/relation/%s/";
+    private static String FIELD_VALUE_PATH = "instance/%s/field/%s";
+    private static String INSTANCE_RELATION_PATH = "instance/%s/relation/%s/";
+    private static String INVOKE_METHOD_PATH = "/instance/%s/method/%s/";
 
     TestCore testCore;
 
@@ -41,7 +46,7 @@ public class RestStepdefs {
     public void theValueOfInstancePersonClassForFieldPersonClassNameIsFlabbba(
             String instanceAlias, String fieldAlias, String value) throws Throwable {
         final RestCommunicator restCommunicator = testCore.createRestCommunicator();
-        final String path = String.format(FIELD_VALUE, instanceAlias, fieldAlias);
+        final String path = String.format(FIELD_VALUE_PATH, instanceAlias, fieldAlias);
         final RestCommunicator.Response<String> stringResponse = restCommunicator.get(path, createStringFromReader);
         if (!stringResponse.ok()) {
             fail("Instance "+instanceAlias+" not found in field "+fieldAlias+" because "+stringResponse.getErrorMessage().get());
@@ -75,11 +80,28 @@ public class RestStepdefs {
     public void theRelationMainPersonRelationIsBetweenMainAndPerson(String relationName, String instanceName1,
                                                                     String instanceName2) throws Throwable {
         final RestCommunicator restCommunicator = testCore.createRestCommunicator();
-        final String path = String.format(INSTANCE_RELATION_VALUE, instanceName1, relationName);
+        final String path = String.format(INSTANCE_RELATION_PATH, instanceName1, relationName);
         final RestCommunicator.Response<String> stringResponse = restCommunicator.get(path, createStringFromReader);
         if (!stringResponse.ok()) {
             fail("Relation "+relationName+" not found because "+stringResponse.getErrorMessage().get());
         }
         assertTrue("Should find 'InstanceIdentityImpl' in response "+stringResponse.getData().get(),stringResponse.getData().get().contains("InstanceIdentityImpl"));
+    }
+
+    @When("^method (.*) for instance (.*) is invoked with params$")
+    public void methodAddToForInstancePersonIsInvokedWithParams(String methodName, String instanceAlias, Map<String,String> methodParams) throws Throwable {
+        final RestCommunicator restCommunicator = testCore.createRestCommunicator();
+        String path = String.format(INVOKE_METHOD_PATH, instanceAlias, methodName);
+        String params = "";
+        if (methodParams != null && !methodParams.isEmpty()) {
+            params = "?" + methodParams.entrySet().stream()
+                    .map(paramNameAndValue -> ""+paramNameAndValue.getKey()+"="+paramNameAndValue.getValue())
+                    .collect(Collectors.joining("&"));
+        }
+        final RestCommunicator.Response<String> stringResponse = restCommunicator.get(path+params, createStringFromReader);
+        if (!stringResponse.ok()) {
+            fail("Invoke method "+methodName+" of "+instanceAlias+" failed because "+stringResponse.getErrorMessage().get());
+        }
+        //assertTrue("Should find 'InstanceIdentityImpl' in response "+stringResponse.getData().get(),stringResponse.getData().get().contains("InstanceIdentityImpl"));
     }
 }

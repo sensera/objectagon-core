@@ -36,7 +36,7 @@ public interface InstanceProtocolRestActionsMap<A extends InstanceProtocolRestAc
         DELETE_RELATION(RestServiceProtocol.Method.DELETE,  INSTANCE_RELATION_ID_PATH),
         SET_RELATION(   RestServiceProtocol.Method.POST,    INSTANCE_RELATION_ID_ID_PATH),
         ADD_RELATION(   RestServiceProtocol.Method.PUT,     INSTANCE_RELATION_ID_ID_PATH),
-        INVOKE_METHOD(  RestServiceProtocol.Method.PUT,     INSTANCE_METHOD_PATH);
+        INVOKE_METHOD(  RestServiceProtocol.Method.GET,     INSTANCE_METHOD_PATH);
 
         RestServiceProtocol.Method method;
         RestPathPattern restPathPattern;

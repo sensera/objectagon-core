@@ -128,7 +128,8 @@ public class ObjectagonCompiler<T> {
             throw new IOException("Create dirs '"+compilePath.getAbsolutePath()+"' failed!");
         ObjectagonCompiler<Method.Invoke> objectagonCompiler = new ObjectagonCompiler<>(
                 compilePath,
-                "/projects/objectagon/objectagon-core/core/target/core-1.0-SNAPSHOT.jar",
+                "/projects/objectagon/objectagon-core/core/target/core-1.0-SNAPSHOT.jar:"+
+                "/projects/objectagon/objectagon-core/object/target/object-1.0-SNAPSHOT.jar",
                 "org.objectagon.core.compiledmethod",
                 Arrays.asList("org.objectagon.core.object.Method"));
         Class<Method.Invoke> newClass = objectagonCompiler.compile("invokeWorker.replyOk();");

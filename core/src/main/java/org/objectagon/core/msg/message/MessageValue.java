@@ -1,5 +1,8 @@
 package org.objectagon.core.msg.message;
 
+import org.objectagon.core.exception.ErrorClass;
+import org.objectagon.core.exception.ErrorKind;
+import org.objectagon.core.exception.SevereError;
 import org.objectagon.core.msg.Address;
 import org.objectagon.core.msg.Message;
 import org.objectagon.core.msg.Name;
@@ -106,7 +109,12 @@ public class MessageValue<V> implements Message.Value {
     public Long asNumber() {
         if (value instanceof String)
             return Long.parseLong( (String) value);
-        return (Long) value;
+        try {
+            return (Long) value;
+        } catch (ClassCastException e) {
+            e.printStackTrace();
+            throw new SevereError(ErrorClass.VALUE, ErrorKind.CAST, this, MessageValue.name(field.getName()), MessageValue.exception(e));
+        }
     }
 
     @Override

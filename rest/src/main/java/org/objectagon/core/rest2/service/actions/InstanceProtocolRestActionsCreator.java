@@ -28,10 +28,12 @@ public class InstanceProtocolRestActionsCreator implements InstanceProtocolRestA
                     session.setValue(
                             (Field.FieldIdentity) restServiceActionCreator.getIdAtIndex(3, restPath),
                             MessageValue.text(data));
-            case INVOKE_METHOD: return (identityStore, restPath, params, data) -> session ->
-                    session.invokeMethod(
-                            (Method.MethodIdentity) restServiceActionCreator.getIdAtIndex(3, restPath),
-                            KeyValueUtil.transformList(params, ParamNameImpl::create));
+            case INVOKE_METHOD: return (identityStore, restPath, params, data) -> session -> {
+                final List<KeyValue<Method.ParamName, Message.Value>> paramValues = KeyValueUtil.transformKey(params, ParamNameImpl::create);
+                return session.invokeMethod(
+                        (Method.MethodIdentity) restServiceActionCreator.getIdAtIndex(3, restPath),
+                        paramValues);
+            };
             case GET_RELATION: return (identityStore, restPath, params, data) -> session ->
                     session.getRelation((RelationClass.RelationClassIdentity) restServiceActionCreator.getIdAtIndex(3, restPath));
             case SET_RELATION:

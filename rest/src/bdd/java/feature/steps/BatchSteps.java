@@ -32,6 +32,15 @@ public class BatchSteps {
         testCore.setResponse(response);
     }
 
+    @When("^is sent (.*) to batch$")
+    public void sendFileToBatch2(String filenameToBatch) throws Throwable {
+        RestCommunicator restCommunicator = testCore.createRestCommunicator();
+        String fileContents = loadFileContentsAsString(filenameToBatch);
+        final RestCommunicator.Response<String> response = restCommunicator
+                .post("/batch", new RestCommunicator.JsonPayload(fileContents), createStringFromReader);
+        testCore.setResponse(response);
+    }
+
     private String loadFileContentsAsString(String resourceFileName) throws IOException {
         final InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(resourceFileName);
         if (resourceAsStream == null)

@@ -22,17 +22,19 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
     public static RestServiceActionLocator.RestPath create(Name path, RestServiceActionLocator.RestSession identityLookup) {
         Indexer indexer = new Indexer(identityLookup);
         if (path == null || path.toString().equals("/") || path.toString().equals(""))
-            return new RestPathImpl(Collections.EMPTY_LIST);
-        return new RestPathImpl(Stream.of(path.toString().split("/"))
+            return new RestPathImpl(identityLookup, Collections.EMPTY_LIST);
+        return new RestPathImpl(identityLookup, Stream.of(path.toString().split("/"))
                 .filter(s -> !s.isEmpty())
                 .map(indexer::createRestPathValue)
                 .collect(Collectors.toList()));
     }
 
     private List<RestPathValue> pathValues = new ArrayList<>();
+    private RestServiceActionLocator.RestSession identityLookup;
 
-    public RestPathImpl(List<RestPathValue> pathValues) {
+    public RestPathImpl(RestServiceActionLocator.RestSession identityLookup, List<RestPathValue> pathValues) {
         this.pathValues = pathValues;
+        this.identityLookup = identityLookup;
     }
 
     public Stream<RestPathValue> values() { return pathValues.stream(); }
@@ -60,6 +62,10 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
     @Override
     public int size() {
         return pathValues.size();
+    }
+
+    @Override public <I extends Identity> Optional<I> getIdentityByAlias(String alias) {
+        return identityLookup.getIdentityByAlias(alias).map(identity -> (I) identity);
     }
 
     private static class RestPathValueImpl implements RestPathValue {

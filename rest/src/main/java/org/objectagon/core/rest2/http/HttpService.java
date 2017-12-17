@@ -146,9 +146,14 @@ public class HttpService extends AbstractService<HttpService.HttpServiceWorker, 
 
 
     static Function<HttpCommunicator.HttpParamValues, KeyValue<ParamName, Message.Value>> getHttpParamValuesKeyValueFunction() {
-        return httpParamValues -> RestServiceProtocol.createParamKeyValue(
-                ParamName.create(httpParamValues.getParam()),
-                MessageValue.values(httpParamValues.getValues().stream().map(MessageValue::text)));
+        return httpParamValues -> {
+            final Message.Value value = httpParamValues.getValues().size() == 1
+                    ? MessageValue.text(httpParamValues.getValues().get(0))
+                    : MessageValue.values(httpParamValues.getValues().stream().map(MessageValue::text));
+            return RestServiceProtocol.createParamKeyValue(
+                    ParamName.create(httpParamValues.getParam()),
+                    value);
+        };
     }
 
     public interface HttpServiceConfig extends NamedConfiguration {
