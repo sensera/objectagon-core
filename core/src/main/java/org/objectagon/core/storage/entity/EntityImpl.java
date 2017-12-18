@@ -148,6 +148,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
 
         switch(vTransactionVersionNode.getMergeStrategy()) {
             case Uppgrade: {
+                System.out.println("EntityImpl.commit Uppgrade "+getAddress());
                 D oldData = getCachedDataByVersion(version).get(); //TODO Load when not cached
                 D newData = upgrade(oldData, newDataRevision, transaction);
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
@@ -159,6 +160,7 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 break;
             }
             case OverWrite: {
+                System.out.println("EntityImpl.commit OverWrite "+getAddress());
                 entityWorker.createPersistenceServiceProtocolSend(PersistenceService.NAME)
                         .pushData(newDataRevision)
                         .addFirstSuccessAction(overwriteDataVersion(newDataRevision))
@@ -405,15 +407,20 @@ public abstract class EntityImpl<I extends Identity, D extends Data<I,V>, V exte
                 .pushData(newData, newDataRevision)
                 .addFailedAction(worker::failed)
                 .addSuccessAction((messageName, values) -> {
-                    try {
-                        updateDataAndVersion(newData, newDataRevision);
-                        worker.success(messageName, preparedValues!=null ? preparedValues.values():values);
-                    } catch (Exception e) {
-                        worker.failed(ErrorClass.ENTITY, ErrorKind.UNEXPECTED, Arrays.asList(MessageValue.exception(e)));
-                    } finally {
-                        unlock(worker);
-                    }
+                    worker.createTransactionManagerProtocolSend(worker.currentTransaction())
+                            .addEntityTo(getAddress())
+                            .addFailedAction(worker::failed)
+                            .addSuccessAction((messageName2, values2) -> {
+                                    try {
+                                        updateDataAndVersion(newData, newDataRevision);
+                                        worker.success(messageName, preparedValues!=null ? preparedValues.values():values);
+                                    } catch (Exception e) {
+                                        worker.failed(ErrorClass.ENTITY, ErrorKind.UNEXPECTED, Arrays.asList(MessageValue.exception(e)));
+                                    } finally {
+                                        unlock(worker);
+                                    }})
 
+                            .start();
                 })
                 .start();
     }

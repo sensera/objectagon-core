@@ -11,7 +11,6 @@ import org.objectagon.core.storage.TransactionServiceProtocol;
  */
 public interface TransactionServiceProtocolRestActionsMap<A extends TransactionServiceProtocolRestActionsMap.TransactionAction> extends RestActionsMap<TransactionServiceProtocol.Send, A> {
 
-
     enum TransactionAction implements Action {
         CREATE_TRANSACTION( RestServiceProtocol.Method.PUT,     TransactionProtocolRestActionsMap.TRANSACTION_PATH),
         //EXTEND_TRANSACTION

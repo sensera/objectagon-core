@@ -24,6 +24,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         COMMIT,
         TARGETS,
         EXTEND,
+        ASSIGN,
         ROLLBACK
     }
 
@@ -35,6 +36,7 @@ public interface TransactionManagerProtocol extends Protocol<TransactionManagerP
         Task rollback();
         Task getTargets();
         Task extend();
+        Task assign();
     }
 
     interface TransactionManagerConfig extends NamedConfiguration {

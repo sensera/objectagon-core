@@ -26,6 +26,8 @@ import org.objectagon.core.task.TaskBuilder;
 import org.objectagon.core.utils.FindNamedConfiguration;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.objectagon.core.rest2.batch.BatchServiceProtocol.NAMES_FIELD;
 import static org.objectagon.core.service.name.NameServiceUtils.storeLookedUpNameIn;
@@ -151,7 +153,14 @@ public class BatchService extends AbstractService<BatchService.BatchServiceWorke
             Message.Value messageValue = plan.getActionContext()
                     .map(actionContext -> MessageValue.values(NAMES_FIELD, actionContext.asValues()))
                     .orElse(MessageValue.empty());
-            context.replyWithParam(messageValue);
+            if (!newTransaction) {
+                context.replyWithParam(messageValue);
+                return;
+            }
+            context.replyWithParam(Stream.of(
+                        MessageValue.address(transaction),
+                        messageValue)
+                    .collect(Collectors.toList()));
         }
 
         public boolean initialize() throws UserException {

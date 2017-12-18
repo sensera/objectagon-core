@@ -68,6 +68,12 @@ public class RestPathImpl implements RestServiceActionLocator.RestPath {
         return identityLookup.getIdentityByAlias(alias).map(identity -> (I) identity);
     }
 
+    @Override public String toString() {
+        return "RestPathImpl{" +
+                "pathValues=" + pathValues +
+                '}';
+    }
+
     private static class RestPathValueImpl implements RestPathValue {
         private int index;
         private String value;

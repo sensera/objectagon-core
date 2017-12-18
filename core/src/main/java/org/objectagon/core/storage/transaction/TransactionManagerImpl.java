@@ -76,6 +76,9 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
                     patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionManagerProtocol.MessageName.EXTEND),
                     (initializer, context) -> new ExtendAction(this, (TransactionManagerWorker) context)
                 ).add(
+                    patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionManagerProtocol.MessageName.ASSIGN),
+                    (initializer, context) -> new AssignAction(this, (TransactionManagerWorker) context)
+                ).add(
                     patternBuilder -> patternBuilder.setMessageNameTrigger(TransactionManagerProtocol.MessageName.TARGETS),
                     (initializer, context) -> new TargetsAction(this, (TransactionManagerWorker) context)
         );
@@ -129,6 +132,7 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
         @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
             context.trace("AddEntityToAction.internalRun Add to transaction",MessageValue.address(identity), MessageValue.address(getAddress()));
+            System.out.println("AddEntityToAction.internalRun ["+getAddress()+"] "+identity);
             TransactionManager.TransactionDataChange change = transactionData.change();
             change.add(identity);
             TransactionManager.TransactionData newTransactionData = change.create(transactionData.getVersion().nextVersion());
@@ -185,6 +189,18 @@ public class TransactionManagerImpl extends StandardReceiverImpl<Transaction, Tr
         @Override
         protected Task internalRun(TransactionManagerWorker actionContext) throws UserException {
             return actionContext.createTransactionServiceProtocolInternal(TransactionService.NAME).extend(getAddress());
+        }
+    }
+
+    private class AssignAction extends StandardAction<TransactionManagerImpl, TransactionManagerWorker> {
+
+        public AssignAction(TransactionManagerImpl initializer, TransactionManagerWorker context) {
+            super(initializer, context);
+        }
+
+        @Override
+        protected Optional<Message.Value> internalRun() throws UserException {
+            return Optional.of(MessageValue.address(getAddress()));
         }
     }
 

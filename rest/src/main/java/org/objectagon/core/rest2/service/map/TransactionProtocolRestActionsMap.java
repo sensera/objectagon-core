@@ -6,20 +6,24 @@ import org.objectagon.core.rest2.service.RestServiceActionLocator.RestPathPatter
 import org.objectagon.core.rest2.service.RestServiceProtocol;
 import org.objectagon.core.storage.TransactionManagerProtocol;
 
-import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.base;
+import static org.objectagon.core.rest2.service.locator.RestPathPatternBuilderImpl.urlPattern;
 
 /**
  * Created by christian on 2017-02-26.
  */
 public interface TransactionProtocolRestActionsMap<A extends TransactionProtocolRestActionsMap.TransactionAction> extends RestActionsMap<TransactionManagerProtocol.Send, A> {
 
-    RestPathPattern TRANSACTION_PATH                = base("transaction").build();
-    RestPathPattern TRANSACTION_ID_COMMIT_PATH      = base("transaction/{id}/commit").build();
-    RestPathPattern TRANSACTION_ID_ROLLBACK_PATH    = base("transaction/{id}/rollback").build();
+    RestPathPattern TRANSACTION_PATH                = urlPattern("transaction");
+    RestPathPattern TRANSACTION_ID_COMMIT_PATH      = urlPattern("transaction/{id}/commit");
+    RestPathPattern TRANSACTION_ID_ROLLBACK_PATH    = urlPattern("transaction/{id}/rollback");
+    RestPathPattern TRANSACTION_ID_EXTEND_PATH      = urlPattern("transaction/{id}/extend");
+    RestPathPattern TRANSACTION_ID_ASSIGN_PATH      = urlPattern("transaction/{id}/assign");
 
     enum TransactionAction implements Action {
-        COMMIT_TRANSACTION( RestServiceProtocol.Method.POST,     TRANSACTION_ID_COMMIT_PATH),
-        ROLLBACK_TRANSACTION( RestServiceProtocol.Method.POST,     TRANSACTION_ID_ROLLBACK_PATH),
+        COMMIT_TRANSACTION(     RestServiceProtocol.Method.GET,         TRANSACTION_ID_COMMIT_PATH),
+        ROLLBACK_TRANSACTION(   RestServiceProtocol.Method.GET,         TRANSACTION_ID_ROLLBACK_PATH),
+        EXTEND_TRANSACTION(     RestServiceProtocol.Method.GET,         TRANSACTION_ID_EXTEND_PATH),
+        ASSIGN_TRANSACTION(     RestServiceProtocol.Method.GET,         TRANSACTION_ID_ASSIGN_PATH),
         ;
 
         RestServiceProtocol.Method method;

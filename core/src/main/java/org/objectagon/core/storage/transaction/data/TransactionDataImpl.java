@@ -8,12 +8,12 @@ import org.objectagon.core.storage.TransactionManager;
 import org.objectagon.core.storage.data.AbstractData;
 import org.objectagon.core.storage.standard.StandardVersion;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * Created by christian on 2016-03-29.
@@ -21,10 +21,10 @@ import static java.util.Collections.emptyList;
 public class TransactionDataImpl extends AbstractData<Transaction,StandardVersion> implements TransactionManager.TransactionData {
 
     public static TransactionDataImpl create(Transaction transaction, StandardVersion version) {
-        return new TransactionDataImpl(transaction, version, emptyList(), Optional.empty());
+        return new TransactionDataImpl(transaction, version, emptySet(), Optional.empty());
     }
 
-    private List<Identity> identities;
+    private Set<Identity> identities;
     private Optional<Transaction> extendsTransaction;
 
     @Override public Stream<Identity> getIdentities() {
@@ -35,7 +35,7 @@ public class TransactionDataImpl extends AbstractData<Transaction,StandardVersio
     }
     @Override public int countIdentities() {return identities.size();}
 
-    TransactionDataImpl(Transaction identity, StandardVersion version, List<Identity> identities, Optional<Transaction> extendsTransaction) {
+    TransactionDataImpl(Transaction identity, StandardVersion version, Set<Identity> identities, Optional<Transaction> extendsTransaction) {
         super(identity, version);
         this.identities = identities;
         this.extendsTransaction = extendsTransaction;

@@ -141,13 +141,18 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         private RestServiceActionLocator.RestSession getRestSession(RestSessionToken token) {
             RestServiceActionLocator.RestSession restSession = sessions.get(token);
-            if (restSession==null && token != null) {
+            if (restSession==null) {
                 if (token==null)
                     throw new NullPointerException("token is null!");
-                if (!Objects.equals(STATIC_REST_TOKEN,token))
-                    throw new NullPointerException("restSession is null '"+token+"'!");
-                createNewToken();
-                restSession = sessions.get(token);
+                if (Objects.equals(STATIC_REST_TOKEN,token)) {
+                    createNewToken();
+                    restSession = sessions.get(token);
+                    return restSession;
+                }
+                final RestSessionImpl session = new RestSessionImpl(token);
+                sessions.put(token, session);
+                System.out.println("RestServiceWorker.getRestSession new "+token);
+                return session;
             }
             return restSession;
         }
@@ -202,9 +207,9 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
         RestServiceActionLocator createRestServiceActionLocator();
     }
 
-    public static class RestSessionImpl implements RestServiceActionLocator.RestSession {
+    private Map<String,Identity> aliases = new HashMap<>();
 
-        private Map<String,Identity> aliases = new HashMap<>();
+    public class RestSessionImpl implements RestServiceActionLocator.RestSession {
         private RestSessionToken name;
         private Transaction transaction;
 
@@ -215,7 +220,9 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         @Override
         public void updateTransaction(Transaction transaction) {
+            System.out.println("RestSessionImpl.updateTransaction ("+name.name+") "+transaction+" prev="+this.transaction);
             this.transaction = transaction;
+            aliases.put(name.name, transaction);
         }
 
         @Override
@@ -228,7 +235,7 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
             if (transaction!=null) {
                 consumer.accept(transaction);
             }
-            //System.out.println("RestSessionImpl.useActiveTransaction !!!!!!! "+transaction);
+            System.out.println("RestSessionImpl.useActiveTransaction !!!!!!! "+transaction);
         }
 
         public RestSessionImpl(RestSessionToken name) {
@@ -237,12 +244,14 @@ public class RestService extends AbstractService<RestService.RestServiceWorker, 
 
         @Override
         public void updateAlias(Identity identity, String alias) {
-            //System.out.println("!!!!!!!!!!!!!!!!!! RestSessionImpl.updateAlias "+alias);
+            //System.out.println("!!!!!!!!!!!!!!!!!! RestSessionImpl.updateAlias "+alias+" for "+identity);
             aliases.put(alias, identity);
         }
 
         @Override
         public Optional<Identity> getIdentityByAlias(String alias) {
+            if (name.name.equalsIgnoreCase(alias))
+                return Optional.ofNullable(transaction);
             //System.out.println("RestSessionImpl.getIdentityByAlias "+alias+"="+aliases.get(alias));
             return Optional.ofNullable(aliases.get(alias));
         }

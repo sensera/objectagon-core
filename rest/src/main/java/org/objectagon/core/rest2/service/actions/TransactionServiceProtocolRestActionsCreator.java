@@ -18,7 +18,8 @@ public class TransactionServiceProtocolRestActionsCreator implements Transaction
     @Override
     public <C extends CreateSendMessageAction<TransactionServiceProtocol.Send>> CreateSendMessageAction<TransactionServiceProtocol.Send> getAction(AddAction<TransactionServiceProtocol.Send> restServiceActionCreator, TransactionAction action) {
         switch (action) {
-            case CREATE_TRANSACTION: return (identityStore, restPath, params, data) -> session -> catchAlias(identityStore, params, StandardField.ADDRESS, session.create()
+            case CREATE_TRANSACTION: return (identityStore, restPath, params, data) -> session ->
+                    catchAlias(identityStore, params, StandardField.ADDRESS, session.create()
                     .addSuccessAction(captureTransaction(identityStore)));
             default: return (identityStore, restPath, params, data) -> session -> throwNotImplementedSevereError(action);
         }

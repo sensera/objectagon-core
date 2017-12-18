@@ -9,6 +9,7 @@ import org.objectagon.core.storage.standard.StandardVersion;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 public class TransactionDataChangeImpl implements TransactionManager.TransactionDataChange {
 
     private final TransactionManager.TransactionData transactionData;
-    private List<Consumer<List<Identity>>> changes = new ArrayList<>();
+    private List<Consumer<Set<Identity>>> changes = new ArrayList<>();
     private Optional<Transaction> extendsTransaction = Optional.empty();
 
     public TransactionDataChangeImpl(TransactionManager.TransactionData transactionData) {
@@ -45,7 +46,7 @@ public class TransactionDataChangeImpl implements TransactionManager.Transaction
 
     @Override
     public <D extends Data<Transaction, StandardVersion>> D create(StandardVersion version) {
-        List<Identity> newList = transactionData.getIdentities().collect(Collectors.toList());
+        Set<Identity> newList = transactionData.getIdentities().collect(Collectors.toSet());
         changes.forEach(listConsumer -> listConsumer.accept(newList));
         return (D) new TransactionDataImpl(
                 transactionData.getIdentity(),

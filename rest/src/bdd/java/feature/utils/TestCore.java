@@ -22,16 +22,17 @@ public class TestCore {
     private String name;
     private RestServer restServer;
     private RestCommunicator.Response response;
+    private String tokenName = "1234567890";
 
     public TestCore(String name, RestServer restServer) {
         this.name = name;
         this.restServer = restServer;
     }
 
-    public RestCommunicator createRestCommunicator(String token)  {
+    public RestCommunicator createRestCommunicator()  {
         try {
             final RestCommunicator restCommunicator = new RestCommunicator(new URL("http://localhost:" + restServer.getPort()));
-            restCommunicator.addHeader("OBJECTAGON_REST_TOKEN", token);
+            restCommunicator.addHeader("OBJECTAGON_REST_TOKEN", tokenName);
             return restCommunicator;
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -39,8 +40,8 @@ public class TestCore {
         }
     }
 
-    public RestCommunicator createRestCommunicator()  {
-        return createRestCommunicator("1234567890");
+    public void useToken(String tokenName)  {
+        this.tokenName = tokenName;
     }
 
     public boolean responseIsOk() {
@@ -55,4 +56,7 @@ public class TestCore {
         return response != null ? (String) response.getErrorMessage().orElse("") : "";
     }
 
+    public String getTokenName() {
+        return tokenName;
+    }
 }

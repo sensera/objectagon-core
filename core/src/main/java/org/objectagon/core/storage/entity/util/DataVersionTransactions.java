@@ -20,14 +20,22 @@ public class DataVersionTransactions<I extends Identity, V extends Version> {
     }
 
     public boolean transactionExists(Transaction transaction) {
-        return dataRevision.rootNode().isPresent()
-                && transactionExists(dataRevision.rootNode().get(), transaction);
+        return dataRevision.rootNode()
+                .map(vTransactionVersionNode -> transactionExists(vTransactionVersionNode, transaction))
+                .orElse(false);
     }
 
     private boolean transactionExists(DataRevision.TransactionVersionNode<V> vTransactionVersionNode, Transaction transaction) {
-        return  Objects.equals(vTransactionVersionNode.getTransaction(),transaction) ? true :
+        return  equalsOrExtendsTRansaction(vTransactionVersionNode.getTransaction(),transaction) ? true :
                 vTransactionVersionNode.getNextVersion()
                 .map(vTransactionVersionNode1 -> transactionExists(vTransactionVersionNode, transaction))
                 .orElse(false);
+    }
+
+    private boolean equalsOrExtendsTRansaction(Transaction origin, Transaction equalOrExtends) {
+        return Objects.equals(origin,equalOrExtends)
+                && origin.extendsTransaction()
+                .map(extendedTrans -> equalsOrExtendsTRansaction(extendedTrans, equalOrExtends))
+                .orElse(true);
     }
 }

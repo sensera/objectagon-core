@@ -3,8 +3,8 @@
     "name":"meta",
     "alias":"meta",
     "methods":[{
-      "name":"Hubba",
-      "alias":"Hello",
+      "name":"addSum",
+      "alias":"addSum",
       "code":"invokeWorker.setValue(\"sumValue\").set(invokeWorker.getValue(\"sumValue\").asNumber() + invokeWorker.getValue(\"addValue\").asNumber());",
       "params":[
         {
@@ -46,9 +46,9 @@
     "relationClasses":[],
     "methods":[{
       "meta":"meta",
-      "name":"person.class.Hubba",
-      "alias":"Hello",
-      "method":"Hubba",
+      "name":"person.class.addSum",
+      "alias":"addSum",
+      "method":"addSum",
       "params":[        {
         "name":"sumValue",
         "alias":"sumValue",

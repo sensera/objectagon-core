@@ -64,7 +64,6 @@ public class BatchServiceProtocolRestActionsCreator implements BatchServiceProto
         return (messageName, values) -> MessageValueFieldUtil.create(values).getValueByFieldOption(NAMES_FIELD)
                 .ifPresent(value -> MessageValueFieldUtil.create(value.asValues()).stream()
                         .forEach(nameAddress -> identityStore.updateIdentity(nameAddress.asAddress(), nameAddress.getField().getName().toString())));
-
     }
 
     @Override

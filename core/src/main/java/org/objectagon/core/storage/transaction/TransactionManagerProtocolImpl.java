@@ -61,5 +61,9 @@ public class TransactionManagerProtocolImpl extends AbstractProtocol<Transaction
         public Task extend() {
             return task(MessageName.EXTEND, send -> send.send(MessageName.EXTEND));
         }
+
+        @Override public Task assign() {
+            return task(MessageName.ASSIGN, send -> send.send(MessageName.ASSIGN));
+        }
     }
 }

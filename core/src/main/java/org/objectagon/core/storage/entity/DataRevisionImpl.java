@@ -196,7 +196,11 @@ public class DataRevisionImpl<I extends Identity, V extends Version> extends Abs
             if (root != null) {
                 Optional<DataVersionsChangeNode> lastNodeOption = findNode(DataVersionsChangeNode::hasNextVersion);
                 lastNodeOption.ifPresent(addChainedNode(newNode));
-                lastNodeOption.orElseThrow(() -> new SevereError(ErrorClass.DATAVERSION, ErrorKind.INCONSISTENCY, MessageValue.address(transaction)));
+                lastNodeOption.orElseGet(() -> {
+                  root.setNextVersion(Optional.of(newNode));
+                  return null;
+                });
+                //lastNodeOption.orElseThrow(() -> new SevereError(ErrorClass.DATAVERSION, ErrorKind.INCONSISTENCY, MessageValue.address(transaction)));
             } else {
                 root = newNode;
             }
