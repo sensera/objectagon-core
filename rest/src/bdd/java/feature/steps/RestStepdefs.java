@@ -125,7 +125,7 @@ public class RestStepdefs {
         //assertTrue("Should find 'InstanceIdentityImpl' in response "+stringResponse.getData().get(),stringResponse.getData().get().contains("InstanceIdentityImpl"));
     }
 
-    @And("^I extend curren transaction$")
+    @And("^I extend current transaction$")
     public void iExtendCurrenTransaction() throws Throwable {
         final RestCommunicator restCommunicator = testCore.createRestCommunicator();
         String path = String.format(EXTEND_TRANSACTION_PATH, testCore.getTokenName());

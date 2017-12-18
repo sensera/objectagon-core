@@ -18,7 +18,7 @@ Feature: Transactions
   Scenario: Verify commit of value
     Given I shift to Kalle
     And I assign root transaction to current token
-    And I extend curren transaction
+    And I extend current transaction
     And method addSum for instance person2 is invoked with params
       | addValue | 4 |
     And the value of instance person2 for field person.class.Age is 82
@@ -34,7 +34,7 @@ Feature: Transactions
   Scenario: Verify commit of method
     Given I shift to Kalle
     And I assign root transaction to current token
-    And I extend curren transaction
+    And I extend current transaction
     And Update method addSum to invokeWorker.setValue("sumValue").set(invokeWorker.getValue("sumValue").asNumber() - invokeWorker.getValue("addValue").asNumber());
     And the value of instance person2 for field person.class.Age is 78
     And method addSum for instance person2 is invoked with params
