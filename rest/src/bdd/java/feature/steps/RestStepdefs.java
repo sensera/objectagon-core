@@ -9,6 +9,7 @@ import cucumber.api.java.en.When;
 import feature.utils.RestCommunicator;
 import feature.utils.TestCore;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -92,7 +93,7 @@ public class RestStepdefs {
         assertTrue("Should find 'InstanceIdentityImpl' in response "+stringResponse.getData().get(),stringResponse.getData().get().contains("InstanceIdentityImpl"));
     }
 
-    @When("^method (.*) for instance (.*) is invoked with params$")
+    @When("^invoke method (.*) for instance (.*) is invoked with params$")
     public void methodAddToForInstancePersonIsInvokedWithParams(String methodName, String instanceAlias, Map<String,String> methodParams) throws Throwable {
         final RestCommunicator restCommunicator = testCore.createRestCommunicator();
         String path = String.format(INVOKE_METHOD_PATH, instanceAlias, methodName);
@@ -109,7 +110,7 @@ public class RestStepdefs {
         //assertTrue("Should find 'InstanceIdentityImpl' in response "+stringResponse.getData().get(),stringResponse.getData().get().contains("InstanceIdentityImpl"));
     }
 
-    @When("^I shift to (.*)$")
+    @When("^I shift to token (.*)$")
     public void iShiftToKalle(String tokenName) throws Throwable {
         testCore.useToken(tokenName);
     }
@@ -125,7 +126,7 @@ public class RestStepdefs {
         //assertTrue("Should find 'InstanceIdentityImpl' in response "+stringResponse.getData().get(),stringResponse.getData().get().contains("InstanceIdentityImpl"));
     }
 
-    @And("^I extend current transaction$")
+    @And("^I create new transaction based on current transaction$")
     public void iExtendCurrenTransaction() throws Throwable {
         final RestCommunicator restCommunicator = testCore.createRestCommunicator();
         String path = String.format(EXTEND_TRANSACTION_PATH, testCore.getTokenName());
@@ -145,11 +146,12 @@ public class RestStepdefs {
         }
     }
 
-    @And("^Update method (.*) to (.*)$")
-    public void iCommitCurrentTransaction(String methodName, String code) throws Throwable {
+    @And("^Update method (.*) with code$")
+    public void iCommitCurrentTransaction(String methodName, List<String> code) throws Throwable {
         final RestCommunicator restCommunicator = testCore.createRestCommunicator();
         String path = String.format(SET_METHOD_CODE_PATH, methodName);
-        final RestCommunicator.Response<String> stringResponse = restCommunicator.post(path, new RestCommunicator.JsonPayload(code), createStringFromReader);
+        final RestCommunicator.JsonPayload payload = new RestCommunicator.JsonPayload(code.stream().collect(Collectors.joining("\n")));
+        final RestCommunicator.Response<String> stringResponse = restCommunicator.post(path, payload, createStringFromReader);
         if (!stringResponse.ok()) {
             fail("Set method failed because "+stringResponse.getErrorMessage().get());
         }
