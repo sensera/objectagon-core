@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
       <module fileurl="file://$PROJECT_DIR$/demo/demo.iml" filepath="$PROJECT_DIR$/demo/demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/developer/developer.iml" filepath="$PROJECT_DIR$/developer/developer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/developerdemo/developerdemo.iml" filepath="$PROJECT_DIR$/developerdemo/developerdemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/object/object.iml" filepath="$PROJECT_DIR$/object/object.iml" />
       <module fileurl="file://$PROJECT_DIR$/objectagon-core.iml" filepath="$PROJECT_DIR$/objectagon-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/rest/rest.iml" filepath="$PROJECT_DIR$/rest/rest.iml" />

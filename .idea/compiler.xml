@@ -22,6 +22,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="core" />
+        <module name="developer" />
+        <module name="developerdemo" />
         <module name="object" />
         <module name="rest" />
         <module name="shop" />
@@ -30,6 +32,8 @@
     <bytecodeTargetLevel target="1.8">
       <module name="core" target="1.8" />
       <module name="demo" target="1.8" />
+      <module name="developer" target="1.8" />
+      <module name="developerdemo" target="1.8" />
       <module name="object" target="1.8" />
       <module name="objectagon-core" target="1.8" />
       <module name="rest" target="1.8" />

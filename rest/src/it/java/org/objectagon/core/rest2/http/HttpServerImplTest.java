@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.objectagon.core.rest2.utils.ReadStream.readStream;
@@ -92,6 +93,28 @@ public class HttpServerImplTest {
         assertEquals("POST", httpCommunicator.method);
         assertEquals("/more", httpCommunicator.path);
     }
+
+    @Test
+    public void loading() throws Exception {
+        httpCommunicator.replyContent = "reply";
+
+        IntStream.range(0, 10000).boxed().parallel().forEach(integer -> {
+            try {
+                final HttpURLConnection urlConnection = (HttpURLConnection) new URL("http://127.0.0.1:12345/home").openConnection();
+                final String response = new String(readStream(urlConnection.getInputStream()));
+
+                httpCommunicator.waitUntilComplete(5);
+                urlConnection.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
 
     private class TestHttpCommunicator implements HttpCommunicator {
         private String method;

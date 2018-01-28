@@ -171,7 +171,7 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
 
             @Override
             public Message.Value getValue(String name) {
-                return getValue(new ParamNameImpl(name));
+                return getValue(ParamNameImpl.create(name));
             }
 
             @Override
@@ -186,9 +186,7 @@ public class MethodImpl extends EntityImpl<Method.MethodIdentity, Method.MethodD
                         .findAny()
                         .map(invokeParam -> {
                             final Message.Value value = paramNameValueList.stream()
-                                    .filter(paramNameValueKeyValue -> {
-                                        return paramNameValueKeyValue.getKey().equals(invokeParam.getName());
-                                    })
+                                    .filter(paramNameValueKeyValue -> paramNameValueKeyValue.getKey().equals(invokeParam.getName()))
                                     .map(KeyValue::getValue)
                                     .findAny()
                                     .orElse(MessageValue.empty());
